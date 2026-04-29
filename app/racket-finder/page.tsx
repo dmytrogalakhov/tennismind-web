@@ -139,12 +139,12 @@ export default function RacketFinderPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newAnswers),
       });
-      if (!res.ok) throw new Error("API error");
-      const data: RecommendationResult = await res.json();
-      setResult(data);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "API error");
+      setResult(data as RecommendationResult);
       setStatus("result");
-    } catch {
-      setErrorMsg("Something went wrong. Please try again.");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setStatus("error");
     }
   }

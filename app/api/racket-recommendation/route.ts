@@ -68,12 +68,15 @@ Respond ONLY with valid JSON in this exact shape, no markdown, no explanation ou
       messages: [{ role: "user", content: prompt }],
     });
 
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
-    const result: RecommendationResult = JSON.parse(text);
+    const raw = message.content[0].type === "text" ? message.content[0].text : "";
+    // Strip markdown code fences if Claude wrapped the JSON
+    const json = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+    const result: RecommendationResult = JSON.parse(json);
 
     return Response.json(result);
   } catch (err) {
-    console.error("Racket recommendation error:", err);
-    return Response.json({ error: "Failed to generate recommendation" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Racket recommendation error:", message);
+    return Response.json({ error: message }, { status: 500 });
   }
 }
