@@ -7,6 +7,7 @@ type Props = {
   body: string;
   title: string;
   slug: string;
+  t: { read_full: string; hide: string; share_telegram: string; share_whatsapp: string };
 };
 
 function renderBody(body: string) {
@@ -35,19 +36,18 @@ function renderBody(body: string) {
   );
 }
 
-export default function AnalysisBody({ body, title, slug }: Props) {
+export default function AnalysisBody({ body, title, slug, t }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   if (!body) return null;
 
   return (
     <div className="mt-5 pt-5 border-t border-accent/10">
-      {/* Toggle button */}
       <button
         onClick={() => setExpanded((v) => !v)}
         className="flex items-center gap-2 text-xs font-medium text-accent border border-accent/25 px-4 py-2 rounded-full hover:bg-accent/10 transition-colors cursor-pointer"
       >
-        {expanded ? 'Hide analysis' : 'Read full analysis'}
+        {expanded ? t.hide : t.read_full}
         <svg
           width="12"
           height="12"
@@ -66,7 +66,6 @@ export default function AnalysisBody({ body, title, slug }: Props) {
         </svg>
       </button>
 
-      {/* Collapsible area — grid trick for smooth height animation */}
       <div
         style={{
           display: 'grid',
@@ -81,8 +80,7 @@ export default function AnalysisBody({ body, title, slug }: Props) {
         </div>
       </div>
 
-      {/* Share buttons — always visible */}
-      <ShareButtons title={title} slug={slug} />
+      <ShareButtons title={title} slug={slug} t={{ share_telegram: t.share_telegram, share_whatsapp: t.share_whatsapp }} />
     </div>
   );
 }

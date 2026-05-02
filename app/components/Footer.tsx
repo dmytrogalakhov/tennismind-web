@@ -1,6 +1,37 @@
 import Link from "next/link";
 
-export default function Footer() {
+type FooterDict = {
+  tagline: string;
+  nav_label: string;
+  community_label: string;
+  community_text: string;
+  copyright: string;
+  built_for: string;
+};
+
+type NavDict = {
+  home: string;
+  match_analyses: string;
+  racket_finder: string;
+  string_finder: string;
+  predictions: string;
+};
+
+type Props = {
+  lang: string;
+  dict: FooterDict;
+  navDict: NavDict;
+};
+
+export default function Footer({ lang, dict, navDict }: Props) {
+  const navLinks = [
+    { href: `/${lang}`, label: navDict.home },
+    { href: `/${lang}/analysis`, label: navDict.match_analyses },
+    { href: `/${lang}/predictions`, label: navDict.predictions },
+    { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
+    { href: `/${lang}/string-finder`, label: navDict.string_finder },
+  ];
+
   return (
     <footer className="border-t border-accent/15 bg-[#0a0015] py-12 px-4">
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8">
@@ -10,21 +41,16 @@ export default function Footer() {
             <span className="text-accent">Mind</span>
           </div>
           <p className="text-sm text-white/45 leading-relaxed max-w-xs">
-            Data-driven tennis intelligence. Match analysis, predictions, and gear recommendations.
+            {dict.tagline}
           </p>
         </div>
 
         <div>
           <p className="text-xs font-semibold text-white/30 uppercase tracking-widest mb-3">
-            Navigation
+            {dict.nav_label}
           </p>
           <ul className="space-y-2">
-            {[
-              { href: "/", label: "Home" },
-              { href: "/analysis", label: "Analysis" },
-              { href: "/predictions", label: "Predictions" },
-              { href: "/racket-finder", label: "Racket Finder" },
-            ].map((link) => (
+            {navLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
@@ -39,11 +65,9 @@ export default function Footer() {
 
         <div>
           <p className="text-xs font-semibold text-white/30 uppercase tracking-widest mb-3">
-            Community
+            {dict.community_label}
           </p>
-          <p className="text-sm text-white/60 mb-3">
-            Join the TennisMind Telegram for daily tennis insights.
-          </p>
+          <p className="text-sm text-white/60 mb-3">{dict.community_text}</p>
           <a
             href="https://t.me/tennismind"
             target="_blank"
@@ -59,12 +83,8 @@ export default function Footer() {
       </div>
 
       <div className="max-w-6xl mx-auto mt-10 pt-6 border-t border-accent/10 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p className="text-xs text-white/30">
-          © 2025 TennisMind. All rights reserved.
-        </p>
-        <p className="text-xs text-white/30">
-          Built for tennis lovers, by tennis lovers.
-        </p>
+        <p className="text-xs text-white/30">{dict.copyright}</p>
+        <p className="text-xs text-white/30">{dict.built_for}</p>
       </div>
     </footer>
   );

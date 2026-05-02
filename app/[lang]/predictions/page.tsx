@@ -1,3 +1,6 @@
+import { getDictionary, hasLocale } from "../dictionaries";
+import { notFound } from "next/navigation";
+
 type Contender = {
   player: string;
   flag: string;
@@ -114,81 +117,73 @@ const tournaments: Tournament[] = [
   },
 ];
 
-const trendIcon = {
-  up: "↑",
-  down: "↓",
-  neutral: "→",
-};
+const trendIcon = { up: "↑", down: "↓", neutral: "→" };
+const trendColor = { up: "text-cyan", down: "text-pink", neutral: "text-white/30" };
 
-const trendColor = {
-  up: "text-cyan",
-  down: "text-pink",
-  neutral: "text-white/30",
-};
+export default async function PredictionsPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  if (!hasLocale(lang)) notFound();
+  const dict = await getDictionary(lang);
+  const t = dict.predictions;
 
-const statusBadge = {
-  live: "bg-pink/10 text-pink border-pink/20",
-  upcoming: "bg-cyan/10 text-cyan border-cyan/20",
-  completed: "bg-white/5 text-white/30 border-white/10",
-};
+  const statusBadge = {
+    live: "bg-pink/10 text-pink border-pink/20",
+    upcoming: "bg-cyan/10 text-cyan border-cyan/20",
+    completed: "bg-white/5 text-white/30 border-white/10",
+  };
 
-const statusLabel = {
-  live: "● Live",
-  upcoming: "Upcoming",
-  completed: "Completed",
-};
+  const statusLabel = {
+    live: t.status_live,
+    upcoming: t.status_upcoming,
+    completed: t.status_completed,
+  };
 
-export default function PredictionsPage() {
   return (
     <div className="flex-1 py-16 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-            Tournament Predictions
-          </h1>
-          <p className="text-white/60 text-lg max-w-2xl">
-            Data-backed win probability forecasts for major ATP and WTA tournaments. Updated after every significant result.
-          </p>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4">{t.title}</h1>
+          <p className="text-white/60 text-lg max-w-2xl">{t.subtitle}</p>
         </div>
 
-        {/* Tournament cards */}
         <div className="space-y-8">
-          {tournaments.map((t) => (
+          {tournaments.map((tournament) => (
             <div
-              key={t.name}
+              key={tournament.name}
               className="bg-accent/[0.06] border border-accent/15 rounded-2xl overflow-hidden"
             >
-              {/* Card header */}
               <div className="px-6 sm:px-8 py-5 border-b border-accent/15 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusBadge[t.status]}`}
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusBadge[tournament.status]}`}
                     >
-                      {statusLabel[t.status]}
+                      {statusLabel[tournament.status]}
                     </span>
-                    <span className="text-xs text-white/30">{t.category}</span>
+                    <span className="text-xs text-white/30">{tournament.category}</span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-bold">{t.name}</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold">{tournament.name}</h2>
                   <p className="text-sm text-white/45 mt-0.5">
-                    {t.dates} · {t.location}
+                    {tournament.dates} · {tournament.location}
                   </p>
                 </div>
                 <span
-                  className={`text-sm font-semibold px-3 py-1.5 rounded-xl border ${t.surfaceColor}`}
+                  className={`text-sm font-semibold px-3 py-1.5 rounded-xl border ${tournament.surfaceColor}`}
                 >
-                  {t.surface}
+                  {tournament.surface}
                 </span>
               </div>
 
               <div className="px-6 sm:px-8 py-6">
-                {/* Win probabilities */}
                 <p className="text-xs text-white/45 uppercase tracking-widest mb-4">
-                  Win Probability
+                  {t.win_probability}
                 </p>
                 <div className="space-y-3 mb-6">
-                  {t.contenders.map((c, i) => (
+                  {tournament.contenders.map((c, i) => (
                     <div key={c.player} className="flex items-center gap-3">
                       <span className="text-xs text-white/30 w-4 text-right shrink-0">
                         {i + 1}
@@ -218,31 +213,29 @@ export default function PredictionsPage() {
                   ))}
                 </div>
 
-                {/* Dark horse */}
                 <div className="bg-accent/10 border border-accent/15 rounded-xl px-4 py-4 mb-4">
                   <p className="text-xs text-white/45 uppercase tracking-widest mb-2">
-                    Dark Horse Pick
+                    {t.dark_horse}
                   </p>
                   <div className="flex items-start gap-2">
-                    <span className="text-base">{t.darkHorse.flag}</span>
+                    <span className="text-base">{tournament.darkHorse.flag}</span>
                     <div>
                       <span className="font-semibold text-white">
-                        {t.darkHorse.player}
+                        {tournament.darkHorse.player}
                       </span>
                       <p className="text-sm text-white/60 mt-0.5 leading-relaxed">
-                        {t.darkHorse.note}
+                        {tournament.darkHorse.note}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Insight */}
                 <div className="bg-accent/5 border border-accent/10 rounded-xl px-4 py-3">
                   <p className="text-xs text-accent font-semibold uppercase tracking-widest mb-1">
-                    Our Take
+                    {t.our_take}
                   </p>
                   <p className="text-sm text-white/80 leading-relaxed">
-                    {t.insight}
+                    {tournament.insight}
                   </p>
                 </div>
               </div>
@@ -250,10 +243,7 @@ export default function PredictionsPage() {
           ))}
         </div>
 
-        {/* Disclaimer */}
-        <p className="text-xs text-white/30 text-center mt-12">
-          Probabilities are model-generated estimates based on recent form, head-to-head records, and surface statistics. Not financial or betting advice.
-        </p>
+        <p className="text-xs text-white/30 text-center mt-12">{t.disclaimer}</p>
       </div>
     </div>
   );

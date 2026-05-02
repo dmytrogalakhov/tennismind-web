@@ -1,35 +1,7 @@
 import Link from "next/link";
 import { getAllAnalyses, formatDate } from "@/lib/analyses";
-
-const stats = [
-  { value: "500+", label: "Match Analyses" },
-  { value: "94%", label: "Prediction Accuracy" },
-  { value: "200+", label: "Rackets Compared" },
-];
-
-const features = [
-  {
-    icon: "📊",
-    title: "Match Analysis",
-    desc: "Why matches were decided the way they were. The turning points, patterns, and stats that tell the real story.",
-    href: "/analysis",
-    cta: "Read Analyses",
-  },
-  {
-    icon: "🏆",
-    title: "Tournament Predictions",
-    desc: "Who wins and why. H2H data, form analysis, and surface records — before the first ball is hit.",
-    href: "/predictions",
-    cta: "See Predictions",
-  },
-  {
-    icon: "🎾",
-    title: "Racket Finder",
-    desc: "7 questions. 30 seconds. A personalized racket recommendation matched to your game, level, and budget.",
-    href: "/racket-finder",
-    cta: "Find Your Racket",
-  },
-];
+import { getDictionary, hasLocale } from "./dictionaries";
+import { notFound } from "next/navigation";
 
 const surfaceColor: Record<string, string> = {
   Grass: "text-emerald-400",
@@ -37,8 +9,59 @@ const surfaceColor: Record<string, string> = {
   Clay: "text-orange-400",
 };
 
-export default function HomePage() {
-  const recentAnalyses = getAllAnalyses().slice(0, 2);
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  if (!hasLocale(lang)) notFound();
+  const dict = await getDictionary(lang);
+  const t = dict.home;
+
+  const allAnalyses = getAllAnalyses();
+  const recentAnalyses = allAnalyses.slice(0, 2);
+
+  const stats = [
+    { value: String(allAnalyses.length), label: t.stats_match_analyses },
+    { value: "95%", label: t.stats_prediction_accuracy },
+    { value: "10+", label: t.stats_rackets_recommended },
+  ];
+
+  const features = [
+    {
+      icon: "📊",
+      title: t.f1_title,
+      desc: t.f1_desc,
+      href: `/${lang}/analysis`,
+      cta: t.f1_cta,
+      badge: null,
+    },
+    {
+      icon: "🏆",
+      title: t.f2_title,
+      desc: t.f2_desc,
+      href: `/${lang}/predictions`,
+      cta: t.f2_cta,
+      badge: null,
+    },
+    {
+      icon: "🎾",
+      title: t.f3_title,
+      desc: t.f3_desc,
+      href: `/${lang}/racket-finder`,
+      cta: t.f3_cta,
+      badge: t.coming_soon,
+    },
+    {
+      icon: "🎸",
+      title: t.f4_title,
+      desc: t.f4_desc,
+      href: `/${lang}/string-finder`,
+      cta: t.f4_cta,
+      badge: t.coming_soon,
+    },
+  ];
 
   return (
     <div className="flex-1">
@@ -47,27 +70,25 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_rgba(191,90,242,0.18)_0%,_rgba(0,229,255,0.04)_55%,_transparent_80%)]" />
         <div className="relative max-w-4xl mx-auto text-center">
           <h1 className="text-5xl sm:text-7xl font-bold tracking-tight leading-tight mb-6">
-            Everything tennis.
+            {t.hero_headline_1}
             <br />
-            <span className="text-accent">One place.</span>
+            <span className="text-accent">{t.hero_headline_2}</span>
           </h1>
           <p className="text-lg sm:text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Understand the sport we love on a deeper level. Improve your own
-            play with the right tactics and gear. TennisMind is built for
-            people who don&apos;t just watch tennis — they live it.
+            {t.hero_subline}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/racket-finder"
+              href={`/${lang}/racket-finder`}
               className="bg-accent text-white font-semibold px-8 py-3.5 rounded-full hover:bg-[#a84ad9] transition-colors"
             >
-              Find Your Racket
+              {t.hero_cta_racket}
             </Link>
             <Link
-              href="/predictions"
+              href={`/${lang}/analysis`}
               className="border border-cyan/40 text-cyan font-semibold px-8 py-3.5 rounded-full hover:bg-cyan/10 transition-colors"
             >
-              View Predictions
+              {t.hero_cta_analysis}
             </Link>
           </div>
         </div>
@@ -93,25 +114,32 @@ export default function HomePage() {
       <section className="py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
-            Built for tennis lovers, by tennis lovers
+            {t.features_heading}
           </h2>
           <p className="text-white/60 text-center mb-16 max-w-xl mx-auto">
-            The tools that make the difference.
+            {t.features_sub}
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f) => (
               <div
                 key={f.title}
-                className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 hover:border-accent/30 transition-colors group"
+                className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 hover:border-accent/30 transition-colors group flex flex-col"
               >
-                <div className="text-4xl mb-4">{f.icon}</div>
+                <div className="flex items-start justify-between mb-4">
+                  <span className="text-4xl">{f.icon}</span>
+                  {f.badge && (
+                    <span className="text-xs font-medium text-cyan border border-cyan/30 bg-cyan/10 px-2 py-0.5 rounded-full">
+                      {f.badge}
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
-                <p className="text-white/60 text-sm mb-6 leading-relaxed">
+                <p className="text-white/60 text-sm leading-relaxed flex-1">
                   {f.desc}
                 </p>
                 <Link
                   href={f.href}
-                  className="text-accent text-sm font-medium group-hover:underline"
+                  className="text-accent text-sm font-medium group-hover:underline mt-6"
                 >
                   {f.cta} →
                 </Link>
@@ -125,12 +153,12 @@ export default function HomePage() {
       <section className="py-24 px-4 bg-[#06000e] border-t border-accent/10">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold">Latest Analysis</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold">{t.latest_title}</h2>
             <Link
-              href="/analysis"
+              href={`/${lang}/analysis`}
               className="text-accent text-sm font-medium hover:underline"
             >
-              View all →
+              {t.latest_view_all}
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -166,16 +194,14 @@ export default function HomePage() {
       <section className="py-24 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ready to find your perfect racket?
+            {t.cta_heading}
           </h2>
-          <p className="text-white/60 mb-8">
-            Take our 7-question quiz and get a personalized recommendation in under a minute.
-          </p>
+          <p className="text-white/60 mb-8">{t.cta_desc}</p>
           <Link
-            href="/racket-finder"
+            href={`/${lang}/racket-finder`}
             className="inline-block bg-accent text-white font-semibold px-10 py-4 rounded-full hover:bg-[#a84ad9] transition-colors text-lg"
           >
-            Start the Quiz →
+            {t.cta_button}
           </Link>
         </div>
       </section>

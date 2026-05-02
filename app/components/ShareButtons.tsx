@@ -3,6 +3,7 @@
 type Props = {
   title: string;
   slug: string;
+  t: { share_telegram: string; share_whatsapp: string };
 };
 
 function TelegramIcon() {
@@ -21,7 +22,7 @@ function WhatsAppIcon() {
   );
 }
 
-export default function ShareButtons({ title, slug }: Props) {
+export default function ShareButtons({ title, slug, t }: Props) {
   function getUrl() {
     return `${window.location.origin}/analysis#${slug}`;
   }
@@ -45,14 +46,14 @@ export default function ShareButtons({ title, slug }: Props) {
         className="flex items-center gap-2 text-xs text-white/60 border border-accent/15 px-4 py-2 rounded-full hover:border-cyan/40 hover:text-cyan transition-colors cursor-pointer"
       >
         <TelegramIcon />
-        Share on Telegram
+        {t.share_telegram}
       </button>
       <button
         onClick={shareWhatsApp}
         className="flex items-center gap-2 text-xs text-white/60 border border-accent/15 px-4 py-2 rounded-full hover:border-emerald-400/40 hover:text-emerald-400 transition-colors cursor-pointer"
       >
         <WhatsAppIcon />
-        Share on WhatsApp
+        {t.share_whatsapp}
       </button>
     </div>
   );

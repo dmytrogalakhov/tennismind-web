@@ -1,3 +1,10 @@
+type RecommendedString = {
+  name: string;
+  type: string;
+  tension_range: string;
+  why: string;
+};
+
 type RacketEntry = {
   name: string;
   brand: string;
@@ -20,6 +27,8 @@ type RacketEntry = {
   ideal_profile: string;
   not_ideal_for: string;
   famous_users: string;
+  similar_alternatives: string[];
+  recommended_string: RecommendedString;
 };
 
 export const RACKET_DATABASE: RacketEntry[] = [
@@ -45,6 +54,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced aggressive baseliner aged 20-50 who wants to dominate rallies with heavy topspin. Also works for defensive counter-punchers.",
     not_ideal_for: "Beginners (too stiff), serve-and-volley players, players with arm issues, players over 50.",
     famous_users: "Rafael Nadal (retired), Alex Michelsen, Adrian Mannarino",
+    similar_alternatives: ["Babolat Pure Aero 98", "Head Extreme MP", "Dunlop SX 300"],
+    recommended_string: {
+      name: "Babolat RPM Blast",
+      type: "Polyester",
+      tension_range: "24–27 kg",
+      why: "The tour-standard poly for spin machines. Matches the stiff frame's character, amplifies topspin, and is durable enough for heavy hitters. Nadal's string of choice for this racket.",
+    },
   },
   {
     name: "Babolat Pure Aero 98",
@@ -68,6 +84,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced all-court player or aggressive baseliner who wants the Pure Aero's spin but with more control and precision.",
     not_ideal_for: "Beginners, intermediates, players wanting easy power, anyone with arm issues.",
     famous_users: "Carlos Alcaraz, Felix Auger-Aliassime, Holger Rune",
+    similar_alternatives: ["Babolat Pure Aero", "Yonex VCORE 98", "Head Extreme MP"],
+    recommended_string: {
+      name: "Luxilon ALU Power",
+      type: "Polyester",
+      tension_range: "25–28 kg",
+      why: "The dense 16x20 pattern rewards a firm, low-powered poly. ALU Power adds precision and control while the frame's construction keeps spin alive.",
+    },
   },
   {
     name: "Babolat Pure Aero Lite",
@@ -91,6 +114,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "A beginner or intermediate player of any age who wants the Pure Aero's spin DNA but needs a lighter frame. Perfect for women, juniors 14-18, men over 45.",
     not_ideal_for: "Advanced players (not enough stability), powerful hitters.",
     famous_users: "Popular among WTA players and club competitors",
+    similar_alternatives: ["Babolat Pure Aero Team", "Head Boom MP", "Wilson Clash 100"],
+    recommended_string: {
+      name: "Babolat RPM Blast",
+      type: "Polyester",
+      tension_range: "22–25 kg",
+      why: "Lower tension than the full Aero suits this lighter frame — RPM Blast gives spin and durability while the reduced tension softens the stiff frame and eases arm stress.",
+    },
   },
   {
     name: "Babolat Pure Aero Team",
@@ -114,6 +144,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "A beginner or intermediate player who wants the Pure Aero's spin DNA but needs a lighter frame.",
     not_ideal_for: "Advanced players, powerful hitters.",
     famous_users: "Popular among WTA players and club competitors",
+    similar_alternatives: ["Babolat Pure Aero Lite", "Head Boom MP"],
+    recommended_string: {
+      name: "Babolat RPM Blast",
+      type: "Polyester",
+      tension_range: "22–25 kg",
+      why: "RPM Blast at lower tension suits this lighter frame — delivers spin without overwhelming developing technique.",
+    },
   },
   {
     name: "Babolat Pure Drive",
@@ -137,6 +174,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "A versatile frame that suits a wide range of players regardless of age, gender, or skill level who want power.",
     not_ideal_for: "Anyone with arm issues, finesse players, serve-and-volley players.",
     famous_users: "Previously used by many ATP/WTA players at various career stages",
+    similar_alternatives: ["Babolat Pure Aero", "Head Extreme MP", "Wilson Clash 100"],
+    recommended_string: {
+      name: "Wilson NXT",
+      type: "Multifilament",
+      tension_range: "22–26 kg",
+      why: "The stiffest Babolat frame benefits from a softer multifilament. NXT absorbs shock from the stiff beam, adds feel, and is kinder to the arm while maintaining the frame's power.",
+    },
   },
   {
     name: "Babolat Pure Strike 98 16x19",
@@ -160,6 +204,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced aggressive baseliner or all-court player who values control and precision. The thinking player's Babolat.",
     not_ideal_for: "Beginners, pure power seekers, players who need maximum forgiveness.",
     famous_users: "Dominic Thiem (previously)",
+    similar_alternatives: ["Babolat Pure Aero 98", "Head Speed MP", "Wilson Blade 98 v9"],
+    recommended_string: {
+      name: "Natural Gut / Poly Hybrid",
+      type: "Hybrid",
+      tension_range: "24–27 kg",
+      why: "Natural gut mains bring out the frame's exceptional feel and touch; a poly cross adds spin and durability. This tour-style hybrid transforms the Pure Strike into a precision instrument.",
+    },
   },
   {
     name: "Babolat Pure Strike 100 16x20",
@@ -183,6 +234,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced player who wants control and comfort without the demanding nature of the 98.",
     not_ideal_for: "Pure spin players, beginners.",
     famous_users: "",
+    similar_alternatives: ["Babolat Pure Strike 98 16x19", "Head Gravity MP"],
+    recommended_string: {
+      name: "Natural Gut",
+      type: "Natural Gut",
+      tension_range: "23–25 kg",
+      why: "Natural gut maximises the comfort and feel of this control-oriented frame. The dense 16x20 pattern combined with gut creates a plush, controlled setup that's easy on the arm.",
+    },
   },
   {
     name: "Babolat Pure Strike 18x20",
@@ -206,6 +264,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced serve-and-volley or all-court player who prioritises placement over power.",
     not_ideal_for: "Spin-dependent players, beginners, intermediates, power seekers.",
     famous_users: "",
+    similar_alternatives: ["Babolat Pure Strike 98 16x19", "Head Prestige MP"],
+    recommended_string: {
+      name: "Natural Gut",
+      type: "Natural Gut",
+      tension_range: "22–25 kg",
+      why: "The densest string pattern in Babolat's lineup responds best to natural gut. It provides the feel, touch, and precision needed for volley winners and flat drives.",
+    },
   },
   {
     name: "Head Speed MP",
@@ -229,6 +294,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced all-court player who wants one racket that does everything well. The Swiss Army knife of tennis rackets.",
     not_ideal_for: "Beginners, pure spin seekers, pure power seekers.",
     famous_users: "Novak Djokovic, Alexander Zverev",
+    similar_alternatives: ["Head Radical MP", "Wilson Blade 98 v9", "Babolat Pure Strike 98 16x19"],
+    recommended_string: {
+      name: "Natural Gut / Poly Hybrid",
+      type: "Hybrid",
+      tension_range: "24–27 kg",
+      why: "Djokovic's setup: natural gut mains for feel and touch, poly cross for spin and durability. Amplifies this versatile frame's best qualities across all areas of the game.",
+    },
   },
   {
     name: "Head Extreme MP",
@@ -252,6 +324,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced aggressive baseliner who wants spin and power with better comfort than the Pure Aero.",
     not_ideal_for: "Serve-and-volley, beginners, players wanting maximum control.",
     famous_users: "Jannik Sinner (previously), Matteo Berrettini",
+    similar_alternatives: ["Babolat Pure Aero", "Head Gravity MP", "Dunlop SX 300"],
+    recommended_string: {
+      name: "Luxilon ALU Power",
+      type: "Polyester",
+      tension_range: "24–27 kg",
+      why: "ALU Power's controlled bite complements the Extreme's aggressive spin profile. A firm poly keeps ball flights predictable and extends string life for heavy hitters.",
+    },
   },
   {
     name: "Head Gravity MP",
@@ -275,6 +354,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced all-court player who values comfort and shot variety. Great for players who outthink opponents.",
     not_ideal_for: "Pure spin players, power seekers, beginners.",
     famous_users: "Alexander Zverev (previously)",
+    similar_alternatives: ["Head Radical MP", "Wilson Clash 100", "Tecnifibre Tempo 298"],
+    recommended_string: {
+      name: "Tecnifibre X-One Biphase",
+      type: "Multifilament",
+      tension_range: "22–25 kg",
+      why: "The arm-friendly Gravity deserves a soft string to match. X-One Biphase enhances this frame's natural comfort and touch, making it ideal for all-day sessions.",
+    },
   },
   {
     name: "Head Radical MP",
@@ -298,6 +384,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An all-court player or serve-and-volley player who wants a comfortable, controlled frame.",
     not_ideal_for: "Spin-heavy players, beginners, pure power seekers.",
     famous_users: "Andy Murray (previously)",
+    similar_alternatives: ["Head Speed MP", "Wilson Blade 98 v9", "Tecnifibre Tempo 298"],
+    recommended_string: {
+      name: "Natural Gut / Poly Hybrid",
+      type: "Hybrid",
+      tension_range: "24–26 kg",
+      why: "The Radical's soft frame pairs beautifully with a hybrid setup — gut mains for all-court feel and precision, poly cross for durability and just enough spin.",
+    },
   },
   {
     name: "Head Prestige MP",
@@ -321,6 +414,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced serve-and-volley or all-court player who demands maximum control and has the fitness to handle a heavy frame.",
     not_ideal_for: "Everyone except advanced/pro players with excellent technique.",
     famous_users: "Marin Cilic (previously), Gael Monfils (previously)",
+    similar_alternatives: ["Wilson Pro Staff 97 v14", "Babolat Pure Strike 18x20"],
+    recommended_string: {
+      name: "Natural Gut",
+      type: "Natural Gut",
+      tension_range: "22–25 kg",
+      why: "At 59 RA this is the softest performance frame available — it deserves the most natural string available. Full natural gut maximises touch, feel, and comfort for surgical shot-making.",
+    },
   },
   {
     name: "Head Boom MP",
@@ -344,6 +444,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "A beginner or intermediate player of any age who wants a comfortable, forgiving racket that still plays like a real performance frame.",
     not_ideal_for: "Advanced players, pure power seekers at advanced level.",
     famous_users: "Popular at club level",
+    similar_alternatives: ["Wilson Clash 100", "Babolat Pure Aero Lite", "Babolat Pure Aero Team"],
+    recommended_string: {
+      name: "Tecnifibre X-One Biphase",
+      type: "Multifilament",
+      tension_range: "22–24 kg",
+      why: "A beginner-to-intermediate frame needs a forgiving, comfortable string. X-One Biphase is soft on the arm, adds feel, and suits developing players who are still building technique.",
+    },
   },
   {
     name: "Wilson Blade 98 v9",
@@ -367,6 +474,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced all-court player who values feel, precision, and control over raw power.",
     not_ideal_for: "Beginners, intermediates, power seekers.",
     famous_users: "Previously Serena Williams, Milos Raonic",
+    similar_alternatives: ["Head Speed MP", "Wilson Pro Staff 97 v14", "Babolat Pure Strike 98 16x19"],
+    recommended_string: {
+      name: "Natural Gut / Poly Hybrid",
+      type: "Hybrid",
+      tension_range: "24–27 kg",
+      why: "The Blade's exceptional feel rewards a natural gut main — add a poly cross for spin and durability. This hybrid creates a complete, tour-level setup that highlights the frame's best qualities.",
+    },
   },
   {
     name: "Wilson Clash 100",
@@ -390,6 +504,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "ANY player who prioritises comfort — due to arm injuries, age, or preference. Especially for players returning from tennis elbow, seniors, and anyone playing 3+ times per week.",
     not_ideal_for: "Players who want maximum control and precision, players who like crisp stiff feel.",
     famous_users: "Popular among club players, seniors, and players recovering from injury",
+    similar_alternatives: ["Head Boom MP", "Head Gravity MP", "Babolat Pure Strike 100 16x20"],
+    recommended_string: {
+      name: "Tecnifibre X-One Biphase",
+      type: "Multifilament",
+      tension_range: "22–25 kg",
+      why: "The softest racket on the market needs the softest string. X-One Biphase doubles down on comfort and arm-friendliness, ideal for players recovering from injury or playing long sessions.",
+    },
   },
   {
     name: "Wilson Pro Staff 97 v14",
@@ -413,6 +534,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced serve-and-volley or classic all-court player who appreciates precision, feel, and racket heritage.",
     not_ideal_for: "Everyone except strong advanced players.",
     famous_users: "Roger Federer (retired), Stefanos Tsitsipas",
+    similar_alternatives: ["Head Prestige MP", "Wilson Blade 98 v9"],
+    recommended_string: {
+      name: "Natural Gut",
+      type: "Natural Gut",
+      tension_range: "22–25 kg",
+      why: "Federer's string of choice for this frame. Natural gut responds to the head-light balance with extraordinary touch and feel on volleys, slices, and precise groundstrokes.",
+    },
   },
   {
     name: "Wilson Burn 100LS",
@@ -436,6 +564,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "A total beginner who needs an affordable, light racket to start learning.",
     not_ideal_for: "Anyone beyond beginner level. Not a long-term racket.",
     famous_users: "Designed for recreational beginners",
+    similar_alternatives: ["Babolat Boost Aero", "Head MX Attitude Elite", "Babolat Pure Aero Lite"],
+    recommended_string: {
+      name: "Synthetic Gut",
+      type: "Synthetic Gut",
+      tension_range: "22–25 kg",
+      why: "A beginner racket is best paired with affordable, forgiving synthetic gut. It provides adequate feel and lasts longer than most strings for casual players still developing their game.",
+    },
   },
   {
     name: "Yonex EZONE 100",
@@ -459,6 +594,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced player who wants power AND comfort. Great for players switching from stiff frames due to arm concerns.",
     not_ideal_for: "Pure spin seekers, maximum control seekers.",
     famous_users: "Naomi Osaka, Nick Kyrgios",
+    similar_alternatives: ["Babolat Pure Aero", "Head Extreme MP", "Head Boom MP"],
+    recommended_string: {
+      name: "Yonex Poly Tour Pro",
+      type: "Polyester",
+      tension_range: "22–26 kg",
+      why: "Yonex's own poly is tuned for the EZONE's isometric head shape, delivering spin and power while remaining kinder to the arm than competing polys.",
+    },
   },
   {
     name: "Yonex VCORE 98",
@@ -482,6 +624,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced aggressive baseliner who wants maximum spin from a control-oriented frame.",
     not_ideal_for: "Beginners, intermediates, comfort seekers, serve-and-volley.",
     famous_users: "Casper Ruud",
+    similar_alternatives: ["Babolat Pure Aero 98", "Wilson Blade 98 v9", "Dunlop CX 200"],
+    recommended_string: {
+      name: "Luxilon ALU Power",
+      type: "Polyester",
+      tension_range: "25–28 kg",
+      why: "High-tension ALU Power amplifies the VCORE 98's control and precision. The firm poly matches the advanced spin-first character of this frame.",
+    },
   },
   {
     name: "Tecnifibre Tempo 298",
@@ -505,6 +654,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced all-court player who values feel and comfort. The hidden gem for players willing to look beyond the big brands.",
     not_ideal_for: "Brand-conscious players, beginners, pure power seekers.",
     famous_users: "Daniil Medvedev",
+    similar_alternatives: ["Head Radical MP", "Head Gravity MP", "Dunlop CX 200"],
+    recommended_string: {
+      name: "Tecnifibre X-One Biphase",
+      type: "Multifilament",
+      tension_range: "22–25 kg",
+      why: "Medvedev's string of choice for his Tecnifibre frame. X-One Biphase maximises feel and comfort, perfectly complementing the Tempo's all-court character.",
+    },
   },
   {
     name: "Dunlop CX 200",
@@ -528,6 +684,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An advanced all-court player who wants a quality control frame without paying Wilson or Head premium prices.",
     not_ideal_for: "Beginners, power seekers, brand-conscious players.",
     famous_users: "Kevin Anderson (retired)",
+    similar_alternatives: ["Wilson Blade 98 v9", "Tecnifibre Tempo 298", "Head Radical MP"],
+    recommended_string: {
+      name: "Luxilon ALU Power",
+      type: "Polyester",
+      tension_range: "24–27 kg",
+      why: "The precision-oriented CX 200 works best with a firm, low-powered poly. ALU Power keeps the ball exactly where you aim it while matching the frame's control-first character.",
+    },
   },
   {
     name: "Dunlop SX 300",
@@ -551,6 +714,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced aggressive baseliner wanting a spin-focused racket at a better price than Babolat or Head alternatives.",
     not_ideal_for: "Beginners, control purists, brand-conscious players.",
     famous_users: "",
+    similar_alternatives: ["Babolat Pure Aero", "Head Extreme MP", "Diadem Nova 100"],
+    recommended_string: {
+      name: "Solinco Hyper-G",
+      type: "Polyester",
+      tension_range: "23–26 kg",
+      why: "Hyper-G's spin-amplifying properties pair perfectly with the SX 300's design. The combination maximises heavy topspin while maintaining durability for heavy string-breakers.",
+    },
   },
   {
     name: "Diadem Elevate 98",
@@ -574,6 +744,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced player who doesn't care about brand name and wants a high-quality, well-priced racket.",
     not_ideal_for: "Brand-conscious players, beginners, players who want to try before buying.",
     famous_users: "Growing presence among college and lower-tour professionals",
+    similar_alternatives: ["Wilson Blade 98 v9", "Dunlop CX 200", "Tecnifibre Tempo 298"],
+    recommended_string: {
+      name: "Luxilon ALU Power",
+      type: "Polyester",
+      tension_range: "25–27 kg",
+      why: "The Elevate's control-first design responds best to a firm, low-powered poly. ALU Power keeps shots penetrating and precise while respecting the frame's elegant character.",
+    },
   },
   {
     name: "Diadem Nova 100",
@@ -597,6 +774,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "An intermediate-to-advanced aggressive baseliner looking for a powerful, spin-friendly frame at a price well below the big brands.",
     not_ideal_for: "Brand loyalists, beginners, players who need to demo extensively.",
     famous_users: "Emerging presence in college tennis",
+    similar_alternatives: ["Babolat Pure Aero", "Head Extreme MP", "Dunlop SX 300"],
+    recommended_string: {
+      name: "Solinco Hyper-G",
+      type: "Polyester",
+      tension_range: "23–26 kg",
+      why: "The spin-first Nova responds exceptionally well to a spin-optimised poly. Hyper-G maximises topspin and durability, ideal for the power-focused players this racket attracts.",
+    },
   },
   {
     name: "Babolat Boost Aero",
@@ -620,6 +804,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "A complete beginner on a budget who wants to try tennis without a big investment.",
     not_ideal_for: "Anyone who plays more than once a week.",
     famous_users: "Entry-level recreational players",
+    similar_alternatives: ["Head MX Attitude Elite", "Wilson Burn 100LS"],
+    recommended_string: {
+      name: "Synthetic Gut",
+      type: "Synthetic Gut",
+      tension_range: "22–25 kg",
+      why: "This entry-level racket comes pre-strung and is ready to play. When strings need replacing, synthetic gut is the most affordable and forgiving option for beginners.",
+    },
   },
   {
     name: "Head MX Attitude Elite",
@@ -643,6 +834,13 @@ export const RACKET_DATABASE: RacketEntry[] = [
     ideal_profile: "Someone who wants to try tennis for the first time with minimal investment.",
     not_ideal_for: "Anyone who plans to play regularly.",
     famous_users: "",
+    similar_alternatives: ["Babolat Boost Aero", "Wilson Burn 100LS"],
+    recommended_string: {
+      name: "Synthetic Gut",
+      type: "Synthetic Gut",
+      tension_range: "22–24 kg",
+      why: "The most affordable beginner racket comes pre-strung. When replacement is needed, synthetic gut at a low tension maximises comfort and forgiveness for new players.",
+    },
   },
 ];
 
@@ -650,19 +848,19 @@ export function getRacketDatabaseText(): string {
   return RACKET_DATABASE.map((r) => [
     `### ${r.name} (${r.brand})`,
     `Category: ${r.category}`,
-    `Head: ${r.head_size} | Weight: ${r.weight} | Balance: ${r.balance} | Stiffness: ${r.stiffness}`,
-    `String pattern: ${r.string_pattern} | Price: ${r.price_range}`,
+    `Head size: ${r.head_size} | Weight: ${r.weight} | Balance: ${r.balance} | Stiffness: ${r.stiffness} | String pattern: ${r.string_pattern}`,
+    `Price: ${r.price_range}`,
     `Best for levels: ${r.best_for_level.join(", ")}`,
     `Best for styles: ${r.best_for_style.join(", ")}`,
     `Best for priorities: ${r.best_for_priority.join(", ")}`,
     `Age notes: ${r.age_sweet_spot}`,
-    `Gender notes: ${r.gender_notes}`,
-    `First racket suitable: ${r.first_racket_suitable ? "Yes" : "No"}`,
     `Health/arm notes: ${r.health_warning}`,
     `Strengths: ${r.strengths}`,
     `Weaknesses: ${r.weaknesses}`,
     `Ideal profile: ${r.ideal_profile}`,
     `Not ideal for: ${r.not_ideal_for}`,
+    `Similar alternatives (use ONLY these for runner_up): ${r.similar_alternatives.join(", ")}`,
+    `Recommended string: ${r.recommended_string.name} | Type: ${r.recommended_string.type} | Tension: ${r.recommended_string.tension_range} | Why: ${r.recommended_string.why}`,
     ...(r.famous_users ? [`Used by: ${r.famous_users}`] : []),
     "",
   ].join("\n")).join("\n");
