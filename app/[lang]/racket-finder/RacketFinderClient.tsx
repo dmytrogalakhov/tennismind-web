@@ -58,7 +58,7 @@ type Answers = Record<string, string>;
 type QuestionOption = { value: string; label: string; desc?: string; disabled?: boolean };
 
 type Props = { lang: string; t: T; apiErrorT: ApiErrorT };
-type Status = "quiz" | "loading" | "result" | "error";
+type Status = "checking" | "quiz" | "loading" | "result" | "error";
 
 const SESSION_KEY = "racket_recommendation";
 
@@ -137,7 +137,7 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [selected, setSelected] = useState<string | null>(null);
-  const [status, setStatus] = useState<Status>("quiz");
+  const [status, setStatus] = useState<Status>("checking");
   const [result, setResult] = useState<RecommendationResult | null>(null);
 
   useEffect(() => {
@@ -146,10 +146,12 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
       if (saved) {
         setResult(JSON.parse(saved) as RecommendationResult);
         setStatus("result");
+        return;
       }
     } catch {
       // ignore
     }
+    setStatus("quiz");
   }, []);
 
   function handleReset() {
@@ -202,6 +204,8 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
     }
   }
 
+  if (status === "checking") return null;
+
   if (status === "loading") {
     return (
       <div className="flex-1 py-16 px-4">
@@ -233,13 +237,13 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
   }
 
   if (status === "result" && result) {
-    const specLabels: Record<string, string> = {
-      head_size: t.spec_head_size,
-      weight: t.spec_weight,
-      balance: t.spec_balance,
-      stiffness: t.spec_stiffness,
-      string_pattern: t.spec_string_pattern,
-    };
+    const specRows: { label: string; value: string }[] = [
+      { label: t.spec_head_size,     value: `${result.specs.head_size_sq_in} sq in` },
+      { label: t.spec_weight,        value: `${result.specs.weight_g}g` },
+      { label: t.spec_balance,       value: `${result.specs.balance_mm}mm` },
+      { label: t.spec_stiffness,     value: `${result.specs.stiffness_ra} RA` },
+      { label: t.spec_string_pattern,value: result.specs.string_pattern },
+    ];
 
     return (
       <div className="flex-1 py-16 px-4">
@@ -262,7 +266,7 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
                 <p className="text-accent font-medium mt-1">{result.category}</p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-lg font-bold text-white">{result.price_range}</p>
+                <p className="text-lg font-bold text-white">€{result.price_range_eur}</p>
                 <p className="text-xs text-white/45">{t.eu_retail}</p>
               </div>
             </div>
@@ -289,10 +293,10 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
               <div>
                 <p className="text-xs text-white/45 uppercase tracking-widest mb-3">{t.specs_label}</p>
                 <div className="space-y-2">
-                  {Object.entries(result.specs).map(([k, v]) => (
-                    <div key={k} className="flex items-center justify-between text-sm">
-                      <span className="text-white/45">{specLabels[k] ?? k}</span>
-                      <span className="text-white/90 font-medium">{v}</span>
+                  {specRows.map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between text-sm">
+                      <span className="text-white/45">{label}</span>
+                      <span className="text-white/90 font-medium">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -307,7 +311,6 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
             <div className="mb-6 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3">
               <p className="text-xs text-white/45 uppercase tracking-widest mb-1">{t.runner_up_label}</p>
               <p className="text-sm font-semibold text-white/80">{result.runner_up}</p>
-              <p className="text-xs text-white/50 mt-1">{result.runner_up_why}</p>
             </div>
 
             <a
@@ -329,7 +332,7 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
                 </div>
                 <div>
                   <span className="text-white/45">{t.rec_string_tension_label}: </span>
-                  <span className="text-white/80 font-medium">{result.recommended_string.tension_range}</span>
+                  <span className="text-white/80 font-medium">{result.recommended_string.tension_range_kg} kg</span>
                 </div>
               </div>
               <p className="text-sm text-white/60 leading-relaxed mb-5">{result.recommended_string.why}</p>

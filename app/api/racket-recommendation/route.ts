@@ -1,11 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { getRacketDatabaseText } from "@/lib/racket-database";
+import { getRacketDatabaseText, RACKET_DATABASE } from "@/lib/racket-database";
 import { getCached, setCached } from "@/lib/racket-cache";
 
 export type RecommendedString = {
   name: string;
   type: string;
-  tension_range: string;
+  tension_range_kg: string;
   why: string;
 };
 
@@ -13,13 +13,18 @@ export type RecommendationResult = {
   name: string;
   brand: string;
   category: string;
-  price_range: string;
-  specs: { head_size: string; weight: string; balance: string; stiffness: string; string_pattern: string };
+  price_range_eur: string;
+  specs: {
+    head_size_sq_in: number;
+    weight_g: number;
+    balance_mm: number;
+    stiffness_ra: number;
+    string_pattern: string;
+  };
   why: string;
   strengths: string[];
   watch_out: string;
   runner_up: string;
-  runner_up_why: string;
   recommended_string: RecommendedString;
 };
 
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
     ? "Brand preference: Open to anything — RESTRICT recommendations to Babolat, Head, or Wilson only."
     : `Brand preference: ${answers.brand} — strongly prefer this brand if a suitable model exists.`;
 
-  const prompt = `You are a professional tennis racket fitting expert. A player has answered 7 questions and you must recommend the single best racket for them from the database below.
+  const prompt = `You are a professional tennis racket fitting expert. A player has answered 7 questions. Recommend the single best racket from the database below.
 
 ## Player Profile
 - Age group: ${answers.age}
@@ -50,61 +55,59 @@ export async function POST(request: Request) {
 ${getRacketDatabaseText()}
 
 ## Instructions
-Carefully match this player's profile against every racket in the database. Consider all 7 answers together — a beginner over 55 who prioritises comfort needs a very different racket than an aggressive advanced player aged 25.
+Carefully match the player's profile against every racket. Budget filtering is strict: only recommend rackets within the player's budget range.
 
-Budget filtering is strict: if budget is "budget" (under €150), only recommend rackets with price_range starting under €150. If "mid" (€150-200), stick to rackets priced €150-220 range. If "premium" (over €200), any price is fine.
-
-CRITICAL — you MUST use EXACT values from the database for every field:
-- "name": copy EXACTLY as written in the database, character for character
-- "brand": copy EXACTLY from the database
-- "category": copy EXACTLY from the database
-- "price_range": copy EXACTLY from the database
-- All "specs" fields: copy EXACTLY from the database (head_size, weight, balance, stiffness, string_pattern)
-- "runner_up": MUST be a name from the "Similar alternatives" list of the recommended racket — do not pick any other racket
-- "recommended_string": copy EXACTLY from the database's "Recommended string" field for the chosen racket (name, type, tension_range, why)
-
-Do NOT invent, paraphrase, or approximate any spec, price, or name. The only fields you may write freely are "why", "strengths", "watch_out", and "runner_up_why".
-
-Respond ONLY with valid JSON in this exact shape, no markdown, no explanation outside the JSON:
+Your response MUST be valid JSON with exactly these four fields — nothing else:
 
 {
-  "name": "Full racket name exactly as in the database",
-  "brand": "Brand name exactly as in the database",
-  "category": "Category exactly as in the database",
-  "price_range": "Price range exactly as in the database",
-  "specs": {
-    "head_size": "exactly as in the database",
-    "weight": "exactly as in the database",
-    "balance": "exactly as in the database",
-    "stiffness": "exactly as in the database",
-    "string_pattern": "exactly as in the database"
-  },
-  "why": "2-3 sentences explaining specifically why this racket is the best match for THIS player's answers. Be concrete — reference their age, level, style, and priority.",
-  "strengths": ["3 to 4 bullet points of the key strengths for this specific player"],
-  "watch_out": "One sentence about the main thing this player should be aware of with this racket.",
-  "runner_up": "Name of a racket from the Similar alternatives list — exactly as written",
-  "runner_up_why": "One sentence explaining why the runner-up is worth considering.",
-  "recommended_string": {
-    "name": "String name exactly as in the database",
-    "type": "String type exactly as in the database",
-    "tension_range": "Tension range exactly as in the database",
-    "why": "Why description exactly as in the database"
-  }
-}`;
+  "name": "Full racket name exactly as written in the database",
+  "why": "2-3 sentences explaining specifically why this racket is the best match for THIS player. Be concrete — reference their age, level, style, and priority.",
+  "strengths": ["3 to 4 bullet points of key strengths for this specific player"],
+  "watch_out": "One sentence about the main thing this player should be aware of with this racket."
+}
+
+No markdown, no extra fields, no explanation outside the JSON.`;
 
   try {
     const message = await client.messages.create({
       model: "claude-opus-4-7",
-      max_tokens: 1024,
+      max_tokens: 512,
       messages: [{ role: "user", content: prompt }],
     });
 
     const raw = message.content[0].type === "text" ? message.content[0].text : "";
-    // Strip markdown code fences if Claude wrapped the JSON
     const json = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-    const result: RecommendationResult = JSON.parse(json);
-    setCached(answers, result);
+    const llm = JSON.parse(json) as { name: string; why: string; strengths: string[]; watch_out: string };
 
+    const dbEntry = RACKET_DATABASE.find(
+      (r) => r.name.toLowerCase() === llm.name.toLowerCase()
+    );
+
+    if (!dbEntry) {
+      console.error("Racket not found in database:", llm.name);
+      return Response.json({ error: "Recommended racket not found in database" }, { status: 500 });
+    }
+
+    const result: RecommendationResult = {
+      name: dbEntry.name,
+      brand: dbEntry.brand,
+      category: dbEntry.category,
+      price_range_eur: dbEntry.price_range_eur,
+      specs: {
+        head_size_sq_in: dbEntry.head_size_sq_in,
+        weight_g: dbEntry.weight_g,
+        balance_mm: dbEntry.balance_mm,
+        stiffness_ra: dbEntry.stiffness_ra,
+        string_pattern: dbEntry.string_pattern,
+      },
+      why: llm.why,
+      strengths: llm.strengths,
+      watch_out: llm.watch_out,
+      runner_up: dbEntry.similar_alternatives[0] ?? "",
+      recommended_string: { ...dbEntry.recommended_string },
+    };
+
+    setCached(answers, result);
     return Response.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
