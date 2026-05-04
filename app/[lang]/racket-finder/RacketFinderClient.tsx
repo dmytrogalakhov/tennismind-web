@@ -166,6 +166,15 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
   const [result, setResult] = useState<RecommendationResult | null>(null);
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["why"]));
   const [runnerUpOpen, setRunnerUpOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setLightboxOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     try {
@@ -301,7 +310,8 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
                   <img
                     src={result.image_url}
                     alt={result.name}
-                    style={{ maxWidth: 200, maxHeight: 280, objectFit: "contain", borderRadius: 12 }}
+                    onClick={() => setLightboxOpen(true)}
+                    style={{ maxWidth: 200, maxHeight: 280, objectFit: "contain", borderRadius: 12, cursor: "zoom-in" }}
                   />
                 ) : (
                   <svg
@@ -358,6 +368,40 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
               </div>
             </div>
           </div>
+
+          {/* Lightbox */}
+          {lightboxOpen && result.image_url && (
+            <div
+              onClick={() => setLightboxOpen(false)}
+              style={{
+                position: "fixed", inset: 0, zIndex: 50,
+                background: "rgba(0,0,0,0.85)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                animation: "fadeIn 0.15s ease",
+              }}
+            >
+              <style>{`@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }`}</style>
+              <button
+                onClick={() => setLightboxOpen(false)}
+                style={{
+                  position: "absolute", top: 16, right: 16,
+                  background: "rgba(255,255,255,0.1)", border: "none",
+                  borderRadius: "50%", width: 40, height: 40,
+                  color: "#fff", fontSize: 20, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+              <img
+                src={result.image_url}
+                alt={result.name}
+                onClick={(e) => e.stopPropagation()}
+                style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain", borderRadius: 16 }}
+              />
+            </div>
+          )}
 
           {/* Accordion sections */}
           <div className="border border-white/10 rounded-2xl overflow-hidden divide-y divide-white/10 mb-3">
