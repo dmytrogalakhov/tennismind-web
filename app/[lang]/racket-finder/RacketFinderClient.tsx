@@ -49,7 +49,7 @@ type ApiErrorT = { title: string; desc: string; cta_bot: string; cta_channel: st
 type Answers = Record<string, string>;
 type QuestionOption = { value: string; label: string; desc?: string; disabled?: boolean };
 
-type Props = { lang: string; t: T; apiErrorT: ApiErrorT };
+type Props = { lang: string; t: T; apiErrorT: ApiErrorT; preloadedResult?: RecommendationResult };
 type Status = "checking" | "quiz" | "loading" | "result" | "error";
 
 const SESSION_KEY = "racket_recommendation";
@@ -87,7 +87,7 @@ function AccordionSection({
   );
 }
 
-export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
+export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult }: Props) {
   const questions: { id: string; text: string; icon: string; options: QuestionOption[] }[] = [
     {
       id: "age", text: t.q_age, icon: "👤",
@@ -177,6 +177,11 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
   }, []);
 
   useEffect(() => {
+    if (preloadedResult) {
+      setResult(preloadedResult);
+      setStatus("result");
+      return;
+    }
     try {
       const fromBuy = sessionStorage.getItem("racket_from_buy");
       if (fromBuy) {
@@ -194,7 +199,7 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
       // ignore
     }
     setStatus("quiz");
-  }, []);
+  }, [preloadedResult]);
 
   function handleReset() {
     try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }

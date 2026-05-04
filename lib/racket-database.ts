@@ -93,6 +93,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-23",
       why: "The classic pairing. RPM Blast's spin potential complements the Pure Aero's aerodynamic frame, maximizing topspin generation. The polyester construction gives enough control to balance the racket's inherent power.",
     },
+    image_url: "/rackets/pure-aero-98-2026.png",
   },
   {
     name: "Babolat Pure Aero Lite 2026",
@@ -123,6 +124,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-23",
       why: "The classic pairing. RPM Blast's spin potential complements the Pure Aero's aerodynamic frame, maximizing topspin generation.",
     },
+    image_url: "/rackets/pure-aero-lite-2026.png",
   },
   {
     name: "Babolat Pure Aero Team 2026",
@@ -153,6 +155,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-23",
       why: "The classic pairing. RPM Blast's spin potential complements the Pure Aero's aerodynamic frame, maximizing topspin generation.",
     },
+    image_url: "/rackets/pure-aero-team-2026.png",
   },
   {
     name: "Babolat Pure Drive",
@@ -183,6 +186,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "It's a powerful frame and requires a stiff polyester to tame the power. With health issues, it's better to pair it with a soft cross string, either a multifilament or natural gut. If money is a concern, synthetic gut is a good budget-friendly alternative to natural gut for the cross string. The Explosive Speed's spin potential also complements the Pure Drive's power, helping to add some bite to the shots without sacrificing too much control.",
     },
+    image_url: "/rackets/pure-drive.png",
   },
   {
     name: "Babolat Pure Drive 98 2025",
@@ -213,6 +217,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "It's a powerful frame and requires a stiff polyester to tame the power. With health issues, it's better to pair it with a soft cross string, either a multifilament or natural gut. If money is a concern, synthetic gut is a good budget-friendly alternative to natural gut for the cross string. The Explosive Speed's spin potential also complements the Pure Drive's power, helping to add some bite to the shots without sacrificing too much control.",
     },
+    image_url: "/rackets/pure-drive-98-2025.png",
   },
   {
     name: "Babolat Pure Drive Lite 2025",
@@ -243,6 +248,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "It's a powerful frame and requires a stiff polyester to tame the power. With health issues, it's better to pair it with a soft cross string, either a multifilament or natural gut. If money is a concern, synthetic gut is a good budget-friendly alternative to natural gut for the cross string. The Explosive Speed's spin potential also complements the Pure Drive's power, helping to add some bite to the shots without sacrificing too much control.",
     },
+    image_url: "/rackets/pure-drive-lite-2025.png",
   },
   {
     name: "Babolat Pure Drive Team 2025",
@@ -273,6 +279,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "It's a powerful frame and requires a stiff polyester to tame the power. With health issues, it's better to pair it with a soft cross string, either a multifilament or natural gut. If money is a concern, synthetic gut is a good budget-friendly alternative to natural gut for the cross string. The Explosive Speed's spin potential also complements the Pure Drive's power, helping to add some bite to the shots without sacrificing too much control.",
     },
+    image_url: "/rackets/pure-drive-team-2025.png",
   },
   {
     name: "Babolat Pure Strike 98 16x19 2024",
@@ -303,6 +310,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "It's a powerful frame and requires a stiff polyester to tame the power. With health issues, it's better to pair it with a soft cross string, either a multifilament or natural gut. If money is a concern, synthetic gut is a good budget-friendly alternative to natural gut for the cross string. The Explosive Speed's spin potential also complements the Pure Drive's power, helping to add some bite to the shots without sacrificing too much control.",
     },
+    image_url: "/rackets/pure-strike-98-16x19.png",
   },
   {
     name: "Babolat Pure Strike 100 16x20 2024",
@@ -333,6 +341,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "It's a powerful frame and requires a stiff polyester to tame the power. With health issues, it's better to pair it with a soft cross string, either a multifilament or natural gut. If money is a concern, synthetic gut is a good budget-friendly alternative to natural gut for the cross string. The Explosive Speed's spin potential also complements the Pure Strike's control, helping to add some bite to the shots without sacrificing too much control.",
     },
+    image_url: "/rackets/pure-strike-100-16x20.png",
   },
   {
     name: "Babolat Pure Strike 98 18x20 2024",
@@ -363,6 +372,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "It's a control frame witha a very dense string patter, this is why it requires a thin, spin friendly polyester to grab the ball and increase net clearance and launch angle.",
     },
+    image_url: "/rackets/pure-strike-98-18x20.png",
   },
   {
     name: "Head Speed MP 2026",
@@ -393,6 +403,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Speed MP's all-court character. High control with enough comfort to suit the frame's lower stiffness — the two complement each other well.",
     },
+    image_url: "/rackets/speed-mp-2026.webp",
   },
   {
     name: "Head Speed Pro 2026",
@@ -423,6 +434,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Speed MP's all-court character. High control with enough comfort to suit the frame's lower stiffness — the two complement each other well.",
     },
+    image_url: "/rackets/speed-pro-2026.webp",
   },
   {
     name: "Head Speed MP L 2026",
@@ -453,6 +465,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Speed MP's all-court character. High control with enough comfort to suit the frame's lower stiffness — the two complement each other well.",
     },
+    image_url: "/rackets/speed-mp-l-2026.webp",
   },
   {
     name: "Head Extreme MP 2022",
@@ -483,6 +496,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Speed MP's all-court character. High control with enough comfort to suit the frame's lower stiffness — the two complement each other well.",
     },
+    image_url: "/rackets/extreme-mp-2024.webp",
   },
   {
     name: "Head Extreme Pro 2024",
@@ -513,6 +527,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Speed MP's all-court character. High control with enough comfort to suit the frame's lower stiffness — the two complement each other well.",
     },
+    image_url: "/rackets/extreme-pro-2024.webp",
   },
   {
     name: "Head Gravity MP 2025",
@@ -543,6 +558,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Speed MP's all-court character. High control with enough comfort to suit the frame's lower stiffness — the two complement each other well.",
     },
+    image_url: "/rackets/gravity-mp-2025.webp",
   },
   {
     name: "Head Gravity Pro 2025",
@@ -573,6 +589,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Gravity Pro's precision-oriented character. High control with enough comfort to complement the frame's low stiffness.",
     },
+    image_url: "/rackets/gravity-pro-2025.webp",
   },
   {
     name: "Head Gravity Tour 2025",
@@ -603,6 +620,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Gravity Tour's precision-oriented character. High control with enough comfort to complement the frame's low stiffness.",
     },
+    image_url: "/rackets/gravity-tour-2025.webp",
   },
   {
     name: "Head Radical MP 2025",
@@ -633,6 +651,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "21-23",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance make it a natural match for the Radical MP's precision-oriented character. High control with enough comfort to complement the frame's stiffness.",
     },
+    image_url: "/rackets/radical-mp-2025.webp",
   },
   {
     name: "Head Radical Pro 2025",
@@ -663,6 +682,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "21-23",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance make it a natural match for the Radical Pro's precision-oriented character. High control with enough comfort to complement the frame's stiffness.",
     },
+    image_url: "/rackets/radical-pro-2025.webp",
   },
   {
     name: "Head Radical Team 2025",
@@ -693,6 +713,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance make it a natural match for the Radical Team's precision-oriented character. High control with enough comfort to complement the frame's relatively modest stiffness.",
     },
+    image_url: "/rackets/radical-team-2025.webp",
   },
   {
     name: "Head Prestige MP 2025",
@@ -723,6 +744,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "21-23",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance make it a natural match for the Prestige MP's precision-oriented character. High control with enough comfort to complement the frame's plush feel.",
     },
+    image_url: "/rackets/prestige-mp-2023.webp",
   },
   {
     name: "Head Prestige MP L 2025",
@@ -753,6 +775,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "21-23",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance make it a natural match for the Prestige MP L's precision-oriented character. High control with enough comfort to complement the frame's plush feel.",
     },
+    image_url: "/rackets/prestige-mp-l-2023.webp",
   },
   {
     name: "Head Prestige Pro 2025",
@@ -783,6 +806,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "21-23",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance make it a natural match for the Prestige Pro's precision-oriented character. High control with enough comfort to complement the frame's plush Auxetic feel.",
     },
+    image_url: "/rackets/prestige-pro-2023.webp",
   },
   {
     name: "Head Prestige Tour 2025",
@@ -813,6 +837,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "21-23",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance make it a natural match for the Prestige Tour's precision-oriented character. High control with enough comfort to complement the frame's plush Auxetic feel.",
     },
+    image_url: "/rackets/prestige-tour-2023.webp",
   },
   {
     name: "Head Boom MP 2026",
@@ -843,6 +868,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance complement the Boom MP's power character well, adding precision and bite without sacrificing the frame's natural liveliness.",
     },
+    image_url: "/rackets/boom-mp-2026.webp",
   },
   {
     name: "Head Boom Pro 2026",
@@ -873,6 +899,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "21-23",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent control and above-average tension maintenance complement the Boom Pro's power character well, adding precision and bite without sacrificing the frame's natural liveliness.",
     },
+    image_url: "/rackets/boom-pro-2026.webp",
   },
   {
     name: "Wilson Blade 100 v10",
@@ -903,6 +930,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "The industry benchmark co-poly trusted by more tour players than any other string. Delivers exceptional control, durability and a crisp, precise feel that pairs naturally with the Blade 100's soft flex and open string pattern. Firm enough to add precision without overwhelming the frame's comfortable character.",
     },
+    image_url: "/rackets/blade_100_v10.webp",
   },
   {
     name: "Wilson Blade 98 16x19 v10",
@@ -933,6 +961,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "The industry benchmark co-poly trusted by more tour players than any other string. Delivers exceptional control, durability and a crisp, precise feel that pairs naturally with the Blade 98's soft flex and open string pattern. Firm enough to add precision without overwhelming the frame's comfortable character.",
     },
+    image_url: "/rackets/blade_98_16_19_v10.webp",
   },
   {
     name: "Wilson Blade 98 18x20 v10",
@@ -963,6 +992,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "The industry benchmark co-poly trusted by more tour players than any other string. Delivers exceptional control, durability and a crisp, precise feel that pairs naturally with the Blade 98's soft flex and dense 18x20 pattern. Firm enough to add precision without overwhelming the frame's comfortable character.",
     },
+    image_url: "/rackets/blade_98_18_20_v10.webp",
   },
   {
     name: "Wilson Pro Staff 97 Classic",
@@ -993,6 +1023,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "The industry benchmark co-poly trusted by more tour players than any other string. Its crisp, precise feel pairs naturally with the Pro Staff's stiff flex and excellent plow-through. String at the lower end of the range (20kg) to compensate for the 66 RA stiffness and preserve arm comfort.",
     },
+    image_url: "/rackets/pro_staff97_classic.webp",
   },
   {
     name: "Wilson Ultra 100 v5",
