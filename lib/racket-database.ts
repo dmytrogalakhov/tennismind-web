@@ -29,6 +29,7 @@ export type RacketEntry = {
   famous_users: string;
   similar_alternatives: string[];
   recommended_string: RecommendedString;
+  image_url?: string;
 };
 
 export const RACKET_DATABASE: RacketEntry[] = [
@@ -61,6 +62,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "The classic pairing. RPM Blast's spin potential complements the Pure Aero's aerodynamic frame, maximizing topspin generation. The polyester construction gives enough control to balance the racket's inherent power.",
     },
+    image_url: "/rackets/pure-aero-2026.png",
   },
   {
     name: "Babolat Pure Aero 98 2026",

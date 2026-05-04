@@ -26,6 +26,7 @@ export type RecommendationResult = {
   watch_out: string;
   runner_up: string;
   recommended_string: RecommendedString;
+  image_url?: string;
 };
 
 const client = new Anthropic();
@@ -105,6 +106,7 @@ No markdown, no extra fields, no explanation outside the JSON.`;
       watch_out: llm.watch_out,
       runner_up: dbEntry.similar_alternatives[0] ?? "",
       recommended_string: { ...dbEntry.recommended_string },
+      ...(dbEntry.image_url ? { image_url: dbEntry.image_url } : {}),
     };
 
     setCached(answers, result);

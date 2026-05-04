@@ -32,11 +32,11 @@ const tournaments: Tournament[] = [
     location: "Paris, France",
     status: "upcoming",
     contenders: [
-      { player: "Carlos Alcaraz", flag: "🇪🇸", probability: 32, odds: "+210", trend: "up" },
-      { player: "Jannik Sinner", flag: "🇮🇹", probability: 24, odds: "+310", trend: "up" },
+      { player: "Jannik Sinner", flag: "🇮🇹", probability: 34, odds: "+190", trend: "up" },
+      { player: "Carlos Alcaraz", flag: "🇪🇸", probability: 26, odds: "+260", trend: "neutral" },
       { player: "Novak Djokovic", flag: "🇷🇸", probability: 18, odds: "+450", trend: "neutral" },
-      { player: "Casper Ruud", flag: "🇳🇴", probability: 10, odds: "+800", trend: "down" },
-      { player: "Holger Rune", flag: "🇩🇰", probability: 8, odds: "+1000", trend: "up" },
+      { player: "Casper Ruud", flag: "🇳🇴", probability: 12, odds: "+750", trend: "down" },
+      { player: "Holger Rune", flag: "🇩🇰", probability: 10, odds: "+950", trend: "up" },
     ],
     darkHorse: {
       player: "Stefanos Tsitsipas",
@@ -44,7 +44,7 @@ const tournaments: Tournament[] = [
       note: "Clay specialist with a revamped serve and renewed focus after a strong Monte Carlo run.",
     },
     insight:
-      "Alcaraz entered as clear favorite after his Barcelona triumph, but Sinner's clay form has been quietly exceptional. Our model gives Alcaraz the edge due to his superior net approach rate on slow clay.",
+      "Sinner enters as the model's top pick after a dominant clay swing — consistent deep runs at Monte Carlo and Madrid, with baseline movement that has been the best on tour this spring. Alcaraz remains dangerous but his clay form has been less decisive than in prior seasons, and our model now gives Sinner the edge in five-set clay endurance.",
   },
   {
     name: "Wimbledon 2026",

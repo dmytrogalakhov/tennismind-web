@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import type { RecommendationResult } from "@/app/api/racket-recommendation/route";
 import ApiError from "@/app/components/ApiError";
 
@@ -14,29 +14,21 @@ type T = {
   loading_title: string;
   loading_desc: string;
   try_again: string;
-  ready_badge: string;
-  result_title: string;
-  result_subtitle: string;
   recommended_label: string;
-  eu_retail: string;
   why_suits: string;
   key_strengths: string;
-  specs_label: string;
   spec_head_size: string;
   spec_weight: string;
-  spec_balance: string;
   spec_stiffness: string;
   spec_string_pattern: string;
   worth_knowing: string;
   runner_up_label: string;
-  setup_title: string;
-  setup_desc: string;
+  runner_up_desc: string;
   find_string: string;
   start_over_long: string;
   rec_string_title: string;
   rec_string_type_label: string;
   rec_string_tension_label: string;
-  rec_string_personalized: string;
   buy_button: string;
   brand_coming_soon: string;
   q_age: string; q_skill: string; q_weight: string; q_style: string;
@@ -61,6 +53,39 @@ type Props = { lang: string; t: T; apiErrorT: ApiErrorT };
 type Status = "checking" | "quiz" | "loading" | "result" | "error";
 
 const SESSION_KEY = "racket_recommendation";
+
+function AccordionSection({
+  title,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+      >
+        <span className="text-sm font-semibold text-white/90">{title}</span>
+        <svg
+          className={`w-4 h-4 text-white/40 transition-transform duration-200 shrink-0 ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {isOpen && <div className="px-5 pb-5">{children}</div>}
+    </div>
+  );
+}
 
 export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
   const questions: { id: string; text: string; icon: string; options: QuestionOption[] }[] = [
@@ -139,14 +164,22 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("checking");
   const [result, setResult] = useState<RecommendationResult | null>(null);
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(["why"]));
+  const [runnerUpOpen, setRunnerUpOpen] = useState(false);
 
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem(SESSION_KEY);
-      if (saved) {
-        setResult(JSON.parse(saved) as RecommendationResult);
-        setStatus("result");
-        return;
+      const fromBuy = sessionStorage.getItem("racket_from_buy");
+      if (fromBuy) {
+        sessionStorage.removeItem("racket_from_buy");
+        const saved = sessionStorage.getItem(SESSION_KEY);
+        if (saved) {
+          setResult(JSON.parse(saved) as RecommendationResult);
+          setStatus("result");
+          return;
+        }
+      } else {
+        sessionStorage.removeItem(SESSION_KEY);
       }
     } catch {
       // ignore
@@ -161,6 +194,8 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
     setSelected(null);
     setStatus("quiz");
     setResult(null);
+    setOpenSections(new Set(["why"]));
+    setRunnerUpOpen(false);
   }
 
   function handleBack() {
@@ -171,6 +206,15 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
     const newAnswers = { ...answers };
     delete newAnswers[questions[step - 1].id];
     setAnswers(newAnswers);
+  }
+
+  function toggleSection(id: string) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
   async function handleNext() {
@@ -237,131 +281,194 @@ export default function RacketFinderClient({ lang, t, apiErrorT }: Props) {
   }
 
   if (status === "result" && result) {
-    const specRows: { label: string; value: string }[] = [
-      { label: t.spec_head_size,     value: `${result.specs.head_size_sq_in} sq in` },
-      { label: t.spec_weight,        value: `${result.specs.weight_g}g` },
-      { label: t.spec_balance,       value: `${result.specs.balance_mm}mm` },
-      { label: t.spec_stiffness,     value: `${result.specs.stiffness_ra} RA` },
-      { label: t.spec_string_pattern,value: result.specs.string_pattern },
+    const topSpecs: { label: string; value: string }[] = [
+      { label: t.spec_head_size, value: `${result.specs.head_size_sq_in} sq in` },
+      { label: t.spec_weight, value: `${result.specs.weight_g}g` },
+      { label: t.spec_stiffness, value: `${result.specs.stiffness_ra} RA` },
+      { label: t.spec_string_pattern, value: result.specs.string_pattern },
     ];
 
     return (
-      <div className="flex-1 py-16 px-4">
+      <div className="flex-1 py-12 px-4">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 text-accent text-sm font-medium px-4 py-1.5 rounded-full mb-4">
-              {t.ready_badge}
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold mb-2">{t.result_title}</h1>
-            <p className="text-white/60">{t.result_subtitle}</p>
-          </div>
 
-          <div className="bg-accent/[0.06] border border-accent/30 rounded-2xl p-6 sm:p-8">
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <div>
-                <p className="text-xs text-white/45 uppercase tracking-widest mb-1">
+          {/* Product header */}
+          <div className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden mb-3">
+            <div className="flex flex-col sm:flex-row">
+              {/* Racket image */}
+              <div className="sm:w-[240px] shrink-0 flex items-center justify-center py-12 px-8 border-b sm:border-b-0 sm:border-r border-white/10 bg-white/[0.02]">
+                {result.image_url ? (
+                  <img
+                    src={result.image_url}
+                    alt={result.name}
+                    style={{ maxWidth: 200, maxHeight: 280, objectFit: "contain", borderRadius: 12 }}
+                  />
+                ) : (
+                  <svg
+                    viewBox="0 0 120 300"
+                    className="w-28 h-auto text-white/20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <ellipse cx="60" cy="95" rx="50" ry="65" stroke="currentColor" strokeWidth="2.5"/>
+                    <line x1="31" y1="42" x2="89" y2="42" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="21" y1="55" x2="99" y2="55" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="15" y1="68" x2="105" y2="68" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="11" y1="81" x2="109" y2="81" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="10" y1="95" x2="110" y2="95" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="11" y1="109" x2="109" y2="109" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="15" y1="122" x2="105" y2="122" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="21" y1="135" x2="99" y2="135" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="31" y1="148" x2="89" y2="148" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="30" y1="43" x2="30" y2="147" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="45" y1="33" x2="45" y2="157" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="60" y1="30" x2="60" y2="160" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="75" y1="33" x2="75" y2="157" stroke="currentColor" strokeWidth="0.8"/>
+                    <line x1="90" y1="43" x2="90" y2="147" stroke="currentColor" strokeWidth="0.8"/>
+                    <path d="M 44 158 L 48 175 L 72 175 L 76 158" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <rect x="50" y="175" width="20" height="110" rx="5" stroke="currentColor" strokeWidth="2.5"/>
+                    <line x1="50" y1="195" x2="70" y2="195" stroke="currentColor" strokeWidth="1.2"/>
+                    <line x1="50" y1="210" x2="70" y2="210" stroke="currentColor" strokeWidth="1.2"/>
+                    <line x1="50" y1="225" x2="70" y2="225" stroke="currentColor" strokeWidth="1.2"/>
+                    <line x1="50" y1="240" x2="70" y2="240" stroke="currentColor" strokeWidth="1.2"/>
+                    <line x1="50" y1="255" x2="70" y2="255" stroke="currentColor" strokeWidth="1.2"/>
+                    <line x1="50" y1="270" x2="70" y2="270" stroke="currentColor" strokeWidth="1.2"/>
+                  </svg>
+                )}
+              </div>
+
+              {/* Info panel */}
+              <div className="flex-1 p-6 flex flex-col justify-center">
+                <span className="inline-block self-start text-xs font-semibold uppercase tracking-widest text-accent bg-accent/10 border border-accent/20 px-3 py-1 rounded-full mb-3">
                   {t.recommended_label}
-                </p>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white">{result.name}</h2>
-                <p className="text-accent font-medium mt-1">{result.category}</p>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="text-lg font-bold text-white">€{result.price_range_eur}</p>
-                <p className="text-xs text-white/45">{t.eu_retail}</p>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-xs text-white/45 uppercase tracking-widest mb-3">{t.why_suits}</p>
-              <p className="text-sm text-white/80 bg-accent/10 border border-accent/15 rounded-xl px-4 py-3 leading-relaxed">
-                {result.why}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-              <div>
-                <p className="text-xs text-white/45 uppercase tracking-widest mb-3">{t.key_strengths}</p>
-                <ul className="space-y-2">
-                  {result.strengths.map((s) => (
-                    <li key={s} className="flex items-start gap-2 text-sm">
-                      <span className="text-accent mt-0.5 shrink-0">✓</span>
-                      <span className="text-white/80">{s}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="text-xs text-white/45 uppercase tracking-widest mb-3">{t.specs_label}</p>
-                <div className="space-y-2">
-                  {specRows.map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between text-sm">
-                      <span className="text-white/45">{label}</span>
-                      <span className="text-white/90 font-medium">{value}</span>
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight mb-1">
+                  {result.name}
+                </h2>
+                <p className="text-sm text-white/50 mb-4">{result.category}</p>
+                <p className="text-2xl font-bold text-white mb-5">€{result.price_range_eur}</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {topSpecs.map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-[10px] text-white/35 uppercase tracking-widest mb-0.5">{label}</p>
+                      <p className="text-sm font-semibold text-white">{value}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="mb-6 bg-pink/5 border border-pink/15 rounded-xl px-4 py-3">
-              <p className="text-xs text-pink font-semibold uppercase tracking-widest mb-1">{t.worth_knowing}</p>
-              <p className="text-sm text-white/70 leading-relaxed">{result.watch_out}</p>
-            </div>
+          {/* Accordion sections */}
+          <div className="border border-white/10 rounded-2xl overflow-hidden divide-y divide-white/10 mb-3">
+            <AccordionSection
+              title={t.why_suits}
+              isOpen={openSections.has("why")}
+              onToggle={() => toggleSection("why")}
+            >
+              <p className="text-sm text-white/80 leading-relaxed">{result.why}</p>
+            </AccordionSection>
 
-            <div className="mb-6 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3">
-              <p className="text-xs text-white/45 uppercase tracking-widest mb-1">{t.runner_up_label}</p>
-              <p className="text-sm font-semibold text-white/80">{result.runner_up}</p>
-            </div>
+            <AccordionSection
+              title={t.key_strengths}
+              isOpen={openSections.has("strengths")}
+              onToggle={() => toggleSection("strengths")}
+            >
+              <ul className="space-y-2">
+                {result.strengths.map((s) => (
+                  <li key={s} className="flex items-start gap-2 text-sm">
+                    <span className="text-accent mt-0.5 shrink-0">✓</span>
+                    <span className="text-white/80">{s}</span>
+                  </li>
+                ))}
+              </ul>
+            </AccordionSection>
 
+            <AccordionSection
+              title={t.worth_knowing}
+              isOpen={openSections.has("warning")}
+              onToggle={() => toggleSection("warning")}
+            >
+              <p className="text-sm text-white/80 leading-relaxed">{result.watch_out}</p>
+            </AccordionSection>
+
+            {result.recommended_string && (
+              <AccordionSection
+                title={t.rec_string_title}
+                isOpen={openSections.has("string")}
+                onToggle={() => toggleSection("string")}
+              >
+                <p className="font-semibold text-white mb-3">{result.recommended_string.name}</p>
+                <div className="flex flex-wrap gap-x-6 gap-y-1.5 mb-3 text-sm">
+                  <div>
+                    <span className="text-white/45">{t.rec_string_type_label}: </span>
+                    <span className="text-white/85 font-medium">{result.recommended_string.type}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/45">{t.rec_string_tension_label}: </span>
+                    <span className="text-white/85 font-medium">{result.recommended_string.tension_range_kg} kg</span>
+                  </div>
+                </div>
+                <p className="text-sm text-white/60 leading-relaxed">{result.recommended_string.why}</p>
+              </AccordionSection>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3 mb-3">
             <a
               href={`/${lang}/buy`}
-              className="block w-full text-center bg-accent text-white font-bold px-6 py-4 rounded-xl hover:bg-[#a84ad9] transition-colors text-base"
+              className="flex-1 text-center bg-accent text-white font-bold px-6 py-4 rounded-xl hover:bg-[#a84ad9] transition-colors"
             >
               {t.buy_button}
             </a>
+            <a
+              href={`/${lang}/string-finder?racket=${encodeURIComponent(result.name)}`}
+              className="flex-1 text-center border border-cyan-400 text-cyan-400 font-bold px-6 py-4 rounded-xl hover:bg-cyan-400/10 transition-colors"
+            >
+              {t.find_string}
+            </a>
           </div>
 
-          {result.recommended_string && (
-            <div className="mt-6 bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8">
-              <p className="text-xs text-white/45 uppercase tracking-widest mb-4">{t.rec_string_title}</p>
-              <p className="text-xl font-bold text-white mb-3">{result.recommended_string.name}</p>
-              <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4 text-sm">
-                <div>
-                  <span className="text-white/45">{t.rec_string_type_label}: </span>
-                  <span className="text-white/80 font-medium">{result.recommended_string.type}</span>
-                </div>
-                <div>
-                  <span className="text-white/45">{t.rec_string_tension_label}: </span>
-                  <span className="text-white/80 font-medium">{result.recommended_string.tension_range_kg} kg</span>
-                </div>
-              </div>
-              <p className="text-sm text-white/60 leading-relaxed mb-5">{result.recommended_string.why}</p>
-              <a
-                href={`/${lang}/string-finder?racket=${encodeURIComponent(result.name)}`}
-                className="inline-flex items-center gap-2 text-accent text-sm font-medium hover:underline"
+          {/* Runner-up */}
+          {result.runner_up && (
+            <div className="border border-white/10 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => setRunnerUpOpen((o) => !o)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.03] transition-colors"
               >
-                {t.rec_string_personalized} →
-              </a>
+                <div>
+                  <p className="text-[10px] text-white/35 uppercase tracking-widest mb-0.5">{t.runner_up_label}</p>
+                  <p className="text-sm font-semibold text-white/75">{result.runner_up}</p>
+                </div>
+                <svg
+                  className={`w-4 h-4 text-white/40 transition-transform duration-200 shrink-0 ${runnerUpOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {runnerUpOpen && (
+                <div className="px-5 pb-5 border-t border-white/10 pt-4">
+                  <p className="text-sm text-white/60 leading-relaxed mb-4">{t.runner_up_desc}</p>
+                  <button
+                    onClick={handleReset}
+                    className="text-sm text-accent hover:underline"
+                  >
+                    {t.start_over}
+                  </button>
+                </div>
+              )}
             </div>
           )}
-
-          <div className="mt-6 border-t border-accent/10 pt-6">
-            <div className="bg-accent/[0.04] border border-accent/15 rounded-2xl p-6 sm:p-8">
-              <h3 className="text-lg font-semibold mb-2">{t.setup_title}</h3>
-              <p className="text-sm text-white/60 leading-relaxed mb-5">{t.setup_desc}</p>
-              <a
-                href={`/${lang}/string-finder?racket=${encodeURIComponent(result.name)}`}
-                className="inline-flex items-center gap-2 bg-accent text-white font-semibold px-6 py-2.5 rounded-full hover:bg-[#a84ad9] transition-colors text-sm"
-              >
-                {t.find_string}
-              </a>
-            </div>
-          </div>
 
           <div className="mt-6 text-center">
             <button
               onClick={handleReset}
-              className="text-sm text-white/60 hover:text-white transition-colors underline"
+              className="text-sm text-white/40 hover:text-white/70 transition-colors underline"
             >
               {t.start_over_long}
             </button>
