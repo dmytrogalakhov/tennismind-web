@@ -5,14 +5,15 @@
     "racket_finder": "Schläger-Finder",
     "string_finder": "Besaitungs-Finder",
     "predictions": "Prognosen",
-    "customize": "Anpassungs-Wizard"
+    "customize": "Anpassungs-Wizard",
+    "feed": "Feed"
   },
   "home": {
     "hero_headline_1": "Verstehe das Spiel,",
     "hero_headline_2": "das du liebst.",
     "hero_subline": "Präzise Ausrüstungsempfehlungen, taktische Analysen auf Profiniveau und tiefe Tennis-Einblicke für ambitionierte Spieler.",
     "hero_cta_racket": "Schläger finden",
-    "hero_cta_analysis": "Match-Analysen lesen",
+    "hero_cta_analysis": "Feed lesen",
     "stats_match_analyses": "Match-Analysen",
     "stats_prediction_accuracy": "Vorhersagegenauigkeit",
     "stats_rackets_recommended": "Empfohlene Schläger",
@@ -34,6 +35,9 @@
     "f5_title": "Anpassungs-Wizard",
     "f5_desc": "Hast du bereits einen Schläger? Sag uns, was fehlt, und erhalte persönliche Anpassungstipps — Bleiband, Griffe, Besaitungsspannung.",
     "f5_cta": "Schläger anpassen",
+    "f6_title": "Tennis Feed",
+    "f6_desc": "Tägliche Einblicke, Statistiken und Geschichten aus der Welt des Tennis. Das Interessante, das du nicht wusstest, dass du es wissen wolltest.",
+    "f6_cta": "Feed durchsuchen",
     "latest_title": "Neueste Analysen",
     "latest_view_all": "Alle anzeigen →",
     "cta_heading": "Bereit, deinen perfekten Schläger zu finden?",

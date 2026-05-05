@@ -11,6 +11,7 @@ type NavDict = {
   string_finder: string;
   predictions: string;
   customize: string;
+  feed: string;
 };
 
 type Props = {
@@ -30,6 +31,7 @@ export default function Navbar({ lang, navDict }: Props) {
 
   const links = [
     { href: `/${lang}`, label: navDict.home },
+    { href: `/${lang}/feed`, label: navDict.feed },
     { href: `/${lang}/analysis`, label: navDict.match_analyses },
     { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
     { href: `/${lang}/string-finder`, label: navDict.string_finder },

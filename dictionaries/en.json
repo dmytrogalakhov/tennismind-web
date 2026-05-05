@@ -5,14 +5,15 @@
     "racket_finder": "Racket Finder",
     "string_finder": "String Finder",
     "predictions": "Predictions",
-    "customize": "Customization Wizard"
+    "customize": "Customization Wizard",
+    "feed": "Feed"
   },
   "home": {
     "hero_headline_1": "Understand the game",
     "hero_headline_2": "you love.",
     "hero_subline": "Precision gear matches, elite tactical analytics, and the deep-dive tennis insights the modern player needs to play their best.",
     "hero_cta_racket": "Find Your Racket",
-    "hero_cta_analysis": "Read Match Analyses",
+    "hero_cta_analysis": "Read Feed",
     "stats_match_analyses": "Match Analyses",
     "stats_prediction_accuracy": "Prediction Accuracy",
     "stats_rackets_recommended": "Rackets Recommended",
@@ -34,6 +35,9 @@
     "f5_title": "Customization Wizard",
     "f5_desc": "Already have a racket? Tell us what's missing and get personalized customization tips — lead tape, grips, string tension adjustments.",
     "f5_cta": "Customize Your Racket",
+    "f6_title": "Tennis Feed",
+    "f6_desc": "Daily insights, stats, and stories from the world of tennis. The interesting stuff you didn't know you wanted to know.",
+    "f6_cta": "Browse Feed",
     "latest_title": "Latest Analysis",
     "latest_view_all": "View all →",
     "cta_heading": "Ready to find your perfect racket?",

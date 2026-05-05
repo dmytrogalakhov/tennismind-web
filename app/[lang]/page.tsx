@@ -69,6 +69,14 @@ export default async function HomePage({
       cta: t.f5_cta,
       badge: t.coming_soon,
     },
+    {
+      icon: "📡",
+      title: t.f6_title,
+      desc: t.f6_desc,
+      href: `/${lang}/feed`,
+      cta: t.f6_cta,
+      badge: null,
+    },
   ];
 
   return (
@@ -93,7 +101,7 @@ export default async function HomePage({
               {t.hero_cta_racket}
             </Link>
             <Link
-              href={`/${lang}/analysis`}
+              href={`/${lang}/feed`}
               className="border border-cyan/40 text-cyan font-semibold px-8 py-3.5 rounded-full hover:bg-cyan/10 transition-colors"
             >
               {t.hero_cta_analysis}
