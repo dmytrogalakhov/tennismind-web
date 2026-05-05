@@ -403,7 +403,7 @@ export const RACKET_DATABASE: RacketEntry[] = [
       tension_range_kg: "20-22",
       why: "A medium-stiff co-poly with a 6-sided profile that sits between the softer Lynx and stiffer Hawk. Excellent spin potential and above-average tension maintenance make it a natural match for the Speed MP's all-court character. High control with enough comfort to suit the frame's lower stiffness — the two complement each other well.",
     },
-    image_url: "/rackets/speed-mp-2026.webp",
+    image_url: "/rackets/HeadSpeedMP_2026.webp",
   },
   {
     name: "Head Speed Pro 2026",

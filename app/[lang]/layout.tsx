@@ -5,6 +5,7 @@ import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { getDictionary, hasLocale } from "./dictionaries";
 import { notFound } from "next/navigation";
+import { Analytics } from "@vercel/analytics/next";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default async function LocaleLayout({
         <Navbar lang={lang} navDict={dict.nav} />
         <main className="flex-1 flex flex-col">{children}</main>
         <Footer lang={lang} dict={dict.footer} navDict={dict.nav} />
+        <Analytics />
       </body>
     </html>
   );

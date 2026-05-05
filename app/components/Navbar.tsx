@@ -10,6 +10,7 @@ type NavDict = {
   racket_finder: string;
   string_finder: string;
   predictions: string;
+  customize: string;
 };
 
 type Props = {
@@ -33,6 +34,7 @@ export default function Navbar({ lang, navDict }: Props) {
     { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
     { href: `/${lang}/string-finder`, label: navDict.string_finder },
     { href: `/${lang}/predictions`, label: navDict.predictions },
+    { href: `/${lang}/customize`, label: navDict.customize },
   ];
 
   function switchLocale(newLang: string) {

@@ -4,7 +4,8 @@
     "match_analyses": "Match Analyses",
     "racket_finder": "Racket Finder",
     "string_finder": "String Finder",
-    "predictions": "Predictions"
+    "predictions": "Predictions",
+    "customize": "Customization Wizard"
   },
   "home": {
     "hero_headline_1": "Understand the game",
@@ -30,6 +31,9 @@
     "f4_title": "String Finder",
     "f4_desc": "Find the perfect string and tension for your racket and playing style. Coming soon.",
     "f4_cta": "Find Your String",
+    "f5_title": "Customization Wizard",
+    "f5_desc": "Already have a racket? Tell us what's missing and get personalized customization tips — lead tape, grips, string tension adjustments.",
+    "f5_cta": "Customize Your Racket",
     "latest_title": "Latest Analysis",
     "latest_view_all": "View all →",
     "cta_heading": "Ready to find your perfect racket?",
@@ -139,7 +143,10 @@
     "rec_string_type_label": "Type",
     "rec_string_tension_label": "Tension",
     "rec_string_personalized": "Want a more personalized string recommendation?",
-    "buy_button": "Buy this racket →"
+    "buy_button": "Buy this racket →",
+    "customize_from_finder_heading": "Already have a racket?",
+    "customize_from_finder_desc": "Don't need a new racket? Get customization tips for your current one — lead tape, grip changes, and tension adjustments to fix what's missing.",
+    "customize_from_finder_cta": "Customize My Racket →"
   },
   "buy": {
     "title": "Shop coming soon!",
@@ -191,6 +198,31 @@
     "missing_spin": "Spin",
     "missing_comfort": "Comfort",
     "missing_durability": "Durability"
+  },
+  "customize": {
+    "title": "Customization Wizard",
+    "subtitle": "Tell us what's missing in your current setup and we'll suggest tweaks to fix it.",
+    "q1_label": "What is your current racket?",
+    "search_placeholder": "Search rackets…",
+    "other_racket": "Other (type name)",
+    "dont_know": "I don't know",
+    "type_placeholder": "Type racket name…",
+    "q2_label": "What is missing in your current setup?",
+    "opt_stability": "Stability",
+    "opt_power": "Power",
+    "opt_control": "Control",
+    "opt_spin": "Spin",
+    "submit": "Customize my racket →",
+    "result_title": "Racket customization recommendations",
+    "result_coming_soon": "Coming soon! We're building personalized customization guides — lead tape placement, grip modifications, string tension adjustments, and more.",
+    "your_racket_label": "Your racket",
+    "missing_label": "What's missing",
+    "start_over": "Start over",
+    "try_racket_finder": "Try the Racket Finder",
+    "join_telegram": "Join our Telegram",
+    "customize_from_finder_heading": "Already have a racket?",
+    "customize_from_finder_desc": "Don't need a new racket? Get customization tips for your current one — lead tape, grip changes, and tension adjustments to fix what's missing.",
+    "customize_from_finder_cta": "Customize My Racket →"
   },
   "api_error": {
     "title": "High demand right now",

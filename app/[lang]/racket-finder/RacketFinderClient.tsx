@@ -31,6 +31,9 @@ type T = {
   rec_string_tension_label: string;
   buy_button: string;
   brand_coming_soon: string;
+  customize_from_finder_heading: string;
+  customize_from_finder_desc: string;
+  customize_from_finder_cta: string;
   q_age: string; q_skill: string; q_weight: string; q_style: string;
   q_priority: string; q_budget: string; q_brand: string;
   age_under18: string; age_18to40: string; age_40to55: string; age_55plus: string;
@@ -310,47 +313,16 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden mb-3">
             <div className="flex flex-col sm:flex-row">
               {/* Racket image */}
-              <div className="sm:w-[240px] shrink-0 flex items-center justify-center py-12 px-8 border-b sm:border-b-0 sm:border-r border-white/10 bg-white/[0.02]">
-                {result.image_url ? (
-                  <img
-                    src={result.image_url}
-                    alt={result.name}
+              {result.image_url && (
+                <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, borderRight: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div
                     onClick={() => setLightboxOpen(true)}
-                    style={{ maxWidth: 200, maxHeight: 280, objectFit: "contain", borderRadius: 12, cursor: "zoom-in" }}
-                  />
-                ) : (
-                  <svg
-                    viewBox="0 0 120 300"
-                    className="w-28 h-auto text-white/20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                    style={{ width: 200, height: 260, background: "white", borderRadius: 12, padding: 16, display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-in" }}
                   >
-                    <ellipse cx="60" cy="95" rx="50" ry="65" stroke="currentColor" strokeWidth="2.5"/>
-                    <line x1="31" y1="42" x2="89" y2="42" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="21" y1="55" x2="99" y2="55" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="15" y1="68" x2="105" y2="68" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="11" y1="81" x2="109" y2="81" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="10" y1="95" x2="110" y2="95" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="11" y1="109" x2="109" y2="109" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="15" y1="122" x2="105" y2="122" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="21" y1="135" x2="99" y2="135" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="31" y1="148" x2="89" y2="148" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="30" y1="43" x2="30" y2="147" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="45" y1="33" x2="45" y2="157" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="60" y1="30" x2="60" y2="160" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="75" y1="33" x2="75" y2="157" stroke="currentColor" strokeWidth="0.8"/>
-                    <line x1="90" y1="43" x2="90" y2="147" stroke="currentColor" strokeWidth="0.8"/>
-                    <path d="M 44 158 L 48 175 L 72 175 L 76 158" stroke="currentColor" strokeWidth="2" fill="none"/>
-                    <rect x="50" y="175" width="20" height="110" rx="5" stroke="currentColor" strokeWidth="2.5"/>
-                    <line x1="50" y1="195" x2="70" y2="195" stroke="currentColor" strokeWidth="1.2"/>
-                    <line x1="50" y1="210" x2="70" y2="210" stroke="currentColor" strokeWidth="1.2"/>
-                    <line x1="50" y1="225" x2="70" y2="225" stroke="currentColor" strokeWidth="1.2"/>
-                    <line x1="50" y1="240" x2="70" y2="240" stroke="currentColor" strokeWidth="1.2"/>
-                    <line x1="50" y1="255" x2="70" y2="255" stroke="currentColor" strokeWidth="1.2"/>
-                    <line x1="50" y1="270" x2="70" y2="270" stroke="currentColor" strokeWidth="1.2"/>
-                  </svg>
-                )}
-              </div>
+                    <img src={result.image_url} alt={result.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  </div>
+                </div>
+              )}
 
               {/* Info panel */}
               <div className="flex-1 p-6 flex flex-col justify-center">
@@ -378,32 +350,18 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
           {lightboxOpen && result.image_url && (
             <div
               onClick={() => setLightboxOpen(false)}
-              style={{
-                position: "fixed", inset: 0, zIndex: 50,
-                background: "rgba(0,0,0,0.85)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                animation: "fadeIn 0.15s ease",
-              }}
+              style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center" }}
             >
-              <style>{`@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }`}</style>
               <button
-                onClick={() => setLightboxOpen(false)}
-                style={{
-                  position: "absolute", top: 16, right: 16,
-                  background: "rgba(255,255,255,0.1)", border: "none",
-                  borderRadius: "50%", width: 40, height: 40,
-                  color: "#fff", fontSize: 20, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
+                onClick={(e) => { e.stopPropagation(); setLightboxOpen(false); }}
+                style={{ position: "absolute", top: 16, right: 16, width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 aria-label="Close"
-              >
-                ✕
-              </button>
+              >✕</button>
               <img
                 src={result.image_url}
                 alt={result.name}
                 onClick={(e) => e.stopPropagation()}
-                style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain", borderRadius: 16 }}
+                style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain", borderRadius: 12 }}
               />
             </div>
           )}
@@ -513,6 +471,18 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
               )}
             </div>
           )}
+
+          {/* Customize entry point */}
+          <div className="border border-white/10 rounded-2xl p-6 mt-3">
+            <h3 className="text-base font-semibold text-white mb-2">{t.customize_from_finder_heading}</h3>
+            <p className="text-sm text-white/60 leading-relaxed mb-4">{t.customize_from_finder_desc}</p>
+            <a
+              href={`/${lang}/customize`}
+              className="inline-block border border-white/20 text-white/80 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-white/[0.05] transition-colors"
+            >
+              {t.customize_from_finder_cta}
+            </a>
+          </div>
 
           <div className="mt-6 text-center">
             <button

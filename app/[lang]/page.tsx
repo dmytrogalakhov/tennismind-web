@@ -61,6 +61,14 @@ export default async function HomePage({
       cta: t.f4_cta,
       badge: t.coming_soon,
     },
+    {
+      icon: "🔧",
+      title: t.f5_title,
+      desc: t.f5_desc,
+      href: `/${lang}/customize`,
+      cta: t.f5_cta,
+      badge: t.coming_soon,
+    },
   ];
 
   return (
@@ -119,7 +127,7 @@ export default async function HomePage({
           <p className="text-white/60 text-center mb-16 max-w-xl mx-auto">
             {t.features_sub}
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f) => (
               <div
                 key={f.title}

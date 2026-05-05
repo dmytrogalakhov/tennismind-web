@@ -4,7 +4,8 @@
     "match_analyses": "Match-Analysen",
     "racket_finder": "Schläger-Finder",
     "string_finder": "Besaitungs-Finder",
-    "predictions": "Prognosen"
+    "predictions": "Prognosen",
+    "customize": "Anpassungs-Wizard"
   },
   "home": {
     "hero_headline_1": "Verstehe das Spiel,",
@@ -30,6 +31,9 @@
     "f4_title": "Besaitungs-Finder",
     "f4_desc": "Finde die perfekte Besaitung und Spannung für deinen Schläger und Spielstil. Bald verfügbar.",
     "f4_cta": "Besaitung finden",
+    "f5_title": "Anpassungs-Wizard",
+    "f5_desc": "Hast du bereits einen Schläger? Sag uns, was fehlt, und erhalte persönliche Anpassungstipps — Bleiband, Griffe, Besaitungsspannung.",
+    "f5_cta": "Schläger anpassen",
     "latest_title": "Neueste Analysen",
     "latest_view_all": "Alle anzeigen →",
     "cta_heading": "Bereit, deinen perfekten Schläger zu finden?",
@@ -139,7 +143,10 @@
     "rec_string_type_label": "Typ",
     "rec_string_tension_label": "Spannung",
     "rec_string_personalized": "Möchtest du eine persönlichere Besaitungsempfehlung?",
-    "buy_button": "Schläger kaufen →"
+    "buy_button": "Schläger kaufen →",
+    "customize_from_finder_heading": "Hast du bereits einen Schläger?",
+    "customize_from_finder_desc": "Kein neuer Schläger nötig? Erhalte Anpassungstipps für deinen aktuellen — Bleiband, Griffwechsel und Spannungsanpassungen, um zu beheben, was fehlt.",
+    "customize_from_finder_cta": "Meinen Schläger anpassen →"
   },
   "buy": {
     "title": "Shop bald verfügbar!",
@@ -191,6 +198,31 @@
     "missing_spin": "Spin",
     "missing_comfort": "Komfort",
     "missing_durability": "Haltbarkeit"
+  },
+  "customize": {
+    "title": "Anpassungs-Wizard",
+    "subtitle": "Sag uns, was in deinem aktuellen Setup fehlt, und wir schlagen Anpassungen vor, um es zu beheben.",
+    "q1_label": "Was ist dein aktueller Schläger?",
+    "search_placeholder": "Schläger suchen…",
+    "other_racket": "Anderer (Namen eingeben)",
+    "dont_know": "Ich weiß es nicht",
+    "type_placeholder": "Schlägernamen eingeben…",
+    "q2_label": "Was fehlt in deinem aktuellen Setup?",
+    "opt_stability": "Stabilität",
+    "opt_power": "Power",
+    "opt_control": "Kontrolle",
+    "opt_spin": "Spin",
+    "submit": "Meinen Schläger anpassen →",
+    "result_title": "Schläger-Anpassungsempfehlungen",
+    "result_coming_soon": "Bald verfügbar! Wir erstellen personalisierte Anpassungsanleitungen — Bleiband-Platzierung, Griffmodifikationen, Besaitungsspannungsanpassungen und mehr.",
+    "your_racket_label": "Dein Schläger",
+    "missing_label": "Was fehlt",
+    "start_over": "Neu starten",
+    "try_racket_finder": "Schläger-Finder ausprobieren",
+    "join_telegram": "Telegram beitreten",
+    "customize_from_finder_heading": "Hast du bereits einen Schläger?",
+    "customize_from_finder_desc": "Kein neuer Schläger nötig? Erhalte Anpassungstipps für deinen aktuellen — Bleiband, Griffwechsel und Spannungsanpassungen, um zu beheben, was fehlt.",
+    "customize_from_finder_cta": "Meinen Schläger anpassen →"
   },
   "api_error": {
     "title": "Aktuell hohe Nachfrage",
