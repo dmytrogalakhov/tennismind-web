@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllAnalyses, formatDate } from "@/lib/analyses";
+import { getAllFeedCards } from "@/lib/feed";
 import { getDictionary, hasLocale } from "./dictionaries";
 import { notFound } from "next/navigation";
 
@@ -21,10 +22,11 @@ export default async function HomePage({
 
   const allAnalyses = getAllAnalyses();
   const recentAnalyses = allAnalyses.slice(0, 2);
+  const insightsCount = getAllFeedCards().length;
 
   const stats = [
     { value: String(allAnalyses.length), label: t.stats_match_analyses },
-    { value: "95%", label: t.stats_prediction_accuracy },
+    { value: String(insightsCount), label: t.stats_insights_published },
     { value: "10+", label: t.stats_rackets_recommended },
   ];
 
