@@ -15,6 +15,7 @@ type NavDict = {
   racket_finder: string;
   string_finder: string;
   predictions: string;
+  feed: string;
 };
 
 type Props = {
@@ -26,6 +27,7 @@ type Props = {
 export default function Footer({ lang, dict, navDict }: Props) {
   const navLinks = [
     { href: `/${lang}`, label: navDict.home },
+    { href: `/${lang}/feed`, label: navDict.feed },
     { href: `/${lang}/analysis`, label: navDict.match_analyses },
     { href: `/${lang}/predictions`, label: navDict.predictions },
     { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
