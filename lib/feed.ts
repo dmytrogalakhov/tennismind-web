@@ -11,6 +11,7 @@ export type FeedCard = {
   date: string;
   tags: string[];
   source?: string;
+  keyNumber?: string;
   body: string;
 };
 
@@ -33,6 +34,7 @@ export function getAllFeedCards(): FeedCard[] {
         date: data.date ?? "",
         tags: data.tags ?? [],
         source: data.source ?? undefined,
+        keyNumber: data.keyNumber ?? undefined,
         body: content.trim(),
       } satisfies FeedCard;
     })
