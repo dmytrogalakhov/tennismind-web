@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import type { FeedCardType } from "@/lib/feed";
 
@@ -27,9 +27,22 @@ const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: st
   upset:   { icon: "⚡", label: "UPSET",   color: "#f472b6" },
 };
 
+// 3 lines × 1.65 line-height × 14px font-size
+const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
+
 export default function FeedStatCard({ type, title, body, tags, date, keyNumber }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
   const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.stat;
+
+  // Measure after mount whether the body actually exceeds 3 lines
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    setOverflows(el.scrollHeight > COLLAPSED_HEIGHT + 2);
+  }, [body]);
 
   async function handleDownload() {
     if (!cardRef.current) return;
@@ -54,8 +67,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber 
           maxWidth: 600,
           width: "100%",
           boxSizing: "border-box",
-          fontFamily:
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
           position: "relative",
         }}
       >
@@ -96,21 +108,42 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber 
           {title}
         </div>
 
-        {/* Body — clamped to 3 lines visually */}
+        {/* Body — animates between collapsed and expanded via max-height */}
         <div
+          ref={bodyRef}
           style={{
             fontSize: 14,
             color: "rgba(255,255,255,0.6)",
             lineHeight: 1.65,
-            marginBottom: 28,
-            display: "-webkit-box",
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: "vertical",
             overflow: "hidden",
+            maxHeight: expanded ? "600px" : `${COLLAPSED_HEIGHT}px`,
+            transition: "max-height 0.3s ease",
+            marginBottom: overflows ? 12 : 28,
           }}
         >
           {body}
         </div>
+
+        {/* Read more / Show less toggle */}
+        {overflows && (
+          <button
+            onClick={() => setExpanded((e) => !e)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              marginBottom: 28,
+              color: "#BF5AF2",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              letterSpacing: "0.02em",
+              opacity: 0.8,
+            }}
+          >
+            {expanded ? "Show less ↑" : "Read more ↓"}
+          </button>
+        )}
 
         {/* Bottom bar */}
         <div
@@ -151,7 +184,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber 
         </div>
       </div>
 
-      {/* Download button — only shown on hover, not part of export */}
+      {/* Download button — shown on hover only, outside the export ref */}
       <button
         onClick={handleDownload}
         className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-2 text-white/50 hover:text-white"
