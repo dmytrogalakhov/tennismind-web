@@ -18,7 +18,7 @@ export default async function FeedPage({
     <div className="flex-1">
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Tennis Feed</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Tennis Insights</h1>
           <p className="text-white/60">Stats, gear notes, form, history, and upsets — one insight at a time.</p>
         </div>
 
