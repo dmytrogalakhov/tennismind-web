@@ -44,6 +44,41 @@ Added `.*\\.[^/]+$` to the negative lookahead in `proxy.ts`. This regex matches 
 
 ---
 
+## Issue #002: DALL-E generated wrong venue in feed card image
+
+**Date:** May 10, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — wrong image published to Telegram and website
+**Reporter:** Manual review
+
+### Symptoms
+
+The Italian Open feed card showed an image with the Eiffel Tower (Paris) instead of the Foro Italico (Rome). The card text was about Rome but the image depicted the wrong city.
+
+### Investigation
+
+1. Checked the DALL-E image prompt — it was generic ("tennis tournament stadium") with no location-specific details
+2. The image prompt router classified the card correctly as "tournament/business" but the template only said "tennis stadium" without extracting venue or city from the card content
+3. DALL-E defaulted to the most common tennis venue association (Roland Garros/Paris) since no specific location was provided
+
+### Root Cause
+
+The image generation pipeline had no location extraction step. The DALL-E prompt was built from the card type only, not from the card content. A card about Rome got the same generic "tennis stadium" prompt as a card about Paris or London.
+
+### Fix
+
+1. Immediate: manually regenerated the image with a Rome-specific prompt including "Foro Italico", "Colosseum", and "Mediterranean pine trees"
+2. Permanent: added a Sonnet-powered extraction step before DALL-E prompt construction. It reads the card title and body, extracts specific_venue, city, country_landmarks, and court_surface as structured JSON, then injects these details into the DALL-E prompt so the image matches the actual location.
+
+### Lessons Learned
+
+1. AI image generation is only as good as the prompt. A generic prompt produces generic images — always inject content-specific details.
+2. Image prompts need a middle layer between "card type" and "DALL-E call" — a visual brief that extracts scene-specific details from the content.
+3. Always review generated images before publishing. The pipeline should ideally show the image during the --review step before approval.
+4. Log all DALL-E prompts to ~/match-analyst-bot/logs/image-prompts.log for debugging bad outputs.
+
+---
+
 ## Template for New Issues
 
 Copy this template for each new issue:
