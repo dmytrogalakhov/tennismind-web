@@ -163,38 +163,14 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
           {/* Bottom bar */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
               borderTop: "1px solid rgba(255,255,255,0.08)",
               paddingTop: 14,
-              gap: 10,
+              textAlign: "right",
             }}
           >
-            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>
-              <span style={{ color: "#ffffff" }}>Tennis</span>
-              <span style={{ color: "#BF5AF2" }}>Mind</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
+              {formatDate(date)}
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", justifyContent: "flex-end" }}>
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  style={{
-                    fontSize: 11,
-                    color: "rgba(255,255,255,0.4)",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    padding: "2px 7px",
-                    borderRadius: 999,
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", flexShrink: 0 }}>
-                {formatDate(date)}
-              </span>
-            </div>
           </div>
         </div>
       </div>
