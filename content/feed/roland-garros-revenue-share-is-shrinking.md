@@ -1,7 +1,7 @@
 ---
 type: "stat"
 title: "Roland Garros revenue share is shrinking"
-date: "2026-05-09"
+date: "2026-05-10"
 tags:
   - "Roland Garros"
   - "Business"

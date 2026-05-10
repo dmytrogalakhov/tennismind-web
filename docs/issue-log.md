@@ -79,6 +79,49 @@ The image generation pipeline had no location extraction step. The DALL-E prompt
 
 ---
 
+## Issue #003: Feed card translation generating new content instead of translating
+
+**Date:** May 10, 2026
+**Project:** tennismind-web
+**Severity:** High — visible to users, broken core feature
+**Reporter:** Manual testing
+
+### Symptoms
+
+When switching to German (DE), the Italian Open feed card showed:
+1. A completely new multi-paragraph essay about Rome that didn't exist in the original card
+2. Both English AND German text displayed simultaneously in the same card
+3. Random bold formatting on the generated content
+4. The title was translated but the body was replaced with invented content
+
+### Investigation
+
+1. Checked the /api/translate route — the LLM prompt was too open-ended
+2. The prompt said "translate this tennis insight" without explicitly constraining the LLM from adding new content
+3. The LLM interpreted "translate" as "write a German version about this topic" rather than "convert these exact words to German"
+4. The frontend was appending the translation to the original text instead of replacing it
+
+### Root Cause
+
+Two separate bugs:
+1. **Prompt too permissive:** The translation prompt didn't enforce "translate ONLY these exact words." The LLM took creative liberty and generated entirely new paragraphs about the topic instead of translating the original 3-sentence card.
+2. **Frontend display logic:** The component rendered both the original English text and the translated text instead of showing only the translated version when the language was set to DE or UA.
+
+### Fix
+
+1. Updated the translation prompt to: "Translate the following tennis insight to {language}. Translate ONLY the text provided. Do not add any new information or context. Keep all numbers, player names, tournament names, and tennis terms intact. Return ONLY the translated text, nothing else."
+2. Fixed the frontend to display ONLY the translated version when language is DE/UA, replacing the English text entirely
+3. Added separate translation for title and body, both cached independently
+
+### Lessons Learned
+
+1. LLMs interpret "translate" loosely unless explicitly constrained. Always add "do not add, remove, or change any information" to translation prompts.
+2. Translation prompts need negative instructions — telling the LLM what NOT to do is as important as telling it what to do.
+3. Test translations with short content first — a 3-sentence card that returns 3 paragraphs is an obvious red flag that's easy to catch early.
+4. Frontend must replace content on language switch, not append. This is a display logic issue separate from the translation quality.
+
+---
+
 ## Template for New Issues
 
 Copy this template for each new issue:
