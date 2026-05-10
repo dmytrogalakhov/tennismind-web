@@ -33,6 +33,7 @@ export default async function FeedPage({
               date={card.date}
               keyNumber={card.keyNumber}
               imageUrl={card.imageUrl}
+              lang={lang}
             />
           ))}
           {cards.length === 0 && (

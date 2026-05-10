@@ -18,6 +18,7 @@ type Props = {
   date: string;
   keyNumber?: string;
   imageUrl?: string;
+  lang?: string;
 };
 
 const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string }> = {
@@ -30,18 +31,52 @@ const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: st
 
 const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
 
-export default function FeedStatCard({ type, title, body, tags, date, keyNumber, imageUrl }: Props) {
+export default function FeedStatCard({ type, title, body, tags, date, keyNumber, imageUrl, lang }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.stat;
 
+  const needsTranslation = lang === "de" || lang === "uk";
+  // Start empty when translation needed — never show English to non-EN users
+  const [displayTitle, setDisplayTitle] = useState(needsTranslation ? "" : title);
+  const [displayBody, setDisplayBody] = useState(needsTranslation ? "" : body);
+  const [translating, setTranslating] = useState(needsTranslation);
+  const [translateFailed, setTranslateFailed] = useState(false);
+
+  useEffect(() => {
+    if (!needsTranslation) return;
+    setTranslating(true);
+    setTranslateFailed(false);
+    fetch("/api/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, body, targetLanguage: lang }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("translate failed");
+        const { translatedTitle, translatedBody } = await res.json() as {
+          translatedTitle: string;
+          translatedBody: string;
+        };
+        setDisplayTitle(translatedTitle);
+        setDisplayBody(translatedBody);
+      })
+      .catch(() => {
+        // Fall back to English and show failure note
+        setDisplayTitle(title);
+        setDisplayBody(body);
+        setTranslateFailed(true);
+      })
+      .finally(() => setTranslating(false));
+  }, [title, body, lang, needsTranslation]);
+
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
     setOverflows(el.scrollHeight > COLLAPSED_HEIGHT + 2);
-  }, [body]);
+  }, [displayBody]);
 
   async function handleDownload() {
     if (!cardRef.current) return;
@@ -110,34 +145,56 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
             </div>
           )}
 
-          {/* Title */}
-          <div
-            style={{
-              fontSize: 17,
-              fontWeight: 600,
-              color: "#ffffff",
-              lineHeight: 1.4,
-              marginBottom: 10,
-            }}
-          >
-            {title}
-          </div>
+          {/* Title — skeleton while translating */}
+          {translating ? (
+            <div className="animate-pulse mb-3">
+              <div className="h-4 bg-white/10 rounded w-4/5 mb-2" />
+              <div className="h-4 bg-white/10 rounded w-2/3" />
+            </div>
+          ) : (
+            <div
+              style={{
+                fontSize: 17,
+                fontWeight: 600,
+                color: "#ffffff",
+                lineHeight: 1.4,
+                marginBottom: 10,
+              }}
+            >
+              {displayTitle}
+            </div>
+          )}
 
-          {/* Body */}
-          <div
-            ref={bodyRef}
-            style={{
-              fontSize: 14,
-              color: "rgba(255,255,255,0.6)",
-              lineHeight: 1.65,
-              overflow: "hidden",
-              maxHeight: expanded ? "600px" : `${COLLAPSED_HEIGHT}px`,
-              transition: "max-height 0.3s ease",
-              marginBottom: overflows ? 8 : 20,
-            }}
-          >
-            {body}
-          </div>
+          {/* Body — skeleton while translating */}
+          {translating ? (
+            <div className="animate-pulse mb-5">
+              <div className="h-3 bg-white/10 rounded w-full mb-2" />
+              <div className="h-3 bg-white/10 rounded w-full mb-2" />
+              <div className="h-3 bg-white/10 rounded w-3/4" />
+            </div>
+          ) : (
+            <>
+              <div
+                ref={bodyRef}
+                style={{
+                  fontSize: 14,
+                  color: "rgba(255,255,255,0.6)",
+                  lineHeight: 1.65,
+                  overflow: "hidden",
+                  maxHeight: expanded ? "600px" : `${COLLAPSED_HEIGHT}px`,
+                  transition: "max-height 0.3s ease",
+                  marginBottom: overflows ? 8 : 20,
+                }}
+              >
+                {displayBody}
+              </div>
+              {translateFailed && (
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 8, fontStyle: "italic" }}>
+                  (English original)
+                </div>
+              )}
+            </>
+          )}
 
           {/* Read more / Show less */}
           {overflows && (
