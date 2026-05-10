@@ -14,9 +14,22 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "TennisMind — Tennis Intelligence",
+  title: "TennisMind — Everything About Tennis. In One Place.",
   description:
-    "Data-driven match analysis, tournament predictions, and personalized racket recommendations.",
+    "Daily insights, match analysis, and personalized gear recommendations",
+  openGraph: {
+    title: "TennisMind — Everything About Tennis. In One Place.",
+    description:
+      "Daily insights, match analysis, and personalized gear recommendations",
+    siteName: "TennisMind",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TennisMind — Everything About Tennis. In One Place.",
+    description:
+      "Daily insights, match analysis, and personalized gear recommendations",
+  },
 };
 
 export async function generateStaticParams() {
