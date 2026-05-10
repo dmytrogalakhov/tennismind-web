@@ -17,6 +17,7 @@ type Props = {
   tags: string[];
   date: string;
   keyNumber?: string;
+  imageUrl?: string;
 };
 
 const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string }> = {
@@ -30,7 +31,7 @@ const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: st
 // 3 lines × 1.65 line-height × 14px font-size
 const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
 
-export default function FeedStatCard({ type, title, body, tags, date, keyNumber }: Props) {
+export default function FeedStatCard({ type, title, body, tags, date, keyNumber, imageUrl }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -71,6 +72,28 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber 
           position: "relative",
         }}
       >
+        {/* Illustration — shown only when image_url is present in frontmatter */}
+        {imageUrl && (
+          <div style={{
+            width: '100%',
+            maxHeight: '250px',
+            overflow: 'hidden',
+            borderRadius: '12px',
+            marginBottom: '16px'
+          }}>
+            <img
+              src={imageUrl}
+              alt={title}
+              style={{
+                width: '100%',
+                height: '250px',
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+          </div>
+        )}
+
         {/* Type label */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
           <span style={{ fontSize: 18, lineHeight: 1 }}>{cfg.icon}</span>

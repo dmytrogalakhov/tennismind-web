@@ -12,6 +12,7 @@ export type FeedCard = {
   tags: string[];
   source?: string;
   keyNumber?: string;
+  imageUrl?: string;
   body: string;
 };
 
@@ -35,6 +36,7 @@ export function getAllFeedCards(): FeedCard[] {
         tags: data.tags ?? [],
         source: data.source ?? undefined,
         keyNumber: data.keyNumber ?? undefined,
+        imageUrl: data.image_url ?? undefined,
         body: content.trim(),
       } satisfies FeedCard;
     })

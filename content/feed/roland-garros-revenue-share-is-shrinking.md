@@ -7,7 +7,7 @@ tags:
   - "Business"
   - "Grand Slam"
 source: "Industry data"
-keyNumber: "15.5% → 14.9%"
+image_url: "/feed/roland-garros-revenue-share-is-shrinking.png"
 ---
 
 The Roland Garros player revenue share has dipped from 15.5% in 2024 to a projected 14.9% in 2026. Despite the tournament increasing its total prize money to $72.1 million, the players' slice of the overall tournament revenue continues to shrink — a trend that fuels the ongoing debate about fair compensation in professional tennis.
