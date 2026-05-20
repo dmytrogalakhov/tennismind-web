@@ -56,6 +56,62 @@ python3 predict_draw.py --auto "Roland Garros 2026"
 
 ---
 
+## 🎨 Regenerate a Single Feed Image
+
+Use this script to regenerate an image for any existing feed card.
+Change type, title, body, tags, and filename to match the card.
+
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 -c "
+from generate_feed import _build_image_prompt
+from openai import OpenAI
+from dotenv import load_dotenv
+import os, base64
+from pathlib import Path
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+card = {
+    'type': 'stat',                          # stat / gear / form / history / upset / news
+    'title': 'Your card title here',
+    'body': 'Your card body text here.',
+    'tags': ['Tag1', 'Tag2']
+}
+
+prompt = _build_image_prompt(card)
+if isinstance(prompt, list):
+    prompt = ' '.join([p.text if hasattr(p, 'text') else str(p) for p in prompt])
+prompt = str(prompt)
+
+response = client.images.generate(model='gpt-image-1', prompt=prompt, n=1, size='1536x1024')
+image_bytes = base64.b64decode(response.data[0].b64_json)
+path = Path.home() / 'tennismind-web/public/feed/your-card-slug-here.png'
+with open(path, 'wb') as f:
+    f.write(image_bytes)
+print('Done — saved to', path)
+"
+```
+
+Check the result before deploying:
+```bash
+open ~/tennismind-web/public/feed/your-card-slug-here.png
+```
+
+If happy, deploy:
+```bash
+cd ~/tennismind-web
+git add public/feed/
+git commit -m "Regenerate image for [card name]"
+npx vercel --prod
+```
+
+Note: each run generates a different image. Run multiple times if the first result is not good.
+
+---
+
 ## 🌐 Website
 
 ### Start local dev server
