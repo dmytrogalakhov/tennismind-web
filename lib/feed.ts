@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-export type FeedCardType = "stat" | "gear" | "form" | "history" | "upset";
+export type FeedCardType = "stat" | "gear" | "form" | "history" | "upset" | "news";
 
 export type FeedCard = {
   slug: string;

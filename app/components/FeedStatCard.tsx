@@ -21,12 +21,13 @@ type Props = {
   lang?: string;
 };
 
-const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string }> = {
-  stat:    { icon: "📊", label: "STAT",    color: "#a855f7" },
-  gear:    { icon: "🏸", label: "GEAR",    color: "#22d3ee" },
-  form:    { icon: "📈", label: "FORM",    color: "#4ade80" },
-  history: { icon: "📅", label: "HISTORY", color: "#fbbf24" },
-  upset:   { icon: "⚡", label: "UPSET",   color: "#f472b6" },
+const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string; borderColor: string }> = {
+  stat:    { icon: "📊", label: "STAT",    color: "#a855f7", borderColor: "rgba(168,85,247,0.3)"   },
+  gear:    { icon: "🏸", label: "GEAR",    color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)"  },
+  form:    { icon: "📈", label: "FORM",    color: "#4ade80", borderColor: "rgba(74,222,128,0.25)"  },
+  history: { icon: "📅", label: "HISTORY", color: "#fbbf24", borderColor: "rgba(251,191,36,0.25)"  },
+  upset:   { icon: "⚡", label: "UPSET",   color: "#f472b6", borderColor: "rgba(244,114,182,0.25)" },
+  news:    { icon: "📰", label: "NEWS",    color: "#e5e5e5", borderColor: "rgba(255,255,255,0.15)" },
 };
 
 const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
@@ -37,6 +38,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.stat;
+  const isNews = type === "news";
 
   const needsTranslation = lang === "de" || lang === "uk";
   // Start empty when translation needed — never show English to non-EN users
@@ -94,8 +96,8 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
         ref={cardRef}
         style={{
           background: "#0a0015",
-          border: "1px solid rgba(191,90,242,0.3)",
-          borderRadius: 16,
+          border: `1px solid ${cfg.borderColor}`,
+          borderRadius: isNews ? 4 : 16,
           overflow: "hidden",
           maxWidth: 600,
           width: "100%",
@@ -135,7 +137,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
               style={{
                 fontSize: 48,
                 fontWeight: 700,
-                color: "#BF5AF2",
+                color: cfg.color,
                 lineHeight: 1.05,
                 marginBottom: 12,
                 letterSpacing: "-0.02em",
@@ -205,7 +207,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
                 border: "none",
                 padding: 0,
                 marginBottom: 20,
-                color: "#BF5AF2",
+                color: cfg.color,
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: "pointer",

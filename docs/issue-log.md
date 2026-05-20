@@ -122,6 +122,109 @@ Two separate bugs:
 
 ---
 
+## Issue #004: Insights feed images generic instead of story-specific
+
+**Date:** May 11, 2026
+**Project:** tennismind-web
+**Severity:** Medium — feature works but visual quality undermines the product
+**Reporter:** Manual testing
+
+### Symptoms
+
+DALLE-generated images for Insights cards were technically on-style (1950s-60s French Riviera travel poster aesthetic preserved) but failed to illustrate the specific story each card told. Example: a card about Sinner being one Masters 1000 title away from matching Djokovic's Career Golden Masters record was illustrated with a generic Foro Italico stadium scene. The image conveyed "tennis happens in Rome" but said nothing about the 9-trophy collection, the rivalry parallel, or the "one away" suspense.
+
+Additional symptoms:
+1. Hallucinated garbled text appeared on stadium banners and architectural surfaces despite "NO text, NO words" in the prompt
+2. All cards had visually similar mood regardless of emotional register (triumph, retirement, near-miss all got the same warm sunset palette)
+3. Over time, cards started feeling samey because every story type used the same hardcoded template
+
+### Investigation
+
+1. Reviewed `_build_image_prompt` — found hardcoded templates branched by `card_type` (stat, gear, history, upset, default)
+2. Reviewed `_extract_location_context` — found it only extracted geography (venue, city, landmarks, surface), never the narrative content of the card
+3. Traced prompt construction for the Sinner card: the prompt was ~70% architectural location detail and ~30% vague "achievement" motif, so DALLE prioritized the concrete location over the abstract achievement
+4. Identified that "spectator atmosphere" and "architectural elements" in the prompts were actively pulling DALLE toward stadium signage, contributing to the hallucinated-text problem
+5. Recognized the `history` card_type was too coarse — it covered anniversaries, head-to-head records, GOAT milestones, retirements, and near-misses with one identical template
+
+### Root Cause
+
+Three compounding bugs:
+
+1. **Wrong abstraction level for branching.** Card type (stat/gear/history/upset) is not a useful axis for image design. The same card type covers wildly different narrative beats. Branching by type produced templates so generic they could only describe the backdrop, never the story.
+2. **Extractor pulled the wrong information.** Geography is the *setting* of the story, not the *subject*. Sending Sonnet to extract only location data meant the narrative hook was never identified or used.
+3. **Word-order weighting in prompts.** DALLE 3 weights early and concrete tokens heavily. Prompts that opened with architectural location and closed with abstract motif rendered the location and ignored the motif.
+
+### Fix
+
+1. Replaced `_extract_location_context` with `_art_direct_card` — a single Sonnet call that acts as an art director and returns a structured visual brief (`central_motif`, `composition`, `subject_treatment`, `setting`, `mood`, `palette_notes`, `avoid`).
+2. Removed all `card_type` branching from `_build_image_prompt`. The function now assembles the DALLE prompt by concatenating the art director's brief with the fixed style suffix.
+3. Preserved `_STYLE_SUFFIX` as inviolable — appended to every prompt including the fallback path, so the 1950s-60s French Riviera aesthetic can never be omitted.
+4. Moved aspect-ratio control out of prompt prose and into the DALLE API `size` parameter (`1792x1024` for landscape). Added explicit landscape composition guidance to the art director prompt so it composes for a wide frame instead of fighting it.
+5. Instructed the art director to construct a textless visual world by *not describing surfaces that carry text* (banners, scoreboards, jerseys with names), rather than relying on the unreliable "NO text" negative instruction alone.
+6. Added mood-to-palette mapping within the fixed Riviera palette (triumph leans warm/golden, near-miss leans cooler/pensive, retirement leans muted/elegiac).
+
+### Lessons Learned
+
+1. **Branch on narrative, not metadata.** Card type, tags, and category fields are useful for UI badges but rarely a good axis for content generation. Let an LLM identify the narrative hook from the actual content instead.
+2. **One LLM call to art-direct beats N hardcoded templates.** The cost is identical (we were already calling Sonnet for geography), and the output quality scales with the story instead of being capped by the template.
+3. **DALLE 3 prompt prose cannot override API parameters.** "Square format" or "Landscape format" in prompt text is unreliable; the `size` parameter is the source of truth. Always pin dimensions via the API call.
+4. **Avoid telling DALLE what NOT to render — instead, don't describe the things that would produce it.** "NO text" is famously unreliable. Removing words that suggest signage (banners, storefronts, scoreboards) is more effective than asking DALLE to suppress text.
+5. **Fixed style elements must live outside the variable prompt path.** Hardcoding `_STYLE_SUFFIX` as a constant appended in every code path (including the fallback) prevents accidental drift when prompts get refactored.
+6. **Real player likeness should never be requested.** DALLE produces generic European-looking figures with bad anatomy and won't render real players recognizably. Pre-empt this by asking for silhouettes, back views, or symbolic figures whenever a real player is named.
+
+---
+
+## Issue #005: DALLE renders wrong object counts and ignores subtle compositional states
+
+**Date:** May 11, 2026
+**Project:** tennismind-web
+**Severity:** Low — image quality issue, not a functional bug
+**Reporter:** Manual testing
+
+### Symptoms
+
+After the art director refactor (Issue #004), images were dramatically more story-specific but exhibited a new failure mode on closer inspection. For the Sinner Career Golden Masters card, the art director correctly designed a motif of "nine trophies arranged in a row, eight filled with gold, the ninth as an empty glowing outline waiting to be filled." DALLE rendered:
+
+1. Thirteen trophies instead of nine
+2. All trophies identical golden — no empty/outlined "ninth" to convey the "one to go" meaning
+3. A decorative trophy frieze that read as wallpaper rather than narrative, especially at desktop width
+
+The image was beautiful but had lost the specific story hook the art director had designed.
+
+### Investigation
+
+1. Compared the art director's JSON brief against the rendered image — confirmed the motif specification was correct and specific
+2. Researched DALLE 3 behavior — confirmed it cannot reliably render exact counts (asking for 9 commonly yields 7-15) and tends to smooth away subtle conceptual states (empty outlines, half-filled objects, glowing absences) during its internal prompt rewriting
+3. Observed that the failure mode was systematic, not random — DALLE consistently prefers concrete visual nouns over poetic compositional states
+4. Noticed the issue was more visible on desktop than mobile — at larger sizes, repetitive arrays of identical objects read as decorative pattern rather than narrative content
+
+### Root Cause
+
+The art director was designing motifs that depended on capabilities DALLE doesn't reliably have:
+
+1. **Exact counting.** "Nine trophies" is unrenderable as a precise count. DALLE counts approximately at best.
+2. **Subtle state contrast.** "Eight filled, one outlined" requires DALLE to render two distinct object states in the same image. The prompt rewriter typically collapses these into one dominant state (here, all gold).
+3. **Array-based meaning.** Compositions where meaning emerges from a *pattern across many identical objects* are fragile. If DALLE renders the wrong count or smooths out the variation, the meaning disappears entirely.
+
+### Fix
+
+Added two robustness rules to the art director's system prompt:
+
+1. Explicit warning that DALLE cannot reliably render exact counts or subtle states, with instruction to design motifs that work through hierarchy and contrast instead — one hero object vs. many smaller ones, foreground vs. background, illuminated vs. silhouetted, single figure approaching a goal.
+2. Bias toward 1-3 hero elements over arrays of identical objects. A row of 12 trophies reads as "trophies in general"; one luminous trophy with a silhouetted figure approaching it reads as "one more to go."
+
+For the Sinner card specifically, the new guidance would produce motifs like: a single luminous trophy in the foreground with smaller silhouetted trophies receding behind it, or a trophy at the end of a path with a small figure approaching — both of which survive DALLE's prompt rewriting and render reliably.
+
+### Lessons Learned
+
+1. **LLM art direction must be calibrated to the renderer's actual capabilities, not its ideal capabilities.** A motif that reads beautifully as text ("nine trophies, eight filled, one empty") can be fundamentally unrenderable. The art director needs to know what the downstream model can and can't do.
+2. **Hierarchy and contrast survive prompt rewriting; counts and subtle states do not.** Compositions built on foreground vs. background, big vs. small, or lit vs. silhouetted are robust. Compositions built on "exactly N items" or "one of them is different" are fragile.
+3. **Image quality issues are more visible at desktop sizes.** A composition that reads fine on mobile (where the eye skims) may fail on desktop (where the eye scrutinizes). Always review generated images at the largest size they'll be displayed.
+4. **Use `quality: "hd"` and `style: "vivid"` in the DALLE API call** — `hd` significantly improves linework crispness, which is essential for poster-style aesthetics that depend on clean bold outlines.
+5. **When chaining LLMs (art director → DALLE), the upstream LLM needs explicit knowledge of the downstream LLM's limitations.** Otherwise the upstream model will design for an idealized renderer and the output will degrade silently.
+
+---
+
 ## Template for New Issues
 
 Copy this template for each new issue:
