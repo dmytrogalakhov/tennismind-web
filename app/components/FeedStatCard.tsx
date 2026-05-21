@@ -21,13 +21,13 @@ type Props = {
   lang?: string;
 };
 
-const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string; borderColor: string }> = {
-  stat:    { icon: "📊", label: "STAT",    color: "#a855f7", borderColor: "rgba(168,85,247,0.3)"   },
-  gear:    { icon: "🏸", label: "GEAR",    color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)"  },
-  form:    { icon: "📈", label: "FORM",    color: "#4ade80", borderColor: "rgba(74,222,128,0.25)"  },
-  history: { icon: "📅", label: "HISTORY", color: "#fbbf24", borderColor: "rgba(251,191,36,0.25)"  },
-  upset:   { icon: "⚡", label: "UPSET",   color: "#f472b6", borderColor: "rgba(244,114,182,0.25)" },
-  news:    { icon: "📰", label: "NEWS",    color: "#e5e5e5", borderColor: "rgba(255,255,255,0.15)" },
+const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string; borderColor: string; readMoreColor: string }> = {
+  stat:    { icon: "📊", label: "STAT",    color: "#a855f7", borderColor: "rgba(168,85,247,0.3)",   readMoreColor: "#a855f7" },
+  gear:    { icon: "🏸", label: "GEAR",    color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)",  readMoreColor: "#22d3ee" },
+  form:    { icon: "📈", label: "FORM",    color: "#4ade80", borderColor: "rgba(74,222,128,0.25)",  readMoreColor: "#4ade80" },
+  history: { icon: "📅", label: "HISTORY", color: "#fbbf24", borderColor: "rgba(251,191,36,0.25)",  readMoreColor: "#fbbf24" },
+  upset:   { icon: "⚡", label: "UPSET",   color: "#f472b6", borderColor: "rgba(244,114,182,0.25)", readMoreColor: "#f472b6" },
+  news:    { icon: "📰", label: "NEWS",    color: "#e5e5e5", borderColor: "rgba(255,255,255,0.15)", readMoreColor: "#BF5AF2" },
 };
 
 const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
@@ -208,7 +208,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
                 border: "none",
                 padding: 0,
                 marginBottom: 20,
-                color: cfg.color,
+                color: cfg.readMoreColor,
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: "pointer",

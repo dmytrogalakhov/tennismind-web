@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { getAllAnalyses, formatDate } from "@/lib/analyses";
 import { getAllFeedCards } from "@/lib/feed";
 import { getDictionary, hasLocale } from "./dictionaries";
 import { notFound } from "next/navigation";
 
-const surfaceColor: Record<string, string> = {
-  Grass: "text-emerald-400",
-  Hard: "text-blue-400",
-  Clay: "text-orange-400",
-};
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function formatDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${MONTHS[m - 1]} ${d}, ${y}`;
+}
 
 export default async function HomePage({
   params,
@@ -20,76 +19,24 @@ export default async function HomePage({
   const dict = await getDictionary(lang);
   const t = dict.home;
 
-  const allAnalyses = getAllAnalyses();
-  const recentAnalyses = allAnalyses.slice(0, 2);
   const allFeedCards = getAllFeedCards();
+  const newsCards = allFeedCards.filter((c) => c.type === "news").slice(0, 3);
   const insightsCount = allFeedCards.filter((c) => c.type !== "news").length;
   const newsCount = allFeedCards.filter((c) => c.type === "news").length;
 
   const stats = [
-    { value: String(allAnalyses.length), label: t.stats_match_analyses },
     { value: String(newsCount), label: t.stats_news_published },
     { value: String(insightsCount), label: t.stats_insights_published },
     { value: "10+", label: t.stats_rackets_recommended },
   ];
 
   const features = [
-    {
-      icon: "📊",
-      title: t.f1_title,
-      desc: t.f1_desc,
-      href: `/${lang}/analysis`,
-      cta: t.f1_cta,
-      badge: null,
-    },
-    {
-      icon: "🏆",
-      title: t.f2_title,
-      desc: t.f2_desc,
-      href: `/${lang}/predictions`,
-      cta: t.f2_cta,
-      badge: null,
-    },
-    {
-      icon: "🎾",
-      title: t.f3_title,
-      desc: t.f3_desc,
-      href: `/${lang}/racket-finder`,
-      cta: t.f3_cta,
-      badge: t.coming_soon,
-    },
-    {
-      icon: "🎸",
-      title: t.f4_title,
-      desc: t.f4_desc,
-      href: `/${lang}/string-finder`,
-      cta: t.f4_cta,
-      badge: t.coming_soon,
-    },
-    {
-      icon: "🔧",
-      title: t.f5_title,
-      desc: t.f5_desc,
-      href: `/${lang}/customize`,
-      cta: t.f5_cta,
-      badge: t.coming_soon,
-    },
-    {
-      icon: "📰",
-      title: t.f6_title,
-      desc: t.f6_desc,
-      href: `/${lang}/news`,
-      cta: t.f6_cta,
-      badge: null,
-    },
-    {
-      icon: "📡",
-      title: t.f7_title,
-      desc: t.f7_desc,
-      href: `/${lang}/feed`,
-      cta: t.f7_cta,
-      badge: null,
-    },
+    { icon: "📰", title: t.f6_title, desc: t.f6_desc, href: `/${lang}/news`,         cta: t.f6_cta, badge: null          },
+    { icon: "📡", title: t.f7_title, desc: t.f7_desc, href: `/${lang}/feed`,         cta: t.f7_cta, badge: null          },
+    { icon: "🎾", title: t.f3_title, desc: t.f3_desc, href: `/${lang}/racket-finder`, cta: t.f3_cta, badge: null          },
+    { icon: "🎸", title: t.f4_title, desc: t.f4_desc, href: `/${lang}/string-finder`, cta: t.f4_cta, badge: t.coming_soon },
+    { icon: "🔧", title: t.f5_title, desc: t.f5_desc, href: `/${lang}/customize`,    cta: t.f5_cta, badge: t.coming_soon },
+    { icon: "📊", title: t.f1_title, desc: t.f1_desc, href: `/${lang}/analysis`,     cta: t.f1_cta, badge: null          },
   ];
 
   return (
@@ -125,7 +72,7 @@ export default async function HomePage({
 
       {/* Stats */}
       <section className="border-y border-accent/10 bg-[#06000e] py-12 px-4">
-        <div className="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+        <div className="max-w-2xl mx-auto grid grid-cols-3 gap-8 text-center">
           {stats.map((stat) => (
             <div key={stat.label}>
               <div className="text-3xl sm:text-4xl font-bold text-accent">
@@ -163,9 +110,7 @@ export default async function HomePage({
                   )}
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
-                <p className="text-white/60 text-sm leading-relaxed flex-1">
-                  {f.desc}
-                </p>
+                <p className="text-white/60 text-sm leading-relaxed flex-1">{f.desc}</p>
                 <Link
                   href={f.href}
                   className="text-accent text-sm font-medium group-hover:underline mt-6"
@@ -178,43 +123,32 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Latest analyses preview */}
+      {/* Latest News */}
       <section className="py-24 px-4 bg-[#06000e] border-t border-accent/10">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold">{t.latest_title}</h2>
             <Link
-              href={`/${lang}/analysis`}
+              href={`/${lang}/news`}
               className="text-accent text-sm font-medium hover:underline"
             >
               {t.latest_view_all}
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {recentAnalyses.map((post) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {newsCards.map((card) => (
               <article
-                key={post.title}
+                key={card.slug}
                 className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 hover:border-accent/25 transition-colors"
               >
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span className="text-xs bg-accent/10 text-white/60 px-2.5 py-1 rounded-full">
-                    {post.tournament}
-                  </span>
-                  <span
-                    className={`text-xs font-medium ${surfaceColor[post.surface] ?? "text-white/60"}`}
-                  >
-                    {post.surface}
-                  </span>
-                  <span className="text-xs text-white/30">{formatDate(post.date)}</span>
-                </div>
-                <h3 className="font-semibold text-base mb-2 leading-snug">
-                  {post.title}
-                </h3>
-                <p className="text-sm text-white/60 leading-relaxed">
-                  {post.summary}
-                </p>
+                <p className="text-xs text-white/30 mb-3">{formatDate(card.date)}</p>
+                <h3 className="font-semibold text-base mb-2 leading-snug">{card.title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed line-clamp-3">{card.body}</p>
               </article>
             ))}
+            {newsCards.length === 0 && (
+              <p className="text-white/40 text-sm">No news yet.</p>
+            )}
           </div>
         </div>
       </section>
@@ -222,9 +156,7 @@ export default async function HomePage({
       {/* CTA */}
       <section className="py-24 px-4">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            {t.cta_heading}
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.cta_heading}</h2>
           <p className="text-white/60 mb-8">{t.cta_desc}</p>
           <Link
             href={`/${lang}/racket-finder`}
