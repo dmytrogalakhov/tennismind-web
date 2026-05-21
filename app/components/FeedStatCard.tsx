@@ -107,7 +107,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
       >
         {/* Image — top of card, full width, fixed height, cropped cleanly */}
         {imageUrl && (
-          <div style={{ width: "100%", height: 220, overflow: "hidden" }}>
+          <div style={{ width: "100%", aspectRatio: "3/2", overflow: "hidden" }}>
             <img
               src={imageUrl}
               alt={title}
@@ -115,6 +115,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
+                objectPosition: "top",
                 display: "block",
               }}
             />

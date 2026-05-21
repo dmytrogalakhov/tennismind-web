@@ -225,6 +225,52 @@ For the Sinner card specifically, the new guidance would produce motifs like: a 
 
 ---
 
+## Issue #006: Feed card images rendering as square on mobile
+
+**Date:** May 20, 2026
+**Project:** match-analyst-bot + tennismind-web
+**Severity:** Medium — poor mobile layout, image dominates card vertically
+**Reporter:** Manual testing
+
+### Symptoms
+
+Feed card images were rendering as square (1:1) on mobile, causing them to dominate the card vertically. The top portion of the image (the narrative payoff) was cropped or pushed above the visible area. All cards looked like tall tiles instead of wide content cards.
+
+Additional symptom: even after regenerating images in landscape format, mobile browsers (Chrome specifically) were still showing old square images due to aggressive caching.
+
+### Investigation
+
+1. Checked image file dimensions — confirmed all were 1024x1024 (square)
+2. CSS aspect-ratio fix alone couldn't help — source images were square
+3. gpt-image-1 API call was using size='1024x1024' instead of landscape
+4. Three separate places in the code all specified square format:
+   - The gpt-image-1 API call: size='1024x1024'
+   - The _art_direct_card prompt: "Square format"
+   - The _build_image_prompt constraints line: "Square 1:1 format"
+5. After regenerating images, mobile Chrome still showed old images due to browser cache
+
+### Root Cause
+
+Two separate bugs:
+1. **Wrong API size parameter:** All three places specifying image format pointed to square. Fixing one without the others caused conflicts — the art director still composed for square even when the API generated landscape.
+2. **Browser cache:** Chrome on mobile caches images aggressively. Even after deploying new landscape images, users saw the old square versions until cache was cleared.
+
+### Fix
+
+1. Changed all three locations to landscape:
+   - API call: size='1536x1024' (only landscape size gpt-image-1 supports — 1792x1024 not available)
+   - _art_direct_card prompt: "LANDSCAPE (3:2 ratio), horizontal composition"
+   - _build_image_prompt constraints: "Landscape 3:2 format, horizontal composition"
+2. Updated FeedStatCard.tsx image container from fixed height to aspectRatio: '3/2'
+3. Regenerated all existing square images using a batch script that detected 1:1 files and
+
+### Lessons Learned
+1. Aspect ratio must be pinned in the API call — prompt text alone does not control output dimensions.
+2. When the same setting appears in multiple places (API param, art director prompt, constraints line), all must be updated together or they conflict.
+3. Always check model-specific size support before specifying dimensions — gpt-image-1 and dall-e-3 have different supported sizes.
+
+---
+
 ## Template for New Issues
 
 Copy this template for each new issue:

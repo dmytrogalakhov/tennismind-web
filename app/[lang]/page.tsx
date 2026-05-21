@@ -22,10 +22,13 @@ export default async function HomePage({
 
   const allAnalyses = getAllAnalyses();
   const recentAnalyses = allAnalyses.slice(0, 2);
-  const insightsCount = getAllFeedCards().length;
+  const allFeedCards = getAllFeedCards();
+  const insightsCount = allFeedCards.filter((c) => c.type !== "news").length;
+  const newsCount = allFeedCards.filter((c) => c.type === "news").length;
 
   const stats = [
     { value: String(allAnalyses.length), label: t.stats_match_analyses },
+    { value: String(newsCount), label: t.stats_news_published },
     { value: String(insightsCount), label: t.stats_insights_published },
     { value: "10+", label: t.stats_rackets_recommended },
   ];
@@ -72,11 +75,19 @@ export default async function HomePage({
       badge: t.coming_soon,
     },
     {
-      icon: "📡",
+      icon: "📰",
       title: t.f6_title,
       desc: t.f6_desc,
-      href: `/${lang}/feed`,
+      href: `/${lang}/news`,
       cta: t.f6_cta,
+      badge: null,
+    },
+    {
+      icon: "📡",
+      title: t.f7_title,
+      desc: t.f7_desc,
+      href: `/${lang}/feed`,
+      cta: t.f7_cta,
       badge: null,
     },
   ];
@@ -114,7 +125,7 @@ export default async function HomePage({
 
       {/* Stats */}
       <section className="border-y border-accent/10 bg-[#06000e] py-12 px-4">
-        <div className="max-w-2xl mx-auto grid grid-cols-3 gap-8 text-center">
+        <div className="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
           {stats.map((stat) => (
             <div key={stat.label}>
               <div className="text-3xl sm:text-4xl font-bold text-accent">

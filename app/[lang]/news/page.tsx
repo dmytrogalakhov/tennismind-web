@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getAllFeedCards } from "@/lib/feed";
 import FeedStatCard from "@/app/components/FeedStatCard";
 
-export default async function FeedPage({
+export default async function NewsPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
@@ -12,14 +12,14 @@ export default async function FeedPage({
   if (!hasLocale(lang)) notFound();
   await getDictionary(lang);
 
-  const cards = getAllFeedCards().filter((c) => c.type !== "news");
+  const cards = getAllFeedCards().filter((c) => c.type === "news");
 
   return (
     <div className="flex-1">
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Tennis Insights</h1>
-          <p className="text-white/60">The stats, patterns, and stories that make you understand tennis on a deeper level.</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Tennis News</h1>
+          <p className="text-white/60">Stay on top of what's happening on tour without spending hours following it yourself.</p>
         </div>
 
         <div className="flex flex-col gap-6">
@@ -37,7 +37,7 @@ export default async function FeedPage({
             />
           ))}
           {cards.length === 0 && (
-            <p className="text-white/40 text-sm">No posts yet.</p>
+            <p className="text-white/40 text-sm">No news yet.</p>
           )}
         </div>
       </div>

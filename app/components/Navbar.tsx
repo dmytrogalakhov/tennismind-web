@@ -6,6 +6,7 @@ import { useState } from "react";
 
 type NavDict = {
   home: string;
+  news: string;
   match_analyses: string;
   racket_finder: string;
   string_finder: string;
@@ -31,6 +32,7 @@ export default function Navbar({ lang, navDict }: Props) {
 
   const links = [
     { href: `/${lang}`, label: navDict.home },
+    { href: `/${lang}/news`, label: navDict.news },
     { href: `/${lang}/feed`, label: navDict.feed },
     { href: `/${lang}/analysis`, label: navDict.match_analyses },
     { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
