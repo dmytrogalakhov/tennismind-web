@@ -271,6 +271,51 @@ Two separate bugs:
 
 ---
 
+## Issue #007: News card image path not saved to frontmatter or Telegram
+
+**Date:** May 21, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — news cards published without images despite user providing image path
+**Reporter:** Manual testing during --review-news flow
+
+### Symptoms
+
+During --review-news, after approving a news card, the terminal asked for an image path. User provided "/feed/roland-garros.svg.png". The card was published to both the website and Telegram without any image. The saved markdown file had no image_url field in the frontmatter.
+
+### Investigation
+
+1. The image path provided was a relative web path (/feed/roland-garros.svg.png) not an absolute Mac file path (~/Downloads/roland-garros.jpg)
+2. The code did not validate whether the provided path pointed to an existing file on disk
+3. The code did not use os.path.expanduser() to expand ~ in paths
+4. Even if the file existed, the code was not copying it to ~/tennismind-web/public/feed/
+5. The image_url field was not being written to the markdown frontmatter
+6. Telegram publishing was not using bot.send_photo() when an image was available
+
+### Root Cause
+
+Two separate bugs:
+1. **No file validation:** The code accepted any string as an image path without checking if the file exists on disk. A web path like "/feed/roland-garros.svg.png" is meaningless as a local file path.
+2. **Incomplete pipeline:** Even with a valid path, the code was not completing the full image pipeline — copy to public/feed/, add image_url to frontmatter, use send_photo() for Telegram.
+
+### Fix
+
+Updated generate_feed.py --review-news image handling:
+1. Show a clear example path in the prompt: "Provide image path (e.g. ~/Downloads/roland-garros.jpg) or press Enter to skip:"
+2. Expand ~ using os.path.expanduser() before processing
+3. Check if file exists with os.path.exists() — if not, print warning and publish without image
+4. If file exists: copy to ~/tennismind-web/public/feed/{card-slug}.png
+5. Add image_url: "/feed/{card-slug}.png" to the markdown frontmatter
+6. Use bot.send_photo() for Telegram when image is present, bot.send_message() when not
+
+### Lessons Learned
+
+1. Always validate file paths before using them — distinguish between web paths (/feed/...) and local Mac paths (~/Downloads/...).
+2. When building a multi-step pipeline (approve → image → publish), test each step independently before assuming the full chain works.
+3. Show a concrete example in prompts asking for file paths — users need to know the expected format.
+4. The image pipeline has three separate concerns that all need to work together: copy file, update frontmatter, update Telegram format. Missing any one of them silently breaks the feature.
+
+---
+
 ## Template for New Issues
 
 Copy this template for each new issue:
