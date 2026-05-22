@@ -2,7 +2,7 @@
 type: "stat"
 title: "Tennis Fans Are the Wealthiest in Sports"
 date: "2026-05-21"
-status: "pending"
+status: "skipped"
 tags:
   - "demographics"
   - "business"
