@@ -169,9 +169,13 @@ When one pipeline tries to serve two different content needs, it optimizes for t
 
 During Roland Garros, the news agent's generic queries ("ATP WTA tennis news today") were still returning Italian Open recaps instead of Roland Garros stories. The agent had no concept of the tennis calendar and couldn't prioritize the current tournament.
 
+Additionally, even when the agent found the right tournament stories, the analysis was vague and dramatic rather than specific and useful. A card about Alcaraz's withdrawal said "creates massive power vacuum in men's draw" — CNN-style language that tells the reader nothing specific. A TennisMind card should say exactly who benefits, who is now the favorite, what the concrete draw implications are with named players and numbers.
+
 ### Decision
 
 Added a tournament calendar to generate_feed.py with dates for all major 2026 tournaments. A function checks what tournament is currently running (including the week before for buildup stories). When a tournament is active, search queries are dynamically rewritten to include the tournament name, and the curation prompt gets a context injection: "Roland Garros is currently happening. Prioritize stories from this tournament."
+
+Also added a rule to the news curation prompt rejecting vague dramatic framing ("creates a power vacuum", "shakes up the draw", "sends shockwaves"). Every news card must explain the specific implications: who benefits, who is now the favorite, what changes for named players. "Alcaraz withdraws, creating a power vacuum" is lazy. "Alcaraz withdraws — Musetti and Ruud become top seeds in his quarter, and Djokovic now has a clear path to the final" is useful.
 
 ### Impact
 
@@ -179,7 +183,7 @@ News agent immediately started finding Roland Garros-specific content instead of
 
 ### Lesson
 
-Context injection is one of the cheapest and highest-impact improvements you can make to an AI pipeline. The model doesn't know what month it is or what tournament is happening unless you tell it. A simple calendar lookup + prompt injection transforms result quality.
+Context injection (tournament awareness) and specificity enforcement (no vague analysis) are two separate improvements that compound. Knowing which tournament to search for gets you the right stories. Requiring specific implications gets you useful analysis instead of dramatic filler. Both are prompt-level changes that cost nothing but dramatically improve output quality.
 
 ---
 
