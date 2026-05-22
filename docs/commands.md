@@ -39,13 +39,61 @@ source venv/bin/activate
 python3 generate_feed.py --review
 ```
 
+## 📰 News Agent
+
+### Let the agent find news
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --generate-news
+python3 generate_feed.py --review-news
+```
+
+### Check news candidates
+```bash
+ls ~/tennismind-web/content/feed-candidates/news/
+```
+
+### Review news backlog
+```bash
+python3 generate_feed.py --backlog-news
+```
+
+---
+
+## 📊 Insights Agent
+
 ### Let the agent find insights
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --generate-insights
+python3 generate_feed.py --review-insights
+```
+
+### Check insight candidates
+```bash
+ls ~/tennismind-web/content/feed-candidates/insights/
+```
+
+### Review insights backlog
+```bash
+python3 generate_feed.py --backlog-insights
+```
+
+---
+
+## 🔄 Run Both Agents
+
+### Generate both news and insights (same as cron)
 ```bash
 cd ~/match-analyst-bot
 source venv/bin/activate
 python3 generate_feed.py --generate
 python3 generate_feed.py --review
 ```
+
+---
 
 ### Predict a tournament draw
 ```bash
