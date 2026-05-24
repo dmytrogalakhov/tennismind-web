@@ -6,6 +6,11 @@ Quick reference for daily operations. Keep this file at `~/tennismind-web/docs/c
 
 ## 🚀 Daily Operations
 
+### Make a post manually
+```bash
+mv ~/tennismind-web/content/feed-candidates/news/players-stage-modified-media-boycott-at-roland-garros-over-prize-money.md ~/tennismind-web/content/feed/
+```
+
 ### Publish a match analysis
 ```bash
 cd ~/match-analyst-bot
@@ -48,15 +53,12 @@ source venv/bin/activate
 python3 generate_feed.py --generate-news
 python3 generate_feed.py --review-news
 ```
+Review options: `y`=publish, `n`=delete permanently, `t`=save for later, `edit`=edit card.
+Cards saved with `t` will appear again in the next `--review-news` run.
 
 ### Check news candidates
 ```bash
 ls ~/tennismind-web/content/feed-candidates/news/
-```
-
-### Review news backlog
-```bash
-python3 generate_feed.py --backlog-news
 ```
 
 ---
@@ -70,15 +72,12 @@ source venv/bin/activate
 python3 generate_feed.py --generate-insights
 python3 generate_feed.py --review-insights
 ```
+Review options: `y`=publish, `n`=delete permanently, `t`=save for later, `edit`=edit card.
+Cards saved with `t` will appear again in the next `--review-insights` run.
 
 ### Check insight candidates
 ```bash
 ls ~/tennismind-web/content/feed-candidates/insights/
-```
-
-### Review insights backlog
-```bash
-python3 generate_feed.py --backlog-insights
 ```
 
 ---
