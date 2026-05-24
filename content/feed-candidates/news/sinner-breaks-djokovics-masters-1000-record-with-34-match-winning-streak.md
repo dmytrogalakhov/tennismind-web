@@ -2,7 +2,7 @@
 type: "news"
 title: "Sinner breaks Djokovic's Masters 1000 record with 34-match winning streak"
 date: "2026-05-22"
-status: "pending"
+status: "skipped"
 tags:
   - "Sinner"
   - "Masters 1000"

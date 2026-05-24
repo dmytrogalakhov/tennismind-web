@@ -2,7 +2,7 @@
 type: "news"
 title: "Alcaraz withdraws from both French Open and Wimbledon with wrist injury"
 date: "2026-05-22"
-status: "pending"
+status: "skipped"
 tags:
   - "Alcaraz"
   - "French Open"
