@@ -3,7 +3,7 @@
 **Author:** Dmytro Galakhov  
 **Date:** April 2026  
 **Status:** Active  
-**Last Updated:** May 9, 2026
+**Last Updated:** May 24, 2026
 
 ---
 
@@ -39,18 +39,19 @@ We have a working TennisMind product with multiple capabilities:
 
 The product is **both pull and push** — the bot handles on-demand queries while the channel pushes content to subscribers. The website captures Google traffic and houses the interactive tools.
 
-**Feed/Insights System** (new):
-- Autonomous daily agent that searches for interesting tennis insights
-- Three modes: `--generate` (autonomous cron), `--review` (human approval), interactive
-- Curated by Sonnet with an editorial prompt encoding TennisMind's taste
-- 1-3 candidates per day, stored in feed-candidates/ for human review
-- Approved insights auto-publish to website AND Telegram
-- Card types: stat, gear, form, history, upset
-- Image generation via OpenAI DALL-E 3 API with type-specific subject routing
-- Consistent visual identity: ALL images use retro French poster aesthetic (bold flat vector art, vibrant sunset colors, 1950s-60s French Riviera style)
-- Subject varies by card type (player action, racket product, stadium venue, trophy) but style stays consistent
-- Image prompts logged to ~/match-analyst-bot/logs/image-prompts.log for quality iteration
-- Image prompts logged for quality iteration
+**Feed/Insights System:**
+- Three separate agents: **Recap** (daily tournament summary), **News** (time-sensitive tour events), **Insights** (evergreen facts, research, gear)
+- Tournament calendar hardcoded in `generate_feed.py`; agents auto-detect active tournament and rewrite queries + curation prompts accordingly
+- Review flow: `y`=publish, `n`=delete file permanently, `t`=keep as pending (reappears next review)
+- Candidates stored in `feed-candidates/recap/`, `feed-candidates/news/`, `feed-candidates/insights/`; approved cards go to `feed/`
+- Recap: daily tournament summary with MEN'S DRAW / WOMEN'S DRAW / STAT OF THE DAY; broadcast-style image (clay court texture, ESPN/Eurosport aesthetic); only runs during active tournament
+- Insights: two-step approval (card text → AI image via gpt-image-1 at 1536×1024); retro French Riviera poster style
+- News: one-step approval (card text → optional manual photo); tournament-only focus during active Slam
+- Image prompts logged to `~/match-analyst-bot/logs/image-prompts.log`
+- Approved cards auto-publish to website AND Telegram channel
+- Card types: recap / news / stat, gear, form, history (insights)
+- `--generate` runs all three in order: recap → news → insights; `--review` shows all pending in same order
+- Commands: `--generate-recap`, `--generate-insights`, `--generate-news`, `--generate` (all); `--review-recap`, `--review-insights`, `--review-news`, `--review` (all)
 - Designed as the "discover without asking" layer — content users browse, not query
 
 **Website** (deployed on Vercel):

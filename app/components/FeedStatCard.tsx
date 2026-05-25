@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import type { FeedCardType } from "@/lib/feed";
 
@@ -28,9 +28,46 @@ const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: st
   history: { icon: "📅", label: "HISTORY", color: "#fbbf24", borderColor: "rgba(251,191,36,0.25)",  readMoreColor: "#fbbf24" },
   upset:   { icon: "⚡", label: "UPSET",   color: "#f472b6", borderColor: "rgba(244,114,182,0.25)", readMoreColor: "#f472b6" },
   news:    { icon: "📰", label: "NEWS",    color: "#e5e5e5", borderColor: "rgba(255,255,255,0.15)", readMoreColor: "#BF5AF2" },
+  recap:   { icon: "📋", label: "DAILY RECAP", color: "#C84E1C", borderColor: "rgba(200,78,28,0.3)",  readMoreColor: "#C84E1C" },
 };
 
 const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
+
+const SECTION_HEADER_REGEX = /(MEN'S DRAW|WOMEN'S DRAW|STAT OF THE DAY)/;
+const SECTION_HEADER_SET = new Set(["MEN'S DRAW", "WOMEN'S DRAW", "STAT OF THE DAY"]);
+
+function renderStructuredBody(text: string) {
+  const parts = text.split(SECTION_HEADER_REGEX);
+  const nodes: React.ReactNode[] = [];
+  let hasContent = false;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i].trim();
+    if (!part) continue;
+
+    if (SECTION_HEADER_SET.has(part)) {
+      if (hasContent) {
+        nodes.push(
+          <hr key={`d${i}`} style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", margin: "14px 0 0" }} />
+        );
+      }
+      nodes.push(
+        <div key={`h${i}`} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#C84E1C", marginTop: 12, marginBottom: 8 }}>
+          {part}
+        </div>
+      );
+    } else {
+      nodes.push(
+        <p key={`p${i}`} style={{ margin: 0 }}>
+          {part}
+        </p>
+      );
+    }
+    hasContent = true;
+  }
+
+  return <>{nodes}</>;
+}
 
 export default function FeedStatCard({ type, title, body, tags, date, keyNumber, imageUrl, lang }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -38,7 +75,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.stat;
-  const isNews = type === "news";
+  const isNews = type === "news" || type === "recap";
 
   const needsTranslation = lang === "de" || lang === "uk";
   // Start empty when translation needed — never show English to non-EN users
@@ -189,7 +226,9 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
                   marginBottom: overflows ? 8 : 20,
                 }}
               >
-                {displayBody}
+                {SECTION_HEADER_REGEX.test(displayBody)
+                  ? renderStructuredBody(displayBody)
+                  : displayBody}
               </div>
               {translateFailed && (
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 8, fontStyle: "italic" }}>

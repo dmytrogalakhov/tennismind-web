@@ -173,17 +173,21 @@ Additionally, even when the agent found the right tournament stories, the analys
 
 ### Decision
 
-Added a tournament calendar to generate_feed.py with dates for all major 2026 tournaments. A function checks what tournament is currently running (including the week before for buildup stories). When a tournament is active, search queries are dynamically rewritten to include the tournament name, and the curation prompt gets a context injection: "Roland Garros is currently happening. Prioritize stories from this tournament."
+Added a tournament calendar to generate_feed.py with dates for all major 2026 tournaments. A `get_current_tournament()` function checks what tournament is currently running (including the week before for buildup stories).
+
+**News agent (hard focus):** All queries are rewritten to include the tournament name. No generic fallback query. Curation prompt gets: "DURING {name}: Only cover stories related to {name}. Ignore all other ATP/WTA news. If nothing interesting happened at {name} today, return 0 cards."
+
+**Insights agent (soft preference):** 3 tournament-specific queries (history, records, traditions) + 2 random evergreen queries each run. Curation prompt gets: "DURING {name}: Prefer insights related to {name} or its history, but don't reject a genuinely great evergreen insight just because it's not tournament-related."
 
 Also added a rule to the news curation prompt rejecting vague dramatic framing ("creates a power vacuum", "shakes up the draw", "sends shockwaves"). Every news card must explain the specific implications: who benefits, who is now the favorite, what changes for named players. "Alcaraz withdraws, creating a power vacuum" is lazy. "Alcaraz withdraws — Musetti and Ruud become top seeds in his quarter, and Djokovic now has a clear path to the final" is useful.
 
 ### Impact
 
-News agent immediately started finding Roland Garros-specific content instead of generic or outdated results.
+News agent immediately started finding Roland Garros-specific content. Hard focus for news (return 0 if nothing interesting) prevents low-quality filler during quiet tournament days. Insights agent surfaces Roland Garros history and records while not losing access to great evergreen content.
 
 ### Lesson
 
-Context injection (tournament awareness) and specificity enforcement (no vague analysis) are two separate improvements that compound. Knowing which tournament to search for gets you the right stories. Requiring specific implications gets you useful analysis instead of dramatic filler. Both are prompt-level changes that cost nothing but dramatically improve output quality.
+News and insights need different levels of tournament focus. News should be exclusively about the active tournament — that's what readers expect during a Slam. Insights can be tournament-flavored but shouldn't be constrained to it, since the best evergreen facts are timeless by definition. Hard vs soft focus is the right distinction.
 
 ---
 
