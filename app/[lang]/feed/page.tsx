@@ -12,7 +12,7 @@ export default async function FeedPage({
   if (!hasLocale(lang)) notFound();
   await getDictionary(lang);
 
-  const cards = getAllFeedCards().filter((c) => c.type !== "news");
+  const cards = getAllFeedCards().filter((c) => c.type !== "news" && c.type !== "recap");
 
   return (
     <div className="flex-1">
