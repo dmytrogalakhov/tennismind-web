@@ -191,6 +191,35 @@ News and insights need different levels of tournament focus. News should be excl
 
 ---
 
+## PDL-007: Recap accuracy over completeness
+
+**Date:** May 2026
+**Trigger:** Day 2 Roland Garros recap included matches from Day 1, missed Monfils' farewell, and listed wrong players
+
+### Context
+
+The Day 2 recap card contained five factual errors: it included Zverev and Djokovic results from Day 1, missed Monfils' last-ever Roland Garros match, included Snigur and Baptiste results from the wrong day, and buried Wawrinka's farewell at the bottom of the card. Root cause: Tavily searches return articles from the past 48-72 hours without clear day boundaries, and the LLM couldn't distinguish Day 1 from Day 2 results.
+
+### Decision
+
+Implemented four reliability mechanisms:
+1. Date verification as the first rule in the prompt — if unsure which day a match was played, exclude it
+2. Deduplication — read all previously published recaps, pass them to the prompt, and explicitly forbid repeating covered matches
+3. Priority reordering — farewell matches are always the lead story, above upsets and top seeds
+4. Quality check — a second Haiku call after generation verifies no duplicates or date-uncertain matches made it through
+
+Core principle: "Accuracy over completeness. A 100-word recap with 4 verified results beats a 200-word recap with 2 wrong ones."
+
+### Impact
+
+Adds ~$0.01 per recap (one extra Haiku verification call). Eliminates the class of errors that most damages trust in a daily sports content product.
+
+### Lesson
+
+When an AI agent operates on time-sensitive data (yesterday's results vs today's), the prompt alone cannot ensure temporal accuracy — the search results themselves mix timeframes. You need structural guardrails: deduplication against known-good published content, explicit date verification rules, and a second-pass quality check. Trust but verify applies to LLM outputs just as much as to human work.
+
+---
+
 ## Template for New Entries
 
 ```
