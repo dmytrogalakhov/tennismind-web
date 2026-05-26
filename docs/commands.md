@@ -82,6 +82,31 @@ ls ~/tennismind-web/content/feed-candidates/insights/
 
 ---
 
+## 📋 Recap Agent (during tournaments only)
+
+### Generate daily tournament recap
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --generate-recap
+python3 generate_feed.py --review-recap
+```
+
+### Check recap candidates
+```bash
+ls ~/tennismind-web/content/feed-candidates/recap/
+```
+
+### Publish a specific recap from backlog
+```bash
+python3 generate_feed.py --publish recap/rg-2026-day-3-recap.md
+```
+
+Only works during active tournaments. Produces one recap card per day covering men's and women's draws.
+Runs automatically as part of the morning cron (--generate).
+
+---
+
 ## 🔄 Run Both Agents
 
 ### Generate both news and insights (same as cron)
