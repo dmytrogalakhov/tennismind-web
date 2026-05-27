@@ -429,6 +429,103 @@ Two pages that deliver immediate value:
    └──────────┘               └──────────────┘
 ```
 
+#### 4.2.1 Agent Architecture & System Layers
+
+TennisMind's AI system is organized in five layers, each serving a distinct purpose:
+
+**LAYER 1: MEMORY (CLAUDE.md)**
+Purpose: persistent instructions that survive across Claude Code sessions.
+Implementation:
+  - Architecture rules (LLM for reasoning, database for facts)
+  - Naming conventions (file slugs, folder structure)
+  - Documentation rules (auto-update roadmap, commands, issue log on changes)
+  - Quality rules (no stats without numbers, no vague analysis, accuracy over completeness)
+Location: CLAUDE.md in both repos (match-analyst-bot + tennismind-web)
+
+**LAYER 2: SKILLS (Prompt Templates & Style Configs)**
+Purpose: specialized expertise loaded per content type, not stuffed into one mega-prompt.
+Implementation:
+  - STYLE_TEMPLATES dict — different visual prompts per card type (editorial, product, player, commemorative, action)
+  - IMAGE_ROUTING config — rules for which card type gets AI images vs manual photos
+  - Curation prompts — separate editorial voice for news vs insights vs recaps
+  - Art director prompt — Sonnet-powered visual brief generation
+  - Tournament calendar — automatic context injection based on active tournament
+Location: generate_feed.py (prompt templates, routing config, calendar)
+
+**LAYER 3: SUBAGENTS**
+Purpose: specialized agents for distinct content needs, each with its own search strategy, curation logic, and output format.
+
+  **Agent 1: Insights Agent**
+    Job: find evergreen, surprising tennis content
+    Searches: research queries without dates (demographics, equipment science, industry data, funny stories)
+    Output: 1-3 editorial insight cards with AI-generated illustrations
+    Schedule: daily at 9 AM via cron
+    Commands: --generate-insights / --review-insights
+
+  **Agent 2: News Agent**
+    Job: find current tennis news worth knowing
+    Searches: time-sensitive queries with today's date, tournament-aware during Grand Slams
+    Output: 1-3 news cards with manually-provided real photos
+    Schedule: daily at 9 AM + 7 PM during tournaments
+    Commands: --generate-news / --review-news
+
+  **Agent 3: Recap Agent**
+    Job: summarize yesterday's tournament action
+    Searches: editorial recap articles (not score pages), dedicated farewell player queries
+    Output: 1 structured recap card (men's draw + women's draw) with broadcast-style graphic
+    Schedule: daily at 9 AM during active tournaments only
+    Commands: --generate-recap / --review-recap
+    Special rules: deduplication against previous recaps, date verification, mandatory top-5 seed coverage
+
+  **Agent 4: Match Analysis Agent (analyst.py)**
+    Job: produce tactical breakdown of a specific match
+    Searches: match recap articles, statistics
+    Output: structured analysis (headline, why he won, key stats, insight)
+    Schedule: on-demand via publish_now.py
+    Special rules: no vague language, specific numbers required, honest failure when data unavailable
+
+  **Agent 5: Prediction Agent (predictor.py)**
+    Job: predict match outcomes or full tournament draws
+    Searches: H2H records, form data, surface stats
+    Output: prediction with confidence rating
+    Schedule: on-demand via predict_draw.py
+
+  **Agent 6: Racket Advisor (racket_advisor.py)**
+    Job: recommend a racket based on player profile
+    Searches: none — reasons over curated database
+    Output: personalized recommendation with explanation
+    Special rules: LLM for reasoning only, database for all specs/prices/strings
+
+**LAYER 4: PLUGINS (External API Connections)**
+Purpose: connect agents to external services for search, reasoning, image generation, and publishing.
+Implementation:
+  - Tavily API — web search (used by insights, news, recap, analysis, prediction agents)
+  - Anthropic Claude API — reasoning engine
+    - Sonnet: analysis, predictions, curation, art direction, racket recommendations
+    - Haiku: validation, parsing, verification checks
+  - OpenAI gpt-image-1 — image generation for insight cards and recap graphics
+  - Telegram Bot API — publishing to channel and bot interactions
+  - Vercel — website hosting and deployment
+  - File system — markdown content management, image storage
+
+**LAYER 5: GUARDRAILS (Quality Controls)**
+Purpose: prevent errors before they reach users.
+Currently implemented:
+  - Human-in-the-loop review: every card requires manual approval (y/n/t) before publishing
+  - Two-step image approval: approve text separately from image, with regeneration option
+  - Date verification: Haiku cross-checks recap results against previous recaps
+  - Deduplication: new recaps checked against published recaps to prevent repeating old results
+  - Content quality filter: search results with garbled HTML or under 100 chars are stripped before reaching Sonnet
+  - Telegram fallback: if photo upload fails, card still publishes to website (no full pipeline crash)
+  - Friendly error messages: API failures show user-friendly text, not raw errors
+Future (not yet implemented):
+  - Automated fact-checking hook (verify player names against known database)
+  - Auto-reject cards over word limit
+  - Image dimension verification before saving
+  - Fully autonomous publishing without human review (requires all hooks above)
+
+---
+
 #### 4.3 Content Publishing Flow (updated)
 ```
 MATCH ANALYSIS:
