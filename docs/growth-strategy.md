@@ -163,6 +163,22 @@ Daily tennis insights: https://t.me/tennismind
 
 ---
 
+### YouTube Comments (guerrilla discovery)
+
+**Role:** piggyback on tennis influencer audiences. Don't create videos — comment on popular ones.
+
+**Target channels:** The Tennis Podcast, Functional Tennis, Tennis TV, WTA, Andy Roddick clips, Essential Tennis, Gill Gross Tennis
+
+**Comment strategy:**
+- Comment within 2 hours of upload — early comments get pinned to top
+- Add a stat or angle the video missed — not just "great video"
+- 4 out of 5 comments: pure value, no mention of TennisMind
+- 1 in 5 comments: soft mention — "we covered this in our daily RG recap — tennismind on Telegram"
+- Never link directly to website — YouTube hides comments with links
+- Reply to other people's comments too — YouTube promotes active commenters
+
+---
+
 ## Posting Rhythm During Grand Slams
 
 | Time | Action | Platform |
@@ -171,6 +187,7 @@ Daily tennis insights: https://t.me/tennismind
 | 9:30 AM | Publish recap | Telegram (auto), X (manual thread), Reddit (manual image post) |
 | 10 AM | Publish 1 news card if interesting | Telegram (auto) |
 | Afternoon | Reply to 2-3 tennis conversations | X, Reddit (karma building) |
+| Afternoon | Comment on 1-2 new tennis videos | YouTube (value-first, soft mention 1 in 5) |
 | Evening | Publish 1 insight if available | Telegram (auto), X (single tweet) |
 | 2-3x per week | Post insight to Reddit | Reddit (image post with discussion question) |
 
@@ -182,6 +199,7 @@ Daily tennis insights: https://t.me/tennismind
 |---|---|---|
 | Daily | 1 insight card | Telegram (auto) |
 | 2-3x per week | Insight post | X (single tweet + image) |
+| 2-3x per week | Comment on tennis videos | YouTube (value-first, soft mention 1 in 5) |
 | 1-2x per week | Insight post | Reddit (when karma allows) |
 | 1-2x per month | Product/AI learning post | LinkedIn |
 

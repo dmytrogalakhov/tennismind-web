@@ -41,6 +41,7 @@ NEVER say "done" without having saved the documentation changes. Verify by readi
 - Never use vague analysis ("creates a power vacuum") — always name specific players and implications
 - Farewell matches are always the lead story in recaps
 - Accuracy over completeness — exclude uncertain results rather than risk being wrong
+- NEVER generate player names, scores, or match results from memory. If the data isn't in the search results or explicitly provided by the user, say "I don't have this information" rather than guessing.
 
 ---
 

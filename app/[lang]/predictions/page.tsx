@@ -1,5 +1,7 @@
 import { getDictionary, hasLocale } from "../dictionaries";
 import { notFound } from "next/navigation";
+import { getAllFeedCards } from "@/lib/feed";
+import FeedStatCard from "@/app/components/FeedStatCard";
 
 type Contender = {
   player: string;
@@ -130,6 +132,8 @@ export default async function PredictionsPage({
   const dict = await getDictionary(lang);
   const t = dict.predictions;
 
+  const matchPredictions = getAllFeedCards().filter((c) => c.type === "prediction");
+
   const statusBadge = {
     live: "bg-pink/10 text-pink border-pink/20",
     upcoming: "bg-cyan/10 text-cyan border-cyan/20",
@@ -150,6 +154,28 @@ export default async function PredictionsPage({
           <p className="text-white/60 text-lg max-w-2xl">{t.subtitle}</p>
         </div>
 
+        {matchPredictions.length > 0 && (
+          <div className="mb-14">
+            <h2 className="text-2xl font-bold mb-6">Match Predictions</h2>
+            <div className="flex flex-col gap-6 max-w-2xl">
+              {matchPredictions.map((card) => (
+                <FeedStatCard
+                  key={card.slug}
+                  type={card.type}
+                  title={card.title}
+                  body={card.body}
+                  tags={card.tags}
+                  date={card.date}
+                  keyNumber={card.keyNumber}
+                  imageUrl={card.imageUrl}
+                  lang={lang}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <h2 className="text-2xl font-bold mb-6">Tournament Predictions</h2>
         <div className="space-y-8">
           {tournaments.map((tournament) => (
             <div

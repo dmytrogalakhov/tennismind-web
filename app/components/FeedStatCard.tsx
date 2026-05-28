@@ -11,7 +11,6 @@ function formatDate(iso: string): string {
 }
 
 type Props = {
-  slug: string;
   type: FeedCardType;
   title: string;
   body: string;
@@ -20,7 +19,6 @@ type Props = {
   keyNumber?: string;
   imageUrl?: string;
   lang?: string;
-  votes?: { up: number; down: number };
 };
 
 const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string; borderColor: string; readMoreColor: string }> = {
@@ -29,16 +27,18 @@ const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: st
   form:    { icon: "📈", label: "FORM",    color: "#4ade80", borderColor: "rgba(74,222,128,0.25)",  readMoreColor: "#4ade80" },
   history: { icon: "📅", label: "HISTORY", color: "#fbbf24", borderColor: "rgba(251,191,36,0.25)",  readMoreColor: "#fbbf24" },
   upset:   { icon: "⚡", label: "UPSET",   color: "#f472b6", borderColor: "rgba(244,114,182,0.25)", readMoreColor: "#f472b6" },
-  news:    { icon: "📰", label: "NEWS",    color: "#e5e5e5", borderColor: "rgba(255,255,255,0.15)", readMoreColor: "#BF5AF2" },
-  recap:   { icon: "📋", label: "DAILY RECAP", color: "#C84E1C", borderColor: "rgba(200,78,28,0.3)",  readMoreColor: "#C84E1C" },
+  news:       { icon: "📰", label: "NEWS",         color: "#e5e5e5", borderColor: "rgba(255,255,255,0.15)", readMoreColor: "#BF5AF2" },
+  recap:      { icon: "📋", label: "DAILY RECAP",  color: "#C84E1C", borderColor: "rgba(200,78,28,0.3)",   readMoreColor: "#C84E1C" },
+  prediction: { icon: "🔮", label: "MATCH PREVIEW", color: "#FFD700", borderColor: "rgba(255,215,0,0.25)",  readMoreColor: "#FFD700" },
 };
 
 const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
 
-const SECTION_HEADER_REGEX = /(MEN'S DRAW|WOMEN'S DRAW|STAT OF THE DAY)/;
-const SECTION_HEADER_SET = new Set(["MEN'S DRAW", "WOMEN'S DRAW", "STAT OF THE DAY"]);
+const RECAP_HEADER_SET = new Set(["MEN'S DRAW", "WOMEN'S DRAW", "STAT OF THE DAY"]);
+const PREDICTION_HEADER_RE = /^(?:WHY [^\n]+ (?:WINS|COULD UPSET)|THE KEY MATCHUP|PREDICTION)$/;
+const SECTION_HEADER_REGEX = /(MEN'S DRAW|WOMEN'S DRAW|STAT OF THE DAY|WHY [^\n]+ (?:WINS|COULD UPSET)|THE KEY MATCHUP|PREDICTION)/;
 
-function renderStructuredBody(text: string) {
+function renderStructuredBody(text: string, headerColor: string) {
   const parts = text.split(SECTION_HEADER_REGEX);
   const nodes: React.ReactNode[] = [];
   let hasContent = false;
@@ -47,14 +47,14 @@ function renderStructuredBody(text: string) {
     const part = parts[i].trim();
     if (!part) continue;
 
-    if (SECTION_HEADER_SET.has(part)) {
+    if (RECAP_HEADER_SET.has(part) || PREDICTION_HEADER_RE.test(part)) {
       if (hasContent) {
         nodes.push(
           <hr key={`d${i}`} style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", margin: "14px 0 0" }} />
         );
       }
       nodes.push(
-        <div key={`h${i}`} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#C84E1C", marginTop: 12, marginBottom: 8 }}>
+        <div key={`h${i}`} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: headerColor, marginTop: 12, marginBottom: 8 }}>
           {part}
         </div>
       );
@@ -71,27 +71,13 @@ function renderStructuredBody(text: string) {
   return <>{nodes}</>;
 }
 
-export default function FeedStatCard({ slug, type, title, body, tags, date, keyNumber, imageUrl, lang, votes: initialVotes }: Props) {
+export default function FeedStatCard({ type, title, body, tags, date, keyNumber, imageUrl, lang }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.stat;
   const isNews = type === "news" || type === "recap";
-
-  const [localVotes, setLocalVotes] = useState(initialVotes ?? { up: 0, down: 0 });
-  const [voted, setVoted] = useState<"up" | "down" | null>(null);
-
-  async function handleVote(v: "up" | "down") {
-    if (voted) return;
-    setVoted(v);
-    setLocalVotes((prev) => ({ ...prev, [v]: prev[v] + 1 }));
-    await fetch("/api/votes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, vote: v }),
-    });
-  }
 
   const needsTranslation = lang === "de" || lang === "uk";
   // Start empty when translation needed — never show English to non-EN users
@@ -243,7 +229,7 @@ export default function FeedStatCard({ slug, type, title, body, tags, date, keyN
                 }}
               >
                 {SECTION_HEADER_REGEX.test(displayBody)
-                  ? renderStructuredBody(displayBody)
+                  ? renderStructuredBody(displayBody, type === "prediction" ? "#FFD700" : "#C84E1C")
                   : displayBody}
               </div>
               {translateFailed && (
@@ -280,36 +266,9 @@ export default function FeedStatCard({ slug, type, title, body, tags, date, keyN
             style={{
               borderTop: "1px solid rgba(255,255,255,0.08)",
               paddingTop: 14,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              textAlign: "right",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              {(["up", "down"] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => handleVote(v)}
-                  disabled={voted !== null}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: voted ? "default" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    opacity: voted && voted !== v ? 0.3 : voted === v ? 1 : 0.5,
-                    transition: "opacity 0.2s",
-                  }}
-                >
-                  <span style={{ fontSize: 13 }}>{v === "up" ? "👍" : "👎"}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
-                    {localVotes[v] > 0 ? localVotes[v] : ""}
-                  </span>
-                </button>
-              ))}
-            </div>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
               {formatDate(date)}
             </span>
