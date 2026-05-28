@@ -243,6 +243,65 @@ Not all web content is equal for AI consumption. JavaScript-rendered score pages
 
 ---
 
+## PDL-009: Prediction card prompt — from stat dump to editorial opinion
+
+**Date:** May 2026
+**Trigger:** First prediction card (Djokovic vs Fonseca) read like a betting preview, not a TennisMind card
+
+### Context
+
+Built a match prediction feature for Roland Garros. First version produced stat-heavy output: "Djokovic has a 39.5% return points won rate on clay and a 41.6% breakpoint conversion rate. Fonseca's first serve percentage dropped to 58%." Technically accurate but unreadable — felt like a spreadsheet, not an editorial take a tennis fan would want to read in a feed.
+
+### Iteration 1: Basic prompt
+
+Prompt asked for "WHY X WINS, WHY Y COULD UPSET, KEY MATCHUP, PREDICTION" with four separate sections. Result: too long, too structured, overloaded with stats. Every claim backed by a percentage. Read like a betting analyst's report.
+
+### Iteration 2: Added style constraints
+
+Added rules: "max ONE stat per card, prefer narrative over numbers, sound like a smart tennis friend." Result: improved significantly — fewer numbers, more readable. But still opened with generic phrases like "fascinating clash" and included report-like language ("six hours already spent on court through two rounds").
+
+### Iteration 3: Structural constraint + examples
+
+Reduced to exactly 4 sentences with specific jobs:
+1. Matchup dynamic — why this match is interesting
+2. Upset path — how the underdog wins
+3. Favorite's edge — why the favorite prevails
+4. Final call — punchy one-liner ("Djokovic in four")
+
+Added a GOOD and BAD example directly in the prompt. Added ban on generic openers ("fascinating clash", "exciting matchup"). Added ban on betting language.
+
+### Final output
+
+"Djokovic's tactical control meets Fonseca's raw power, with the Brazilian riding big momentum after his comeback against Prizmic from two sets down. Fonseca can make this uncomfortable if he starts fast, keeps the rallies short, and keeps swinging freely, especially with Djokovic showing some physical wear after a long opening week. But Djokovic's clay-court experience and ability to absorb pace should matter more as the match wears on. Djokovic in four sets."
+
+### What changed between versions
+
+| Aspect | V1 | V3 |
+|---|---|---|
+| Length | 200+ words, 4 sections | 4 sentences, ~60 words |
+| Stats | 5-6 percentages per card | Maximum 1, only if essential |
+| Tone | Betting analyst | Smart tennis friend |
+| Structure | Free-form with headers | Rigid 4-sentence framework |
+| Opening | "Fascinating clash" | Specific matchup dynamic |
+
+### Decision
+
+Locked the V3 prompt with:
+- 4-sentence rigid structure (each sentence has a defined job)
+- Good and bad examples embedded in the prompt
+- Explicit bans: no generic openers, no stat dumps, no betting language, no hedging
+- "Sound like a smart tennis friend making a call" as the core voice directive
+
+### Lessons learned
+
+1. **Structure beats instruction.** Telling the LLM "use fewer stats" doesn't work reliably. Telling it "write exactly 4 sentences, each with a specific job" works every time. Constraining the format constrains the content.
+2. **Examples are 10x more effective than rules.** The BAD example ("39.5% return points won") taught the LLM more about what to avoid than five lines of "don't use too many statistics."
+3. **Prompt iteration follows the same loop as product iteration.** Ship → observe → diagnose → fix → ship again. The first version is never the final version — and that's fine. The skill is in knowing what to change.
+4. **The AI generates 80%, the human polishes 20%.** The final published card was a human edit of the AI output — tightening phrases, removing generic language. This is the right workflow for editorial AI: machine drafts, human sharpens.
+5. **Generic openers are the most common LLM crutch.** Banning "fascinating", "exciting", "intriguing" forces the model to describe the ACTUAL matchup. This single rule improved every subsequent prediction.
+
+---
+
 ## Template for New Entries
 
 ```
