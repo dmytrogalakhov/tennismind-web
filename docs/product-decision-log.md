@@ -220,6 +220,29 @@ When an AI agent operates on time-sensitive data (yesterday's results vs today's
 
 ---
 
+## PDL-008: Search for editorial articles, not score pages
+
+**Date:** May 2026
+**Trigger:** Recap agent returned "matches still in progress" despite full day of completed matches
+
+### Context
+
+Tavily was scraping live score pages (rolandgarros.com/matches, wtatennis.com/scores, flashscore.com) which are JavaScript-rendered and return garbled HTML — image tags, navigation fragments, and scores formatted as "3 6 3 4" instead of readable match results. The LLM received garbage input and produced a generic "matches still in progress" response despite dozens of completed matches.
+
+### Decision
+
+Changed search queries from targeting score pages to targeting editorial recap articles from sites like ESPN, Tennis.com, The Guardian. These produce clean, parseable text with match context and narrative. Added a content quality filter that strips results with excessive HTML artifacts or under 100 characters of actual text.
+
+### Impact
+
+Recap agent immediately started producing accurate, narrative-rich match summaries. The quality filter also improved results for the news and insights agents by removing low-signal search results.
+
+### Lesson
+
+Not all web content is equal for AI consumption. JavaScript-rendered score pages look perfect in a browser but return garbage through search APIs. Editorial articles are less structured but far more parseable. When building AI pipelines that depend on web search, optimizing which SOURCES you target matters more than how you prompt the LLM downstream.
+
+---
+
 ## Template for New Entries
 
 ```

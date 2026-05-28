@@ -11,6 +11,7 @@ function formatDate(iso: string): string {
 }
 
 type Props = {
+  slug: string;
   type: FeedCardType;
   title: string;
   body: string;
@@ -19,6 +20,7 @@ type Props = {
   keyNumber?: string;
   imageUrl?: string;
   lang?: string;
+  votes?: { up: number; down: number };
 };
 
 const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string; color: string; borderColor: string; readMoreColor: string }> = {
@@ -69,13 +71,27 @@ function renderStructuredBody(text: string) {
   return <>{nodes}</>;
 }
 
-export default function FeedStatCard({ type, title, body, tags, date, keyNumber, imageUrl, lang }: Props) {
+export default function FeedStatCard({ slug, type, title, body, tags, date, keyNumber, imageUrl, lang, votes: initialVotes }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.stat;
   const isNews = type === "news" || type === "recap";
+
+  const [localVotes, setLocalVotes] = useState(initialVotes ?? { up: 0, down: 0 });
+  const [voted, setVoted] = useState<"up" | "down" | null>(null);
+
+  async function handleVote(v: "up" | "down") {
+    if (voted) return;
+    setVoted(v);
+    setLocalVotes((prev) => ({ ...prev, [v]: prev[v] + 1 }));
+    await fetch("/api/votes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, vote: v }),
+    });
+  }
 
   const needsTranslation = lang === "de" || lang === "uk";
   // Start empty when translation needed — never show English to non-EN users
@@ -264,9 +280,36 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
             style={{
               borderTop: "1px solid rgba(255,255,255,0.08)",
               paddingTop: 14,
-              textAlign: "right",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              {(["up", "down"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => handleVote(v)}
+                  disabled={voted !== null}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: voted ? "default" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    opacity: voted && voted !== v ? 0.3 : voted === v ? 1 : 0.5,
+                    transition: "opacity 0.2s",
+                  }}
+                >
+                  <span style={{ fontSize: 13 }}>{v === "up" ? "👍" : "👎"}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
+                    {localVotes[v] > 0 ? localVotes[v] : ""}
+                  </span>
+                </button>
+              ))}
+            </div>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
               {formatDate(date)}
             </span>

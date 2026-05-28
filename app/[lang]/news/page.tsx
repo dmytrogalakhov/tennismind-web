@@ -1,6 +1,7 @@
 import { getDictionary, hasLocale } from "../dictionaries";
 import { notFound } from "next/navigation";
 import { getAllFeedCards } from "@/lib/feed";
+import { getVotes } from "@/lib/votes";
 import FeedStatCard from "@/app/components/FeedStatCard";
 
 export default async function NewsPage({
@@ -13,6 +14,7 @@ export default async function NewsPage({
   await getDictionary(lang);
 
   const cards = getAllFeedCards().filter((c) => c.type === "news" || c.type === "recap");
+  const votes = getVotes();
 
   return (
     <div className="flex-1">
@@ -26,6 +28,7 @@ export default async function NewsPage({
           {cards.map((card) => (
             <FeedStatCard
               key={card.slug}
+              slug={card.slug}
               type={card.type}
               title={card.title}
               body={card.body}
@@ -34,6 +37,7 @@ export default async function NewsPage({
               keyNumber={card.keyNumber}
               imageUrl={card.imageUrl}
               lang={lang}
+              votes={votes[card.slug]}
             />
           ))}
           {cards.length === 0 && (

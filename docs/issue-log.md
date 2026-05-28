@@ -178,6 +178,36 @@ Updated generate_feed.py --review-news image handling:
 
 ---
 
+## Issue #008: Telegram photo upload timeout on recap cards
+
+**Date:** May 27, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — card published to website but not Telegram
+**Reporter:** Manual testing
+
+### Symptoms
+
+After approving a Day 3 recap card, the image was sent to Telegram but the follow-up text message timed out. Error: telegram.error.TimedOut. The card was successfully saved to the website.
+
+### Root Cause
+
+The generated image was too large for Telegram's default upload timeout. The Bot instance used default timeouts (5-10 seconds) which weren't enough for large landscape images over slow connections.
+
+### Fix
+
+1. Increased Bot timeouts to 60 seconds for read/write operations
+2. Added image compression: if file exceeds 1MB, compress to quality=85 before uploading
+3. Added retry mechanism: on timeout, wait 5 seconds and retry once before failing gracefully
+4. Telegram failures no longer crash the pipeline — card is saved to website regardless
+
+### Lessons Learned
+
+1. Always set explicit timeouts on API clients — defaults are often too aggressive for media uploads.
+2. Pipeline should never crash on a publishing failure — the card is already approved and saved, so a Telegram failure is a partial success, not a total failure.
+3. Compress images before uploading to external APIs — there's no reason to send a 3MB image when Telegram will display it at 1000px wide anyway.
+
+---
+
 ## Template for New Issues
 
 Copy this template for each new issue:
