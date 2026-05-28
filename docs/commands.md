@@ -107,6 +107,25 @@ Runs automatically as part of the morning cron (--generate).
 
 ---
 
+## 🔮 Match Predictions
+
+### Generate a match prediction
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --predict "Djokovic vs Fonseca Roland Garros R3"
+python3 generate_feed.py --review-predictions
+```
+
+### Check prediction candidates
+```bash
+ls ~/tennismind-web/content/feed-candidates/predictions/
+```
+
+Only for matches people are talking about — top 5 seeds, rising stars, rivalries. 1-2 per round during Grand Slams.
+
+---
+
 ## 🔄 Run Both Agents
 
 ### Generate both news and insights (same as cron)
