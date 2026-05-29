@@ -208,6 +208,43 @@ The generated image was too large for Telegram's default upload timeout. The Bot
 
 ---
 
+## Issue #009: Recap agent hallucinated match results for eliminated and withdrawn players
+
+**Date:** May 29, 2026
+**Project:** match-analyst-bot
+**Severity:** Critical — published completely false match results
+**Reporter:** Manual review
+
+### Symptoms
+
+Day 5 Roland Garros recap stated:
+- "No. 1 Jannik Sinner began his title campaign with a commanding straight-sets victory" — Sinner was ELIMINATED the day before (we published a news card about it)
+- "No. 3 Carlos Alcaraz advanced comfortably" — Alcaraz WITHDREW from the tournament weeks ago (we published a news card about it)
+
+Both results were fabricated by the LLM. Neither appeared in any search results.
+
+### Root Cause
+
+Three failures compounding:
+1. Tavily returned insufficient Day 5 results — either no articles indexed yet or garbled HTML from score pages
+2. Sonnet hallucinated plausible results when search data was insufficient instead of saying "I don't have enough data"
+3. The agent never cross-referenced against its own published content — it didn't know Sinner lost yesterday or that Alcaraz withdrew, despite both being published TennisMind cards
+
+### Fix
+
+1. Added anti-hallucination rule as the first prompt instruction: if search results don't contain explicit match results with scores, return INSUFFICIENT_DATA instead of fabricating
+2. Added cross-reference against all published content: extract known eliminations and withdrawals from content/feed/, pass them to the prompt with explicit instruction that these players cannot have played
+3. Added post-generation Haiku verification: checks the generated recap against known eliminations/withdrawals before saving — blocks the card if errors are found
+
+### Lessons Learned
+
+1. LLMs will confidently fabricate sports results when given insufficient data — this is the single most dangerous behavior for a content product
+2. "Don't hallucinate" as a prompt instruction is not enough. You need structural guardrails: known-state cross-referencing and post-generation verification
+3. The agent must read its OWN published content before generating new content — otherwise it contradicts itself
+4. An empty recap is infinitely better than a wrong recap. The pipeline must have a "refuse to generate" option when data quality is insufficient
+
+---
+
 ## Template for New Issues
 
 Copy this template for each new issue:
