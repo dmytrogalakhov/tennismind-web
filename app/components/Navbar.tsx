@@ -46,8 +46,8 @@ export default function Navbar({ lang, navDict }: Props) {
 
   const mainLinks = [
     { href: `/${lang}/news`,        label: navDict.news },
-    { href: `/${lang}/articles`,    label: navDict.articles },
     { href: `/${lang}/feed`,        label: navDict.feed },
+    { href: `/${lang}/articles`,    label: navDict.articles },
     { href: `/${lang}/analysis`,    label: navDict.match_analyses },
     { href: `/${lang}/predictions`, label: navDict.predictions },
   ];
