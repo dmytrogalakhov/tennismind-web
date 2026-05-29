@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllFeedCards } from "@/lib/feed";
+import { getAllArticles } from "@/lib/articles";
 import { getDictionary, hasLocale } from "./dictionaries";
 import { notFound } from "next/navigation";
 
@@ -23,11 +24,12 @@ export default async function HomePage({
   const newsCards = allFeedCards.filter((c) => c.type === "news").slice(0, 3);
   const insightsCount = allFeedCards.filter((c) => c.type !== "news").length;
   const newsCount = allFeedCards.filter((c) => c.type === "news").length;
+  const articlesCount = getAllArticles().length;
 
   const stats = [
     { value: String(newsCount), label: t.stats_news_published },
     { value: String(insightsCount), label: t.stats_insights_published },
-    { value: "10+", label: t.stats_rackets_recommended },
+    { value: String(articlesCount), label: t.stats_articles_published },
   ];
 
   const features = [
