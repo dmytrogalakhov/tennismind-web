@@ -7,6 +7,8 @@
     "predictions": "Predictions",
     "customize": "Customization Wizard",
     "news": "News",
+    "articles": "Articles",
+    "tools": "Tools",
     "feed": "Insights"
   },
   "home": {
@@ -40,6 +42,9 @@
     "f6_title": "Tennis News",
     "f6_desc": "Stay on top of what's happening on tour without spending hours following it yourself.",
     "f6_cta": "Read News",
+    "f8_title": "Articles",
+    "f8_desc": "Long-form tennis writing that puts you courtside. One match, one story, one argument.",
+    "f8_cta": "Read Articles",
     "f7_title": "Tennis Insights",
     "f7_desc": "The stats, patterns, and stories that make you understand tennis on a deeper level.",
     "f7_cta": "Explore Insights",

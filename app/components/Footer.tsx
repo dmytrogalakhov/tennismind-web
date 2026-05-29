@@ -12,6 +12,7 @@ type FooterDict = {
 type NavDict = {
   home: string;
   news: string;
+  articles: string;
   match_analyses: string;
   racket_finder: string;
   string_finder: string;
@@ -29,6 +30,7 @@ export default function Footer({ lang, dict, navDict }: Props) {
   const navLinks = [
     { href: `/${lang}`, label: navDict.home },
     { href: `/${lang}/news`, label: navDict.news },
+    { href: `/${lang}/articles`, label: navDict.articles },
     { href: `/${lang}/feed`, label: navDict.feed },
     { href: `/${lang}/analysis`, label: navDict.match_analyses },
     { href: `/${lang}/predictions`, label: navDict.predictions },

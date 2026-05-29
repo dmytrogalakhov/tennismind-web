@@ -7,6 +7,8 @@
     "predictions": "Prognosen",
     "customize": "Anpassungs-Wizard",
     "news": "News",
+    "articles": "Artikel",
+    "tools": "Tools",
     "feed": "Insights"
   },
   "home": {
@@ -40,6 +42,9 @@
     "f6_title": "Tennis News",
     "f6_desc": "Behalte den Überblick über das Turniergeschehen, ohne stundenlang selbst recherchieren zu müssen.",
     "f6_cta": "News lesen",
+    "f8_title": "Artikel",
+    "f8_desc": "Ausführliche Tennis-Texte, die dich an den Court bringen. Ein Match, eine Geschichte, ein Argument.",
+    "f8_cta": "Artikel lesen",
     "f7_title": "Tennis Insights",
     "f7_desc": "Die Statistiken, Muster und Geschichten, die dich Tennis auf einer tieferen Ebene verstehen lassen.",
     "f7_cta": "Insights entdecken",

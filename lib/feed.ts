@@ -13,6 +13,7 @@ export type FeedCard = {
   source?: string;
   keyNumber?: string;
   imageUrl?: string;
+  priority?: "high";
   body: string;
 };
 
@@ -37,8 +38,16 @@ export function getAllFeedCards(): FeedCard[] {
         source: data.source ?? undefined,
         keyNumber: data.keyNumber ?? undefined,
         imageUrl: data.image_url ?? undefined,
+        priority: data.priority === "high" ? "high" : undefined,
         body: content.trim(),
       } satisfies FeedCard;
     })
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => {
+      const dateCmp = b.date.localeCompare(a.date);
+      if (dateCmp !== 0) return dateCmp;
+      // Same date: high priority first
+      if (a.priority === "high" && b.priority !== "high") return -1;
+      if (b.priority === "high" && a.priority !== "high") return 1;
+      return 0;
+    });
 }

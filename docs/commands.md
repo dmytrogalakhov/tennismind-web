@@ -6,6 +6,9 @@ Quick reference for daily operations. Keep this file at `~/tennismind-web/docs/c
 
 ## 🚀 Daily Operations
 
+### Remove a card
+rm ~/tennismind-web/content/feed-candidates/recap/roland-garros-day-5-men-women.md
+
 ### Make a post manually
 ```bash
 mv ~/tennismind-web/content/feed-candidates/news/players-stage-modified-media-boycott-at-roland-garros-over-prize-money.md ~/tennismind-web/content/feed/
