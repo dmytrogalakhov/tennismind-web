@@ -179,17 +179,64 @@ Daily tennis insights: https://t.me/tennismind
 
 ---
 
-## Posting Rhythm During Grand Slams
+## Daily Routine During Grand Slams (1h 15min total)
 
-| Time | Action | Platform |
-|---|---|---|
-| 9 AM | Review recap + news candidates | Terminal |
-| 9:30 AM | Publish recap | Telegram (auto), X (manual thread), Reddit (manual image post) |
-| 10 AM | Publish 1 news card if interesting | Telegram (auto) |
-| Afternoon | Reply to 2-3 tennis conversations | X, Reddit (karma building) |
-| Afternoon | Comment on 1-2 new tennis videos | YouTube (value-first, soft mention 1 in 5) |
-| Evening | Publish 1 insight if available | Telegram (auto), X (single tweet) |
-| 2-3x per week | Post insight to Reddit | Reddit (image post with discussion question) |
+### Morning Block (9:00 - 9:30)
+
+| Time | Action |
+|---|---|
+| 9:00 | Mac wakes up → cron runs --generate (recap + news + insights) |
+| 9:05 | Review and approve cards in terminal: --review-recap, --review-news, --review-insights |
+| 9:20 | Deploy: cd ~/tennismind-web && npx vercel --prod |
+| 9:25 | Post Day recap to X (2-tweet thread with image) |
+| 9:30 | Done. Close the laptop. |
+
+### Midday Block (12:00 - 12:15)
+
+| Time | Action |
+|---|---|
+| 12:00 | Open YouTube → find 2-3 tennis videos uploaded today |
+| 12:05 | Comment on each with a genuine insight. No links. 1 in 5: soft mention of "tennismind on Telegram" |
+| 12:15 | Done. |
+
+### Evening Block (19:00 - 19:30)
+
+| Time | Action |
+|---|---|
+| 19:00 | Cron runs --generate-news (evening news) |
+| 19:05 | Review evening news: --review-news |
+| 19:10 | Post 1 insight to X (single tweet + image) |
+| 19:15 | Reddit: comment on 2-3 r/tennis match threads. If karma allows: post recap as image post |
+| 19:25 | Deploy if new cards: npx vercel --prod |
+| 19:30 | Done. |
+
+### Weekly Tasks (pick one day each)
+
+| Day | Task |
+|---|---|
+| Monday | Write Substack article about the weekend's biggest story |
+| Tuesday | Post gear insight to r/tennisracquets |
+| Wednesday | LinkedIn post (product/AI learning update) |
+| Thursday | Generate 1-2 match predictions for upcoming matches |
+| Friday | Review feed-candidates backlog, publish anything good |
+
+### If you only have 30 minutes
+
+Priority stack — do these and nothing else:
+
+1. Review and publish recap (10 min)
+2. Post recap to X (5 min)
+3. Comment on 2 YouTube videos (10 min)
+4. Comment on 2 r/tennis threads (5 min)
+
+Never skip the recap + distribution. Everything else is bonus.
+
+### What NOT to do
+
+- Don't check X/Reddit between the blocks — it's a time sink
+- Don't write more than one Substack article per week
+- Don't manually create cards during the day — let agents work, review at scheduled times
+- Don't deploy more than twice per day — morning and evening is enough
 
 ---
 
