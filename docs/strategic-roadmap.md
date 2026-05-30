@@ -1,3 +1,11 @@
+## Mission Statement
+
+"Help tennis fans understand more about the sport they love — in the time they actually have."
+
+Every feature, every card, every piece of content must pass this test: does it help the reader UNDERSTAND something — not just know what happened? If yes, publish. If not, X/Twitter already covers it.
+
+---
+
 # Tennis Platform — Strategic Product Roadmap
 
 **Author:** Dmytro Galakhov  
