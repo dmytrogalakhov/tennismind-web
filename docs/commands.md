@@ -129,6 +129,34 @@ Only for matches people are talking about — top 5 seeds, rising stars, rivalri
 
 ---
 
+## 🆚 Versus Collages (Match Comparison images)
+
+### Test a single collage
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_collage.py --test
+```
+
+### Generate all collages
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_collage.py
+```
+
+Setup:
+- Drop player photos into `~/match-analyst-bot/photos/`
+- Fill in the `MATCHES` list in `generate_collage.py` (left_name, right_name, left_photo, right_photo, tournament, output)
+- Collages output to `~/match-analyst-bot/collages/`
+- Uses duotone treatment so mismatched photos look cohesive
+- Tournament colors switch automatically (Roland Garros, Wimbledon, US Open, Australian Open)
+
+Per-match crop tweaks if a face is cut off:
+add `"left_offset_y"` or `"right_offset_y"` to that match's dict to shift the crop.
+
+---
+
 ## 🔄 Run Both Agents
 
 ### Generate both news and insights (same as cron)
