@@ -302,6 +302,97 @@ Locked the V3 prompt with:
 
 ---
 
+## PDL-010: Rebuilding the recap pipeline on structured data — from LLM extraction to a sports API
+
+**Date:** May 2026
+**Trigger:** Seven consecutive days of recap failures during Roland Garros, culminating in published hallucinations
+
+### Context
+
+The daily tournament recap was the single most failure-prone feature in TennisMind. Over one week of Roland Garros it produced a steady stream of errors despite repeated fixes:
+
+- Day 2: included Day 1 results, missed Monfils' farewell, buried Wawrinka's farewell
+- Day 4: missed Djokovic's loss (the day's biggest story), missed a lucky-loser run, included a routine win instead
+- Day 5: published Sinner "winning" the day AFTER he was eliminated, and Alcaraz "advancing" despite having withdrawn weeks earlier — both fully fabricated
+- Day 6: missed the top seed's elimination, missed a retiring player's win, mislabeled opponents
+- Day 7: recapped the wrong day's matches entirely, with wrong opponents
+
+### The architecture that was failing
+
+The original recap pipeline was: Tavily web search → Sonnet reads raw article text → Sonnet extracts results AND writes the recap in one step. The fundamental flaw: it asked an LLM to extract precise, date-bounded match results from unstructured article text. But tennis recap articles don't cleanly separate days — an article published on Day 7 might recap Days 5-6, preview Day 7, and summarize a player's whole tournament run. The LLM couldn't reliably tell "this happened yesterday" from "this happened earlier this week."
+
+### The patching trap
+
+Each failure got a patch:
+1. Anti-hallucination rule ("return INSUFFICIENT_DATA if unsure")
+2. Cross-reference against published content (to catch eliminated/withdrawn players)
+3. Structured fact extraction step (Haiku extracts a match list before Sonnet writes)
+4. Confidence scoring (high/medium/low per extracted match)
+5. Expanded retiring-players list + dedicated storyline queries + strict priority tiers
+6. Dedicated per-top-seed searches
+
+Six patches, each addressing a real symptom, none addressing the root cause: the source data was unstructured and undated. When a system needs a guardrail on top of a guardrail on top of a guardrail, the architecture is wrong, not under-patched.
+
+### The decision
+
+Stop patching. Replace the data source. Move from "LLM extracts results from articles" to "LLM writes from a structured results feed."
+
+New architecture:
+- **Apify Flashscore scraper (statanow/flashscore-scraper-live)** as the structured source — returns yesterday's finished matches as clean JSON: winner, loser, set score, game-by-game detail, tour
+- **Tavily demoted to enrichment** — used only to add tactical context (how a match was won) for the 3-4 marquee matches, never as the authority on what happened
+- **Sonnet writes from verified data only** — it can no longer hallucinate a match because it only sees a structured list of real results
+- **Haiku verification kept** as a cheap final safety net
+- **Human review unchanged**
+
+### Four principles that governed the rebuild
+
+1. Structured results data as the primary recap input
+2. Tavily for enrichment, not authority
+3. The LLM only after the match set is already correctly bounded by date
+4. Human review for final editorial polish
+
+### What the rebuild deleted
+
+The structured source made three entire subsystems unnecessary — they had existed only to compensate for unstructured input:
+- The structured fact extraction step (data arrives pre-structured)
+- The confidence scoring filter (structured data is either there or not)
+- The cross-reference-against-published-content filter (no longer needed — the feed only contains real, finished matches)
+
+The rebuild removed more code than it added. That was the signal it was the right architecture.
+
+### The path was not clean
+
+The rebuild itself took several iterations:
+- First attempt used the wrong Apify actor (extractify-labs/flashscore-tennis-matches), which only returns today's schedule with no historical parameter
+- Discovered the correct actor (statanow/flashscore-scraper-live) by checking which actor the manual test had actually used
+- Found the actor's parameters were simple (Sport: Tennis, Days: Yesterday), not the complex ones initially assumed
+- Data inspection revealed 51 of the "SINGLES" results were junior draws (Boys/Girls) that would have contaminated the recap — the filter had to require "ATP" or "WTA" in the league string, not just "SINGLES"
+- Discovered game-by-game scores were available in a nested history array, eliminating the need for Tavily to supply scores at all
+
+### Cost discipline during the rebuild
+
+The recap was also the most expensive feature (multiple Sonnet + Haiku calls per run) and repeated debugging runs were burning Anthropic credits. The rebuild was staged deliberately: fetch and print raw Apify JSON FIRST, confirm the data is correct, and only THEN wire in the expensive LLM processing. Cheap checks before expensive steps.
+
+### A later refinement: omitting seeds
+
+Even with structured data, one field was unreliable: seedings. The data source didn't include them, and when Sonnet added them from its own knowledge it sometimes got them wrong. A wrong seed ("No. 5 Swiatek" when she's No. 3) is a credibility hit. Decision: omit seed numbers entirely. "Kostyuk stunned Swiatek" is accurate and compelling; "No. 15 Kostyuk stunned No. 5 Swiatek" with wrong numbers damages trust. Drop what you cannot verify.
+
+### Lessons learned
+
+1. **When you're adding a guardrail to protect a guardrail, the foundation is wrong.** Six patches to the extraction pipeline were treating symptoms. The disease was unstructured input. Stop patching and fix the foundation.
+
+2. **Match the data source to the job.** Asking an LLM to extract precise, dated facts from prose that mixes timeframes is using the wrong tool. Structured data eliminates an entire class of errors by construction, not by prompting.
+
+3. **The right architecture deletes complexity.** If a redesign adds more layers, be suspicious. This one removed three subsystems. Simpler AND more reliable is the signal you've found the real fix.
+
+4. **Inspect raw data before processing it.** Printing the raw JSON caught the junior-draw contamination before it reached the LLM, and confirmed the dates were correct before spending credits. Cheap checks before expensive steps.
+
+5. **Knowing when to stop is a senior skill.** The hardest part wasn't building the fix — it was recognizing that the seventh patch would fail like the first six, and that the problem was architectural. Patching feels like progress; re-architecting feels like admitting failure. The opposite is true.
+
+6. **Even structured sources have unreliable fields.** Seeds were missing/wrong. The principle held: include only what you can verify, omit the rest. Reliability comes from discipline about what NOT to publish.
+
+---
+
 ## Template for New Entries
 
 ```
