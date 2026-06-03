@@ -110,6 +110,41 @@ Runs automatically as part of the morning cron (--generate).
 
 ---
 
+## 📊 Eval Harness (measure AI output quality)
+
+### Run full evals (deterministic + LLM judge)
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 evals/run_evals.py
+```
+Runs deterministic checks + Sonnet "harsh editor" judge on all recap test cases. Costs ~€0.10-0.15 per run (one Sonnet call per test case). Use after changing a prompt to see if quality scores moved.
+
+### Run quick evals (deterministic only — free)
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 evals/run_evals.py --quick
+```
+Deterministic checks only — length, sections, no markdown artifacts, no seed numbers, no fabricated players. Free and instant. Use for fast iteration.
+
+### What the scores mean
+- **explains_why** (1-5): does it explain why results matter, not just what happened? Our core differentiator.
+- **writing_quality** (1-5): engaging and tight, or generic and clichéd?
+- **story_selection** (1-5): did it lead with the most newsworthy results?
+- **hard_fail**: True if a recap fabricated a player or is missing a section — overrides any quality score.
+
+### Eval workflow
+1. Note current baseline scores
+2. Change a prompt
+3. Re-run evals
+4. Confirm the target dimension improved before shipping
+5. Every run is logged to evals/eval_log.jsonl to track trends over time
+
+Test cases live in `evals/test_cases/recaps/`. Add new recaps there to expand coverage.
+
+---
+
 ## 🔮 Match Predictions
 
 ### Generate a match prediction
