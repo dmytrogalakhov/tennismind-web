@@ -4,11 +4,10 @@ subtitle: "Maja Chwalińska's whole game is spin, touch, and angles. On a windy 
 date: "2026-06-07"
 tournament: "Roland Garros 2026"
 tags:
-
-"Andreeva"
-"Chwalinska"
-"Roland Garros"
-"Analysis"
+  - "Andreeva"
+  - "Chwalinska"
+  - "Roland Garros"
+  - "Analysis"
 readTime: "4 min"
 substack_url: "https://tmtennismind.substack.com/p/the-wind-and-the-right-coach"
 ---
