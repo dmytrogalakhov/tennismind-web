@@ -141,8 +141,10 @@ Deterministic checks only — length, sections, no markdown artifacts, no seed n
 4. Confirm the target dimension improved before shipping
 5. Every run is logged to evals/eval_log.jsonl to track trends over time
 
-Test cases live in `evals/test_cases/recaps/`. Add new recaps there to expand coverage.
-
+Test cases live in `evals/test_cases/recaps/`. Add new recaps there to expand coverage. To add use 
+```
+cp ~/tennismind-web/content/feed/roland-garros-day-11-men-women.md ~/match-analyst-bot/evals/test_cases/recaps/
+```
 ---
 
 ## 🔮 Match Predictions
