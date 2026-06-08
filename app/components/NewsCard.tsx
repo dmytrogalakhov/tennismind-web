@@ -6,7 +6,8 @@ import type { FeedCardType } from "@/lib/feed";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
+  const datePart = iso.split("T")[0];
+  const [y, m, d] = datePart.split("-").map(Number);
   return `${MONTHS[m - 1]} ${d}, ${y}`;
 }
 
@@ -21,27 +22,16 @@ type Props = {
   lang?: string;
 };
 
-const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string }> = {
-  stat:       { icon: "📊", label: "Stat"          },
-  gear:       { icon: "🏸", label: "Gear"          },
-  form:       { icon: "📈", label: "Form"          },
-  history:    { icon: "📅", label: "History"       },
-  upset:      { icon: "⚡", label: "Upset"         },
-  news:       { icon: "📰", label: "News"          },
-  recap:      { icon: "📋", label: "Daily Recap"   },
-  prediction: { icon: "🔮", label: "Match Preview" },
+const TYPE_CONFIG: Partial<Record<FeedCardType, { icon: string; label: string }>> = {
+  news:   { icon: "📰", label: "News" },
+  recap:  { icon: "📋", label: "Daily Recap" },
 };
 
-const COLLAPSED_HEIGHT = 3 * 1.6 * 18;
-
+// Recap section headers — green on light background
 const RECAP_HEADER_SET = new Set(["MEN'S DRAW", "WOMEN'S DRAW", "STAT OF THE DAY"]);
-const PREDICTION_HEADER_RE = /^(?:WHY [^\n]+ (?:WINS|COULD UPSET)|THE KEY MATCHUP|PREDICTION)$/;
-const SECTION_HEADER_REGEX = /(MEN'S DRAW|WOMEN'S DRAW|STAT OF THE DAY|WHY [^\n]+ (?:WINS|COULD UPSET)|THE KEY MATCHUP|PREDICTION)/;
+const SECTION_HEADER_REGEX = /(MEN'S DRAW|WOMEN'S DRAW|STAT OF THE DAY)/;
 
-const SANS: React.CSSProperties["fontFamily"]  = "var(--font-sans), system-ui, sans-serif";
-const SERIF: React.CSSProperties["fontFamily"] = "var(--font-serif), Georgia, 'Times New Roman', serif";
-
-function renderStructuredBody(text: string) {
+function renderRecapBody(text: string) {
   const parts = text.split(SECTION_HEADER_REGEX);
   const nodes: React.ReactNode[] = [];
   let hasContent = false;
@@ -50,7 +40,7 @@ function renderStructuredBody(text: string) {
     const part = parts[i].trim();
     if (!part) continue;
 
-    if (RECAP_HEADER_SET.has(part) || PREDICTION_HEADER_RE.test(part)) {
+    if (RECAP_HEADER_SET.has(part)) {
       if (hasContent) {
         nodes.push(
           <hr key={`d${i}`} style={{ border: "none", borderTop: "1px solid var(--color-line)", margin: "12px 0 0" }} />
@@ -58,11 +48,11 @@ function renderStructuredBody(text: string) {
       }
       nodes.push(
         <div key={`h${i}`} style={{
-          fontFamily: SANS,
+          fontFamily: "var(--font-sans), system-ui, sans-serif",
           fontSize: 11,
           fontWeight: 700,
           letterSpacing: "0.08em",
-          textTransform: "uppercase" as const,
+          textTransform: "uppercase",
           color: "var(--color-green)",
           marginTop: 10,
           marginBottom: 6,
@@ -79,12 +69,16 @@ function renderStructuredBody(text: string) {
   return <>{nodes}</>;
 }
 
-export default function FeedStatCard({ type, title, body, tags, date, keyNumber, imageUrl, lang }: Props) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const [expanded, setExpanded] = useState(false);
+const COLLAPSED_HEIGHT = 3 * 1.6 * 18; // 3 lines at body-card size
+const SANS: React.CSSProperties["fontFamily"] = "var(--font-sans), system-ui, sans-serif";
+const SERIF: React.CSSProperties["fontFamily"] = "var(--font-serif), Georgia, 'Times New Roman', serif";
+
+export default function NewsCard({ type, title, body, tags, date, keyNumber, imageUrl, lang }: Props) {
+  const cardRef  = useRef<HTMLDivElement>(null);
+  const bodyRef  = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded]   = useState(false);
   const [overflows, setOverflows] = useState(false);
-  const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.stat;
+  const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.news!;
 
   const needsTranslation = lang === "de" || lang === "uk";
   const [displayTitle, setDisplayTitle] = useState(needsTranslation ? "" : title);
@@ -133,6 +127,8 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
     a.click();
   }
 
+  const isRecap = type === "recap";
+
   return (
     <div className="relative group">
       <div
@@ -173,7 +169,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
             </div>
           )}
 
-          {/* Title skeleton */}
+          {/* Title */}
           {translating ? (
             <div style={{ marginBottom: "0.75rem" }}>
               <div style={{ height: 16, background: "var(--color-line)", borderRadius: 4, width: "80%", marginBottom: 8 }} />
@@ -185,7 +181,7 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
             </h2>
           )}
 
-          {/* Body skeleton */}
+          {/* Body */}
           {translating ? (
             <div style={{ marginBottom: "1.25rem" }}>
               <div style={{ height: 13, background: "var(--color-line)", borderRadius: 4, width: "100%", marginBottom: 8 }} />
@@ -208,8 +204,8 @@ export default function FeedStatCard({ type, title, body, tags, date, keyNumber,
                   opacity: 0.88,
                 }}
               >
-                {SECTION_HEADER_REGEX.test(displayBody)
-                  ? renderStructuredBody(displayBody)
+                {isRecap && SECTION_HEADER_REGEX.test(displayBody)
+                  ? renderRecapBody(displayBody)
                   : displayBody}
               </div>
               {translateFailed && (

@@ -10,7 +10,7 @@ export default function BackButton({ label }: { label: string }) {
         try { sessionStorage.setItem("racket_from_buy", "1"); } catch { /* ignore */ }
         router.back();
       }}
-      className="text-sm text-white/60 hover:text-white transition-colors underline"
+      className="font-sans text-sm text-muted hover:text-ink transition-colors underline"
     >
       {label}
     </button>

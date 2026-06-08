@@ -40,17 +40,17 @@ export default function ShareButtons({ title, slug, t }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap gap-3 mt-5 pt-5 border-t border-accent/10">
+    <div className="flex flex-wrap gap-3 mt-5 pt-5 border-t border-line">
       <button
         onClick={shareTelegram}
-        className="flex items-center gap-2 text-xs text-white/60 border border-accent/15 px-4 py-2 rounded-full hover:border-cyan/40 hover:text-cyan transition-colors cursor-pointer"
+        className="flex items-center gap-2 font-sans text-xs text-muted border border-line px-4 py-2 rounded-full hover:border-green/40 hover:text-green transition-colors cursor-pointer"
       >
         <TelegramIcon />
         {t.share_telegram}
       </button>
       <button
         onClick={shareWhatsApp}
-        className="flex items-center gap-2 text-xs text-white/60 border border-accent/15 px-4 py-2 rounded-full hover:border-emerald-400/40 hover:text-emerald-400 transition-colors cursor-pointer"
+        className="flex items-center gap-2 font-sans text-xs text-muted border border-line px-4 py-2 rounded-full hover:border-green/40 hover:text-green transition-colors cursor-pointer"
       >
         <WhatsAppIcon />
         {t.share_whatsapp}

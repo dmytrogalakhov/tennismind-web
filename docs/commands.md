@@ -105,6 +105,20 @@ ls ~/tennismind-web/content/feed-candidates/recap/
 python3 generate_feed.py --publish recap/rg-2026-day-3-recap.md
 ```
 
+### Regenerate a recap image manually
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 -c "
+from generate_feed import generate_recap_image
+import os
+path = os.path.expanduser('~/tennismind-web/public/feed/roland-garros-day-14-women-final.png')
+generate_recap_image('14', 'Roland Garros', path)
+print('Saved:', path)
+"
+```
+Change the day number, tournament name, and output filename to match the card.
+
 Only works during active tournaments. Produces one recap card per day covering men's and women's draws.
 Runs automatically as part of the morning cron (--generate).
 

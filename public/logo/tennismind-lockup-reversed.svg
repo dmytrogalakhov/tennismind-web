@@ -1,0 +1,8 @@
+<svg width="430" height="92" viewBox="0 0 430 92" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>TennisMind lockup, reversed</title>
+<desc>For green or dark backgrounds: a clay tennis ball with a cream ring and seam, beside the TennisMind wordmark in cream serif.</desc>
+<circle cx="45" cy="45" r="40" fill="none" stroke="#F4ECDC" stroke-width="3.5"/>
+<circle cx="45" cy="45" r="27" fill="#C0512F"/>
+<path d="M 18 45 C 31 22, 59 68, 72 45" fill="none" stroke="#F4ECDC" stroke-width="4.5" stroke-linecap="round"/>
+<text x="105" y="58" text-anchor="start" font-family="'Newsreader', Georgia, serif" font-size="44" font-weight="600" fill="#F4ECDC">TennisMind</text>
+</svg>

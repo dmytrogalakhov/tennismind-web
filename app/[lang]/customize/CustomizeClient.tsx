@@ -72,7 +72,7 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
     setMissing([]);
   }
 
-  const progress = step === "q1" ? 50 : step === "q2" ? 100 : 100;
+  const progress = step === "q1" ? 50 : 100;
 
   /* ── Result screen ── */
   if (step === "result") {
@@ -83,29 +83,29 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
 
     return (
       <div className="flex-1 flex flex-col">
-        <div className="max-w-2xl mx-auto w-full px-4 py-16 flex flex-col gap-6">
+        <div className="max-w-2xl mx-auto w-full px-6 py-16 flex flex-col gap-6">
           {/* Header */}
           <div className="text-center mb-2">
-            <span className="inline-block text-xs font-semibold uppercase tracking-widest text-accent bg-accent/10 border border-accent/20 px-3 py-1 rounded-full mb-4">
+            <span className="inline-block font-sans text-xs font-semibold uppercase tracking-widest text-green bg-green/10 border border-green/20 px-3 py-1 rounded-full mb-4">
               {t.result_title}
             </span>
           </div>
 
           {/* Coming soon card */}
-          <div className="bg-accent/[0.06] border border-accent/20 rounded-2xl p-6 sm:p-8">
+          <div className="bg-bisque border border-clay/25 rounded-card p-6 sm:p-8">
             <div className="text-4xl mb-4">🔧</div>
-            <p className="text-white/80 leading-relaxed">{t.result_coming_soon}</p>
+            <p className="font-serif text-ink/85 leading-relaxed">{t.result_coming_soon}</p>
           </div>
 
           {/* Summary */}
-          <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
+          <div className="bg-bisque border border-line rounded-card p-6 flex flex-col gap-4">
             <div>
-              <p className="text-[10px] text-white/35 uppercase tracking-widest mb-1">{t.your_racket_label}</p>
-              <p className="text-sm font-semibold text-white">{displayRacket || "—"}</p>
+              <p className="font-sans text-xs text-muted uppercase tracking-widest mb-1">{t.your_racket_label}</p>
+              <p className="font-sans text-sm font-semibold text-ink">{displayRacket || "—"}</p>
             </div>
             <div>
-              <p className="text-[10px] text-white/35 uppercase tracking-widest mb-1">{t.missing_label}</p>
-              <p className="text-sm font-semibold text-white">{missingLabels || "—"}</p>
+              <p className="font-sans text-xs text-muted uppercase tracking-widest mb-1">{t.missing_label}</p>
+              <p className="font-sans text-sm font-semibold text-ink">{missingLabels || "—"}</p>
             </div>
           </div>
 
@@ -115,20 +115,20 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
               href="https://t.me/tennismind"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-center bg-accent text-white font-bold px-6 py-4 rounded-xl hover:bg-[#a84ad9] transition-colors"
+              className="text-center bg-green text-sand font-sans font-bold px-6 py-4 rounded-card hover:bg-green-deep transition-colors"
             >
               {t.join_telegram}
             </a>
             <Link
               href={`/${lang}/racket-finder`}
-              className="text-center border border-white/20 text-white/80 font-semibold px-6 py-4 rounded-xl hover:bg-white/[0.05] transition-colors"
+              className="text-center border border-line text-muted font-sans font-semibold px-6 py-4 rounded-card hover:bg-sand transition-colors"
             >
               {t.try_racket_finder}
             </Link>
             <div className="text-center mt-2">
               <button
                 onClick={handleReset}
-                className="text-sm text-white/40 hover:text-white/70 transition-colors underline"
+                className="font-sans text-sm text-muted hover:text-ink transition-colors underline"
               >
                 {t.start_over}
               </button>
@@ -142,29 +142,29 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
   /* ── Quiz screen ── */
   return (
     <div className="flex-1 flex flex-col">
-      <div className="max-w-2xl mx-auto w-full px-4 py-16 flex flex-col gap-6">
+      <div className="max-w-2xl mx-auto w-full px-6 py-16 flex flex-col gap-6">
 
         {/* Header */}
         <div className="text-center mb-2">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">{t.title}</h1>
-          <p className="text-white/60">{t.subtitle}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t.title}</h1>
+          <p className="font-sans text-muted">{t.subtitle}</p>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-accent/10 rounded-full h-1">
+        <div className="w-full bg-sand border border-line rounded-full h-1">
           <div
-            className="bg-accent h-1 rounded-full transition-all duration-300"
+            className="bg-clay h-1 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
 
         {/* Card */}
-        <div className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 sm:p-8">
+        <div className="bg-bisque border border-line rounded-card p-6 sm:p-8">
 
           {/* ── Q1 ── */}
           {step === "q1" && (
             <div className="flex flex-col gap-5">
-              <h2 className="text-lg font-semibold text-white">{t.q1_label}</h2>
+              <h2 className="font-serif text-lg font-semibold text-ink">{t.q1_label}</h2>
 
               {/* Search input */}
               {!showOtherInput && !selectedRacket && (
@@ -173,7 +173,7 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t.search_placeholder}
-                  className="w-full bg-white/[0.06] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-accent/50"
+                  className="w-full bg-sand border border-line rounded-xl px-4 py-3 font-sans text-ink placeholder-muted text-sm focus:outline-none focus:border-clay/50 transition-colors"
                 />
               )}
 
@@ -184,29 +184,29 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
                     <button
                       key={name}
                       onClick={() => { setSelectedRacket(name); setSearch(""); }}
-                      className="w-full text-left px-4 py-3 rounded-xl border border-white/8 bg-[#0a0015] text-sm text-white/80 hover:border-accent/40 hover:text-white transition-all"
+                      className="w-full text-left px-4 py-3 rounded-xl border border-line bg-sand font-sans text-sm text-ink/80 hover:border-clay/35 hover:text-ink transition-all"
                     >
                       {name}
                     </button>
                   ))}
                   {filtered.length === 0 && (
-                    <p className="text-sm text-white/40 px-4 py-2">No matches — try "Other" below</p>
+                    <p className="font-sans text-sm text-muted px-4 py-2">No matches — try "Other" below</p>
                   )}
                 </div>
               )}
 
               {/* Special options */}
               {!showOtherInput && !selectedRacket && (
-                <div className="flex flex-col gap-1.5 border-t border-white/10 pt-3">
+                <div className="flex flex-col gap-1.5 border-t border-line pt-3">
                   <button
                     onClick={() => setShowOtherInput(true)}
-                    className="w-full text-left px-4 py-3 rounded-xl border border-white/8 bg-[#0a0015] text-sm text-white/60 hover:border-accent/40 hover:text-white transition-all"
+                    className="w-full text-left px-4 py-3 rounded-xl border border-line bg-sand font-sans text-sm text-muted hover:border-clay/35 hover:text-ink transition-all"
                   >
                     {t.other_racket}
                   </button>
                   <button
                     onClick={() => setSelectedRacket("__dont_know__")}
-                    className="w-full text-left px-4 py-3 rounded-xl border border-white/8 bg-[#0a0015] text-sm text-white/60 hover:border-accent/40 hover:text-white transition-all"
+                    className="w-full text-left px-4 py-3 rounded-xl border border-line bg-sand font-sans text-sm text-muted hover:border-clay/35 hover:text-ink transition-all"
                   >
                     {t.dont_know}
                   </button>
@@ -222,18 +222,18 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
                     onChange={(e) => setOtherText(e.target.value)}
                     placeholder={t.type_placeholder}
                     autoFocus
-                    className="w-full bg-white/[0.06] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-accent/50"
+                    className="w-full bg-sand border border-clay/30 rounded-xl px-4 py-3 font-sans text-ink placeholder-muted text-sm focus:outline-none focus:border-clay/50 transition-colors"
                   />
                   <button
                     onClick={() => { setSelectedRacket("__other__"); }}
                     disabled={!otherText.trim()}
-                    className="bg-accent text-white font-semibold px-6 py-3 rounded-xl hover:bg-[#a84ad9] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="bg-green text-sand font-sans font-semibold px-6 py-3 rounded-card hover:bg-green-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     Next →
                   </button>
                   <button
                     onClick={() => { setShowOtherInput(false); setOtherText(""); }}
-                    className="text-sm text-white/40 hover:text-white/70 transition-colors underline"
+                    className="font-sans text-sm text-muted hover:text-ink transition-colors underline"
                   >
                     ← Back
                   </button>
@@ -243,20 +243,20 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
               {/* Selected racket confirmation */}
               {selectedRacket && (
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-accent/30 bg-accent/10">
-                    <span className="text-accent text-lg">✓</span>
-                    <span className="text-sm font-semibold text-white">{displayRacket}</span>
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-clay/30 bg-clay/10">
+                    <span className="text-green text-lg">✓</span>
+                    <span className="font-sans text-sm font-semibold text-ink">{displayRacket}</span>
                   </div>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setStep("q2")}
-                      className="flex-1 bg-accent text-white font-semibold px-6 py-3 rounded-xl hover:bg-[#a84ad9] transition-colors"
+                      className="flex-1 bg-green text-sand font-sans font-semibold px-6 py-3 rounded-card hover:bg-green-deep transition-colors"
                     >
                       Next →
                     </button>
                     <button
                       onClick={() => { setSelectedRacket(null); setShowOtherInput(false); setOtherText(""); }}
-                      className="border border-white/20 text-white/60 font-medium px-4 py-3 rounded-xl hover:bg-white/[0.05] transition-colors text-sm"
+                      className="border border-line text-muted font-sans font-medium px-4 py-3 rounded-card hover:bg-sand transition-colors text-sm"
                     >
                       ← Back
                     </button>
@@ -269,18 +269,18 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
           {/* ── Q2 ── */}
           {step === "q2" && (
             <div className="flex flex-col gap-5">
-              <h2 className="text-lg font-semibold text-white">{t.q2_label}</h2>
+              <h2 className="font-serif text-lg font-semibold text-ink">{t.q2_label}</h2>
               <div className="grid grid-cols-2 gap-3">
                 {MISSING_OPTIONS(t).map((opt) => {
-                  const selected = missing.includes(opt.value);
+                  const sel = missing.includes(opt.value);
                   return (
                     <button
                       key={opt.value}
                       onClick={() => toggleMissing(opt.value)}
-                      className={`px-4 py-4 rounded-xl border text-sm font-semibold transition-all ${
-                        selected
-                          ? "border-accent bg-accent/20 text-white"
-                          : "border-white/15 bg-[#0a0015] text-white/70 hover:border-accent/40 hover:text-white"
+                      className={`px-4 py-4 rounded-xl border font-sans text-sm font-semibold transition-all ${
+                        sel
+                          ? "border-clay bg-clay/15 text-ink"
+                          : "border-line bg-sand text-ink/70 hover:border-clay/35 hover:text-ink"
                       }`}
                     >
                       {opt.label}
@@ -292,13 +292,13 @@ export default function CustomizeClient({ lang, t, racketNames }: Props) {
                 <button
                   onClick={() => setStep("result")}
                   disabled={missing.length === 0}
-                  className="flex-1 bg-accent text-white font-bold px-6 py-4 rounded-xl hover:bg-[#a84ad9] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex-1 bg-green text-sand font-sans font-bold px-6 py-4 rounded-card hover:bg-green-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {t.submit}
                 </button>
                 <button
                   onClick={() => setStep("q1")}
-                  className="border border-white/20 text-white/60 font-medium px-4 py-4 rounded-xl hover:bg-white/[0.05] transition-colors text-sm"
+                  className="border border-line text-muted font-sans font-medium px-4 py-4 rounded-card hover:bg-sand transition-colors text-sm"
                 >
                   ←
                 </button>

@@ -1,0 +1,7 @@
+<svg width="128" height="128" viewBox="0 0 128 128" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>TennisMind icon</title>
+<desc>A deep-green circle containing a clay tennis ball with a cream seam.</desc>
+<circle cx="64" cy="64" r="60" fill="#123A2A"/>
+<circle cx="64" cy="64" r="34" fill="#C0512F"/>
+<path d="M 30 64 C 46 36, 82 92, 98 64" fill="none" stroke="#F4ECDC" stroke-width="6" stroke-linecap="round"/>
+</svg>

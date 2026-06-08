@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 
@@ -64,21 +65,36 @@ export default function Navbar({ lang, navDict }: Props) {
     return `/${newLang}${pathname.slice(1 + lang.length) || "/"}`;
   }
 
+  // Resting: sand. Active / hover: clay.
   const linkClass = (href: string) =>
     `text-sm font-medium transition-colors ${
-      pathname === href ? "text-accent" : "text-white/60 hover:text-white"
+      pathname === href ? "text-clay" : "text-sand/80 hover:text-clay"
     }`;
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#0a0015]/90 backdrop-blur-md border-b border-accent/15">
+    <nav className="sticky top-0 z-50 bg-green/95 backdrop-blur-sm border-b border-green-deep">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center h-16 gap-6">
 
-        {/* Logo */}
-        <Link href={`/${lang}`} className="shrink-0 mr-2">
-          <span className="text-xl font-bold tracking-tight">
-            <span className="text-white">Tennis</span>
-            <span className="text-accent">Mind</span>
-          </span>
+        {/* Logo — reversed lockup on desktop, reversed icon on mobile */}
+        <Link href={`/${lang}`} className="shrink-0 mr-2 flex items-center">
+          {/* Desktop: cream lockup (reads on green) */}
+          <Image
+            src="/logo/tennismind-lockup-reversed.svg"
+            alt="TennisMind"
+            width={177}
+            height={38}
+            className="hidden md:block"
+            priority
+          />
+          {/* Mobile: cream-ring icon (green disc would vanish on green nav) */}
+          <Image
+            src="/logo/tennismind-icon-reversed.svg"
+            alt="TennisMind"
+            width={36}
+            height={36}
+            className="md:hidden"
+            priority
+          />
         </Link>
 
         {/* Desktop nav links */}
@@ -94,19 +110,14 @@ export default function Navbar({ lang, navDict }: Props) {
             <button
               onClick={() => setToolsOpen((v) => !v)}
               className={`text-sm font-medium transition-colors flex items-center gap-1 ${
-                isToolActive ? "text-accent" : "text-white/60 hover:text-white"
+                isToolActive ? "text-clay" : "text-sand/80 hover:text-clay"
               }`}
             >
               {navDict.tools}
               <svg
-                width="10"
-                height="10"
-                viewBox="0 0 10 10"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                width="10" height="10" viewBox="0 0 10 10"
+                fill="none" stroke="currentColor" strokeWidth="1.5"
+                strokeLinecap="round" strokeLinejoin="round"
                 className={`transition-transform duration-150 ${toolsOpen ? "rotate-180" : ""}`}
               >
                 <path d="M2 3.5l3 3 3-3" />
@@ -114,7 +125,7 @@ export default function Navbar({ lang, navDict }: Props) {
             </button>
 
             {toolsOpen && (
-              <div className="absolute top-full left-0 mt-2 bg-[#0d0020] border border-accent/20 rounded-xl shadow-2xl shadow-black/40 py-1.5 min-w-[200px]">
+              <div className="absolute top-full left-0 mt-2 bg-green-deep border border-sand/10 rounded-xl shadow-2xl shadow-black/30 py-1.5 min-w-[200px]">
                 {toolLinks.map((link) => (
                   <Link
                     key={link.href}
@@ -122,8 +133,8 @@ export default function Navbar({ lang, navDict }: Props) {
                     onClick={() => setToolsOpen(false)}
                     className={`block px-4 py-2.5 text-sm transition-colors ${
                       pathname === link.href
-                        ? "text-accent bg-accent/10"
-                        : "text-white/65 hover:text-white hover:bg-white/5"
+                        ? "text-clay bg-white/10"
+                        : "text-sand/70 hover:text-clay hover:bg-white/5"
                     }`}
                   >
                     {link.label}
@@ -134,7 +145,7 @@ export default function Navbar({ lang, navDict }: Props) {
           </div>
         </div>
 
-        {/* Language selectors — desktop, pushed to far right */}
+        {/* Language selectors — far right */}
         <div className="hidden md:flex items-center gap-1 ml-auto">
           {LOCALES.map(({ code, label }) => (
             <Link
@@ -142,8 +153,8 @@ export default function Navbar({ lang, navDict }: Props) {
               href={switchLocale(code)}
               className={`text-xs font-semibold px-2 py-1 rounded transition-colors ${
                 lang === code
-                  ? "text-accent bg-accent/10"
-                  : "text-white/40 hover:text-white/70"
+                  ? "text-clay bg-white/10"
+                  : "text-sand/45 hover:text-sand/80"
               }`}
             >
               {label}
@@ -153,7 +164,7 @@ export default function Navbar({ lang, navDict }: Props) {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden text-white/60 hover:text-white transition-colors ml-auto"
+          className="md:hidden text-sand/70 hover:text-sand transition-colors ml-auto"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -171,7 +182,7 @@ export default function Navbar({ lang, navDict }: Props) {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-[#0d0020] border-b border-accent/15 px-4 py-4 flex flex-col gap-1">
+        <div className="md:hidden bg-green-deep border-b border-green px-4 py-4 flex flex-col gap-1">
           {[...mainLinks, ...toolLinks].map((link) => (
             <Link
               key={link.href}
@@ -179,14 +190,14 @@ export default function Navbar({ lang, navDict }: Props) {
               onClick={() => setMobileOpen(false)}
               className={`text-sm font-medium px-2 py-2.5 rounded-lg transition-colors ${
                 pathname === link.href
-                  ? "text-accent bg-accent/10"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
+                  ? "text-clay bg-white/10"
+                  : "text-sand/70 hover:text-clay hover:bg-white/5"
               }`}
             >
               {link.label}
             </Link>
           ))}
-          <div className="flex items-center gap-2 pt-3 mt-1 border-t border-accent/10">
+          <div className="flex items-center gap-2 pt-3 mt-1 border-t border-white/10">
             {LOCALES.map(({ code, label }) => (
               <Link
                 key={code}
@@ -194,8 +205,8 @@ export default function Navbar({ lang, navDict }: Props) {
                 onClick={() => setMobileOpen(false)}
                 className={`text-xs font-semibold px-2.5 py-1 rounded transition-colors ${
                   lang === code
-                    ? "text-accent bg-accent/10"
-                    : "text-white/40 hover:text-white/70"
+                    ? "text-clay bg-white/10"
+                    : "text-sand/45 hover:text-sand/80"
                 }`}
               >
                 {label}

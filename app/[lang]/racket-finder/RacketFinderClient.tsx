@@ -72,11 +72,11 @@ function AccordionSection({
     <div>
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-sand transition-colors"
       >
-        <span className="text-sm font-semibold text-white/90">{title}</span>
+        <span className="font-sans text-sm font-semibold text-ink">{title}</span>
         <svg
-          className={`w-4 h-4 text-white/40 transition-transform duration-200 shrink-0 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-muted transition-transform duration-200 shrink-0 ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -269,11 +269,11 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
 
   if (status === "loading") {
     return (
-      <div className="flex-1 py-16 px-4">
+      <div className="flex-1 py-16 px-6">
         <div className="max-w-2xl mx-auto text-center">
           <div className="text-4xl mb-6 animate-pulse">🎾</div>
           <h2 className="text-2xl font-bold mb-3">{t.loading_title}</h2>
-          <p className="text-white/60">{t.loading_desc}</p>
+          <p className="font-sans text-muted">{t.loading_desc}</p>
         </div>
       </div>
     );
@@ -281,13 +281,13 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
 
   if (status === "error") {
     return (
-      <div className="flex-1 py-16 px-4">
+      <div className="flex-1 py-16 px-6">
         <div className="max-w-2xl mx-auto">
           <ApiError t={apiErrorT} />
           <div className="mt-6 text-center">
             <button
               onClick={handleReset}
-              className="text-sm text-white/40 hover:text-white/70 transition-colors underline"
+              className="font-sans text-sm text-muted hover:text-ink transition-colors underline"
             >
               {t.try_again}
             </button>
@@ -306,15 +306,15 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
     ];
 
     return (
-      <div className="flex-1 py-12 px-4">
+      <div className="flex-1 py-12 px-6">
         <div className="max-w-2xl mx-auto">
 
           {/* Product header */}
-          <div className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden mb-3">
+          <div className="bg-bisque border border-line rounded-card overflow-hidden mb-3">
             <div className="flex flex-col sm:flex-row">
               {/* Racket image */}
               {result.image_url && (
-                <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, borderRight: "1px solid rgba(255,255,255,0.1)" }}>
+                <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, borderRight: "1px solid var(--color-line)" }}>
                   <div
                     onClick={() => setLightboxOpen(true)}
                     style={{ width: 200, height: 260, background: "white", borderRadius: 12, padding: 16, display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-in" }}
@@ -326,19 +326,19 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
 
               {/* Info panel */}
               <div className="flex-1 p-6 flex flex-col justify-center">
-                <span className="inline-block self-start text-xs font-semibold uppercase tracking-widest text-accent bg-accent/10 border border-accent/20 px-3 py-1 rounded-full mb-3">
+                <span className="inline-block self-start font-sans text-xs font-semibold uppercase tracking-widest text-green bg-green/10 border border-green/20 px-3 py-1 rounded-full mb-3">
                   {t.recommended_label}
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight mb-1">
+                <h2 className="font-serif text-2xl sm:text-3xl font-bold text-ink leading-tight mb-1">
                   {result.name}
                 </h2>
-                <p className="text-sm text-white/50 mb-4">{result.category}</p>
-                <p className="text-2xl font-bold text-white mb-5">€{result.price_range_eur}</p>
+                <p className="font-sans text-sm text-muted mb-4">{result.category}</p>
+                <p className="font-serif text-2xl font-bold text-clay mb-5">€{result.price_range_eur}</p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                   {topSpecs.map(({ label, value }) => (
                     <div key={label}>
-                      <p className="text-[10px] text-white/35 uppercase tracking-widest mb-0.5">{label}</p>
-                      <p className="text-sm font-semibold text-white">{value}</p>
+                      <p className="font-sans text-xs text-muted uppercase tracking-widest mb-0.5">{label}</p>
+                      <p className="font-sans text-sm font-semibold text-ink">{value}</p>
                     </div>
                   ))}
                 </div>
@@ -367,13 +367,13 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
           )}
 
           {/* Accordion sections */}
-          <div className="border border-white/10 rounded-2xl overflow-hidden divide-y divide-white/10 mb-3">
+          <div className="bg-bisque border border-line rounded-card overflow-hidden divide-y divide-line mb-3">
             <AccordionSection
               title={t.why_suits}
               isOpen={openSections.has("why")}
               onToggle={() => toggleSection("why")}
             >
-              <p className="text-sm text-white/80 leading-relaxed">{result.why}</p>
+              <p className="font-serif text-sm text-ink/85 leading-relaxed">{result.why}</p>
             </AccordionSection>
 
             <AccordionSection
@@ -384,8 +384,8 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
               <ul className="space-y-2">
                 {result.strengths.map((s) => (
                   <li key={s} className="flex items-start gap-2 text-sm">
-                    <span className="text-accent mt-0.5 shrink-0">✓</span>
-                    <span className="text-white/80">{s}</span>
+                    <span className="text-green mt-0.5 shrink-0">✓</span>
+                    <span className="font-serif text-ink/85">{s}</span>
                   </li>
                 ))}
               </ul>
@@ -396,7 +396,7 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
               isOpen={openSections.has("warning")}
               onToggle={() => toggleSection("warning")}
             >
-              <p className="text-sm text-white/80 leading-relaxed">{result.watch_out}</p>
+              <p className="font-serif text-sm text-ink/85 leading-relaxed">{result.watch_out}</p>
             </AccordionSection>
 
             {result.recommended_string && (
@@ -405,18 +405,18 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
                 isOpen={openSections.has("string")}
                 onToggle={() => toggleSection("string")}
               >
-                <p className="font-semibold text-white mb-3">{result.recommended_string.name}</p>
+                <p className="font-serif font-semibold text-ink mb-3">{result.recommended_string.name}</p>
                 <div className="flex flex-wrap gap-x-6 gap-y-1.5 mb-3 text-sm">
                   <div>
-                    <span className="text-white/45">{t.rec_string_type_label}: </span>
-                    <span className="text-white/85 font-medium">{result.recommended_string.type}</span>
+                    <span className="font-sans text-muted">{t.rec_string_type_label}: </span>
+                    <span className="font-sans text-ink font-medium">{result.recommended_string.type}</span>
                   </div>
                   <div>
-                    <span className="text-white/45">{t.rec_string_tension_label}: </span>
-                    <span className="text-white/85 font-medium">{result.recommended_string.tension_range_kg} kg</span>
+                    <span className="font-sans text-muted">{t.rec_string_tension_label}: </span>
+                    <span className="font-sans text-ink font-medium">{result.recommended_string.tension_range_kg} kg</span>
                   </div>
                 </div>
-                <p className="text-sm text-white/60 leading-relaxed">{result.recommended_string.why}</p>
+                <p className="font-serif text-sm text-muted leading-relaxed">{result.recommended_string.why}</p>
               </AccordionSection>
             )}
           </div>
@@ -425,13 +425,13 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
           <div className="flex gap-3 mb-3">
             <a
               href={`/${lang}/buy`}
-              className="flex-1 text-center bg-accent text-white font-bold px-6 py-4 rounded-xl hover:bg-[#a84ad9] transition-colors"
+              className="flex-1 text-center bg-green text-sand font-sans font-bold px-6 py-4 rounded-card hover:bg-green-deep transition-colors"
             >
               {t.buy_button}
             </a>
             <a
               href={`/${lang}/string-finder?racket=${encodeURIComponent(result.name)}`}
-              className="flex-1 text-center border border-cyan-400 text-cyan-400 font-bold px-6 py-4 rounded-xl hover:bg-cyan-400/10 transition-colors"
+              className="flex-1 text-center border border-clay text-clay font-sans font-bold px-6 py-4 rounded-card hover:bg-clay/10 transition-colors"
             >
               {t.find_string}
             </a>
@@ -439,17 +439,17 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
 
           {/* Runner-up */}
           {result.runner_up && (
-            <div className="border border-white/10 rounded-2xl overflow-hidden">
+            <div className="bg-bisque border border-line rounded-card overflow-hidden">
               <button
                 onClick={() => setRunnerUpOpen((o) => !o)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.03] transition-colors"
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-sand transition-colors"
               >
                 <div>
-                  <p className="text-[10px] text-white/35 uppercase tracking-widest mb-0.5">{t.runner_up_label}</p>
-                  <p className="text-sm font-semibold text-white/75">{result.runner_up}</p>
+                  <p className="font-sans text-xs text-muted uppercase tracking-widest mb-0.5">{t.runner_up_label}</p>
+                  <p className="font-sans text-sm font-semibold text-ink/75">{result.runner_up}</p>
                 </div>
                 <svg
-                  className={`w-4 h-4 text-white/40 transition-transform duration-200 shrink-0 ${runnerUpOpen ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 text-muted transition-transform duration-200 shrink-0 ${runnerUpOpen ? "rotate-180" : ""}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -459,11 +459,11 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
                 </svg>
               </button>
               {runnerUpOpen && (
-                <div className="px-5 pb-5 border-t border-white/10 pt-4">
-                  <p className="text-sm text-white/60 leading-relaxed mb-4">{t.runner_up_desc}</p>
+                <div className="px-5 pb-5 border-t border-line pt-4">
+                  <p className="font-sans text-sm text-muted leading-relaxed mb-4">{t.runner_up_desc}</p>
                   <button
                     onClick={handleReset}
-                    className="text-sm text-accent hover:underline"
+                    className="font-sans text-sm text-clay hover:underline"
                   >
                     {t.start_over}
                   </button>
@@ -473,12 +473,12 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
           )}
 
           {/* Customize entry point */}
-          <div className="border border-white/10 rounded-2xl p-6 mt-3">
-            <h3 className="text-base font-semibold text-white mb-2">{t.customize_from_finder_heading}</h3>
-            <p className="text-sm text-white/60 leading-relaxed mb-4">{t.customize_from_finder_desc}</p>
+          <div className="bg-bisque border border-line rounded-card p-6 mt-3">
+            <h3 className="font-serif text-base font-semibold text-ink mb-2">{t.customize_from_finder_heading}</h3>
+            <p className="font-sans text-sm text-muted leading-relaxed mb-4">{t.customize_from_finder_desc}</p>
             <a
               href={`/${lang}/customize`}
-              className="inline-block border border-white/20 text-white/80 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-white/[0.05] transition-colors"
+              className="inline-block border border-line text-muted font-sans text-sm font-medium px-5 py-2.5 rounded-card hover:bg-sand transition-colors"
             >
               {t.customize_from_finder_cta}
             </a>
@@ -487,7 +487,7 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
           <div className="mt-6 text-center">
             <button
               onClick={handleReset}
-              className="text-sm text-white/40 hover:text-white/70 transition-colors underline"
+              className="font-sans text-sm text-muted hover:text-ink transition-colors underline"
             >
               {t.start_over_long}
             </button>
@@ -500,31 +500,31 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
   const q = questions[step];
 
   return (
-    <div className="flex-1 py-16 px-4">
+    <div className="flex-1 py-16 px-6">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">{t.title}</h1>
-          <p className="text-white/60">{t.subtitle}</p>
+          <p className="font-sans text-muted">{t.subtitle}</p>
         </div>
 
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-white/45">
+            <span className="font-sans text-xs text-muted">
               Question {step + 1} of {questions.length}
             </span>
-            <span className="text-xs text-white/45">
+            <span className="font-sans text-xs text-muted">
               {Math.round((step / questions.length) * 100)}% complete
             </span>
           </div>
-          <div className="w-full bg-accent/10 rounded-full h-1">
+          <div className="w-full bg-sand border border-line rounded-full h-1">
             <div
-              className="bg-accent h-1 rounded-full transition-all duration-300"
+              className="bg-clay h-1 rounded-full transition-all duration-300"
               style={{ width: `${(step / questions.length) * 100}%` }}
             />
           </div>
         </div>
 
-        <div className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 sm:p-8">
+        <div className="bg-bisque border border-line rounded-card p-6 sm:p-8">
           <div className="text-3xl mb-4">{q.icon}</div>
           <h2 className="text-xl sm:text-2xl font-semibold mb-6">{q.text}</h2>
 
@@ -533,13 +533,13 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
               opt.disabled ? (
                 <div
                   key={opt.value}
-                  className="w-full text-left px-4 py-4 rounded-xl border border-white/8 bg-[#0a0015] opacity-50 cursor-not-allowed select-none"
+                  className="w-full text-left px-4 py-4 rounded-xl border border-line bg-sand opacity-50 cursor-not-allowed select-none"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 border-white/20" />
+                    <div className="w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 border-muted" />
                     <div className="flex items-center gap-2">
-                      <p className="font-medium leading-tight text-white/40">{opt.label}</p>
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-white/40 bg-white/10 px-2 py-0.5 rounded-full">
+                      <p className="font-sans font-medium leading-tight text-muted">{opt.label}</p>
+                      <span className="font-sans text-xs font-semibold uppercase tracking-wide text-muted bg-sand px-2 py-0.5 rounded-full border border-line">
                         {t.brand_coming_soon}
                       </span>
                     </div>
@@ -551,20 +551,20 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
                   onClick={() => setSelected(opt.value)}
                   className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${
                     selected === opt.value
-                      ? "border-accent bg-accent/10 text-white"
-                      : "border-accent/15 bg-[#0a0015] text-white/80 hover:border-accent/30 hover:text-white"
+                      ? "border-clay bg-clay/10 text-ink"
+                      : "border-line bg-sand text-ink/80 hover:border-clay/30 hover:text-ink"
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={`w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 transition-colors ${
-                        selected === opt.value ? "border-accent bg-accent" : "border-white/30"
+                        selected === opt.value ? "border-clay bg-clay" : "border-muted"
                       }`}
                     />
                     <div>
-                      <p className="font-medium leading-tight">{opt.label}</p>
+                      <p className="font-sans font-medium leading-tight">{opt.label}</p>
                       {opt.desc && (
-                        <p className="text-sm text-white/45 mt-0.5">{opt.desc}</p>
+                        <p className="font-sans text-sm text-muted mt-0.5">{opt.desc}</p>
                       )}
                     </div>
                   </div>
@@ -578,21 +578,21 @@ export default function RacketFinderClient({ lang, t, apiErrorT, preloadedResult
           <button
             onClick={handleBack}
             disabled={step === 0}
-            className="text-sm text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="font-sans text-sm text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {t.back}
           </button>
           <div className="flex items-center gap-3">
             <button
               onClick={handleReset}
-              className="text-sm text-white/40 hover:text-white/70 transition-colors"
+              className="font-sans text-sm text-muted hover:text-ink transition-colors"
             >
               {t.start_over}
             </button>
             <button
               onClick={handleNext}
               disabled={!selected}
-              className="bg-accent text-white font-semibold px-8 py-3 rounded-full hover:bg-[#a84ad9] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-green text-sand font-sans font-semibold px-8 py-3 rounded-full hover:bg-green-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {step === questions.length - 1 ? t.get_rec : t.next}
             </button>

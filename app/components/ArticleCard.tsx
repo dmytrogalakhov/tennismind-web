@@ -9,8 +9,9 @@ function formatDate(iso: string): string {
   return `${MONTHS[m - 1]} ${d}, ${y}`;
 }
 
-const COLLAPSED_HEIGHT = 3 * 1.65 * 14;
-const ACCENT = "#BF5AF2";
+const COLLAPSED_HEIGHT = 3 * 1.6 * 18;
+const SANS: React.CSSProperties["fontFamily"] = "var(--font-sans), system-ui, sans-serif";
+const SERIF: React.CSSProperties["fontFamily"] = "var(--font-serif), Georgia, 'Times New Roman', serif";
 
 export default function ArticleCard({ article }: { article: Article }) {
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -28,125 +29,96 @@ export default function ArticleCard({ article }: { article: Article }) {
   return (
     <div
       style={{
-        background: "#0a0015",
-        border: "1px solid rgba(191,90,242,0.25)",
-        borderRadius: 16,
+        background: "var(--color-bisque)",
+        border: "1px solid var(--color-line)",
+        borderRadius: "var(--radius-card)",
         overflow: "hidden",
-        maxWidth: 600,
         width: "100%",
         boxSizing: "border-box",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
       }}
     >
-      <div style={{ padding: 24 }}>
-        {/* Type label */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-          <span style={{ fontSize: 18, lineHeight: 1 }}>✍️</span>
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: ACCENT }}>
-            ARTICLE
+      <div style={{ padding: "1.25rem" }}>
+        {/* Type badge */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.75rem" }}>
+          <span style={{ fontSize: 15, lineHeight: 1 }}>✍️</span>
+          <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", color: "var(--color-green)", textTransform: "uppercase" as const }}>
+            Article
           </span>
           {article.tournament && (
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: 4 }}>
+            <span style={{ fontFamily: SANS, fontSize: 11, color: "var(--color-muted)", marginLeft: 4 }}>
               {article.tournament}
             </span>
           )}
         </div>
 
         {/* Title */}
-        <div style={{ fontSize: 17, fontWeight: 600, color: "#ffffff", lineHeight: 1.4, marginBottom: 8 }}>
+        <h2 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: "var(--color-ink)", lineHeight: 1.3, margin: "0 0 0.5rem", letterSpacing: "-0.01em" }}>
           {article.title}
-        </div>
+        </h2>
 
         {/* Subtitle */}
-        <div style={{ fontSize: 14, fontStyle: "italic", color: "rgba(255,255,255,0.55)", lineHeight: 1.55, marginBottom: 14 }}>
-          {article.subtitle}
-        </div>
+        {article.subtitle && (
+          <div style={{ fontFamily: SERIF, fontSize: 15, fontStyle: "italic", color: "var(--color-muted)", lineHeight: 1.5, marginBottom: "0.875rem" }}>
+            {article.subtitle}
+          </div>
+        )}
 
         {/* Body */}
         <div
           ref={bodyRef}
           style={{
-            fontSize: 14,
-            color: "rgba(255,255,255,0.6)",
-            lineHeight: 1.65,
+            fontFamily: SERIF,
+            fontSize: "var(--text-body-card)",
+            color: "var(--color-ink)",
+            lineHeight: "var(--leading-body-card)",
             overflow: "hidden",
             maxHeight: expanded ? "4000px" : `${COLLAPSED_HEIGHT}px`,
             transition: "max-height 0.4s ease",
-            marginBottom: overflows ? 8 : 20,
+            marginBottom: overflows ? "0.5rem" : "1.25rem",
+            opacity: 0.88,
           }}
         >
           {paragraphs.map((para, i) => (
-            <p key={i} style={{ margin: i === 0 ? 0 : "14px 0 0" }}>
+            <p key={i} style={{ margin: i === 0 ? 0 : "0.875rem 0 0" }}>
               {para.replace(/\n/g, " ")}
             </p>
           ))}
         </div>
 
-        {/* Read more / Show less */}
+        {/* Read more */}
         {overflows && (
           <button
             onClick={() => setExpanded((e) => !e)}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              marginBottom: 20,
-              color: ACCENT,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: "pointer",
-              letterSpacing: "0.02em",
-              opacity: 0.8,
-            }}
+            style={{ background: "none", border: "none", padding: 0, marginBottom: "1.25rem", color: "var(--color-clay)", fontFamily: SANS, fontSize: 12, fontWeight: 600, cursor: "pointer", letterSpacing: "0.02em", textDecoration: "underline", textUnderlineOffset: 2 }}
           >
             {expanded ? "Show less ↑" : "Read more ↓"}
           </button>
         )}
 
-        {/* Substack link — only shown when expanded */}
+        {/* Substack link — shown when expanded */}
         {expanded && article.substack_url && (
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: "1.25rem" }}>
             <a
               href={article.substack_url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,0.35)",
-                textDecoration: "none",
-                transition: "color 0.15s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.65)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.35)")}
+              style={{ fontFamily: SANS, fontSize: 12, color: "var(--color-muted)", textDecoration: "underline", textUnderlineOffset: 2 }}
             >
               Read on Substack →
             </a>
           </div>
         )}
 
-        {/* Tags */}
-        {article.tags.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
-            {article.tags.map((tag) => (
-              <span
-                key={tag}
-                style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.3)",
-                  background: "rgba(255,255,255,0.05)",
-                  padding: "3px 10px",
-                  borderRadius: 999,
-                }}
-              >
+        {/* Bottom bar */}
+        <div style={{ borderTop: "1px solid var(--color-line)", paddingTop: "0.875rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" as const }}>
+            {article.tags.slice(0, 3).map((tag) => (
+              <span key={tag} style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: "var(--color-green)", background: "var(--color-sand)", borderRadius: "999px", padding: "2px 8px" }}>
                 {tag}
               </span>
             ))}
           </div>
-        )}
-
-        {/* Bottom bar */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14, textAlign: "right" }}>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
+          <span style={{ fontFamily: SANS, fontSize: 12, color: "var(--color-muted)" }}>
             {formatDate(article.date)}
             {article.readTime ? ` · ${article.readTime} read` : ""}
           </span>

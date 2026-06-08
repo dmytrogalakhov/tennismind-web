@@ -20,14 +20,14 @@ function renderBody(body: string) {
           return (
             <h3
               key={i}
-              className="text-xs font-semibold uppercase tracking-wider text-white/40 mt-5 first:mt-0"
+              className="font-sans text-xs font-semibold uppercase tracking-wider text-green mt-5 first:mt-0"
             >
               {trimmed.slice(3)}
             </h3>
           );
         }
         return (
-          <p key={i} className="text-sm text-white/65 leading-relaxed">
+          <p key={i} className="font-serif text-sm text-ink/85 leading-relaxed">
             {trimmed}
           </p>
         );
@@ -42,10 +42,10 @@ export default function AnalysisBody({ body, title, slug, t }: Props) {
   if (!body) return null;
 
   return (
-    <div className="mt-5 pt-5 border-t border-accent/10">
+    <div className="mt-5 pt-5 border-t border-line">
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="flex items-center gap-2 text-xs font-medium text-accent border border-accent/25 px-4 py-2 rounded-full hover:bg-accent/10 transition-colors cursor-pointer"
+        className="flex items-center gap-2 font-sans text-xs font-medium text-clay border border-clay/30 px-4 py-2 rounded-full hover:bg-clay/10 transition-colors cursor-pointer"
       >
         {expanded ? t.hide : t.read_full}
         <svg

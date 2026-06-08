@@ -3,11 +3,11 @@ import AnalysisBody from "@/app/components/AnalysisBody";
 import { getDictionary, hasLocale } from "../dictionaries";
 import { notFound } from "next/navigation";
 
-const surfaceColor: Record<string, string> = {
-  Grass: "text-emerald-400 bg-emerald-400/10",
-  Hard: "text-blue-400 bg-blue-400/10",
-  Clay: "text-orange-400 bg-orange-400/10",
-  "Hard (Indoor)": "text-sky-400 bg-sky-400/10",
+const surfaceStyle: Record<string, string> = {
+  Grass:          "text-green bg-green/10 border-green/20",
+  Hard:           "text-clay bg-clay/10 border-clay/20",
+  Clay:           "text-clay bg-clay/10 border-clay/20",
+  "Hard (Indoor)":"text-muted bg-sand border-line",
 };
 
 export default async function AnalysisPage({
@@ -22,11 +22,11 @@ export default async function AnalysisPage({
   const analyses = getAllAnalyses();
 
   return (
-    <div className="flex-1 py-16 px-4">
+    <div className="flex-1 py-16 px-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">{t.title}</h1>
-          <p className="text-white/60 text-lg max-w-2xl">{t.subtitle}</p>
+          <p className="font-sans text-muted text-lg max-w-2xl">{t.subtitle}</p>
         </div>
 
         <div className="space-y-6">
@@ -34,29 +34,29 @@ export default async function AnalysisPage({
             <article
               id={post.slug}
               key={post.slug}
-              className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 sm:p-8 hover:border-accent/25 transition-colors"
+              className="bg-bisque border border-line rounded-card p-6 sm:p-8 hover:border-clay/25 transition-colors"
             >
               <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="text-xs bg-accent/10 text-white/60 px-2.5 py-1 rounded-full font-medium">
+                <span className="font-sans text-xs bg-sand text-muted px-2.5 py-1 rounded-full font-medium border border-line">
                   {post.tournament}
                 </span>
                 {post.round && (
-                  <span className="text-xs text-white/30 border border-accent/10 px-2.5 py-1 rounded-full">
+                  <span className="font-sans text-xs text-muted border border-line px-2.5 py-1 rounded-full">
                     {post.round}
                   </span>
                 )}
                 <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                    surfaceColor[post.surface] ?? "text-white/60 bg-white/10"
+                  className={`font-sans text-xs font-medium px-2.5 py-1 rounded-full border ${
+                    surfaceStyle[post.surface] ?? "text-muted bg-sand border-line"
                   }`}
                 >
                   {post.surface}
                 </span>
-                <span className="text-xs text-white/30">
+                <span className="font-sans text-xs text-muted">
                   {formatDate(post.date)}
                 </span>
-                <span className="text-xs text-white/30">·</span>
-                <span className="text-xs text-white/30">{post.readTime} read</span>
+                <span className="font-sans text-xs text-muted">·</span>
+                <span className="font-sans text-xs text-muted">{post.readTime} read</span>
               </div>
 
               <h2 className="text-xl sm:text-2xl font-semibold mb-2 leading-snug">
@@ -64,7 +64,7 @@ export default async function AnalysisPage({
               </h2>
 
               {post.summary && (
-                <p className="text-sm text-white/60 leading-relaxed mb-5">
+                <p className="font-sans text-sm text-muted leading-relaxed mb-5">
                   {post.summary}
                 </p>
               )}
@@ -76,12 +76,12 @@ export default async function AnalysisPage({
                     .map((stat) => (
                       <div
                         key={stat.label}
-                        className="bg-accent/10 border border-accent/15 rounded-xl px-3 py-3 text-center"
+                        className="bg-sand border border-line rounded-xl px-3 py-3 text-center"
                       >
-                        <div className="text-lg font-bold text-accent">
+                        <div className="font-serif text-lg font-bold text-clay">
                           {stat.value}
                         </div>
-                        <div className="text-xs text-white/45 mt-0.5 leading-tight">
+                        <div className="font-sans text-xs text-muted mt-0.5 leading-tight">
                           {stat.label}
                         </div>
                       </div>
@@ -90,11 +90,11 @@ export default async function AnalysisPage({
               )}
 
               {post.insight && (
-                <div className="bg-accent/5 border border-accent/10 rounded-xl px-4 py-3">
-                  <p className="text-xs text-accent font-semibold uppercase tracking-widest mb-1">
+                <div className="bg-sand border border-line rounded-xl px-4 py-3">
+                  <p className="font-sans text-xs text-green font-semibold uppercase tracking-widest mb-1">
                     {t.key_insight}
                   </p>
-                  <p className="text-sm text-white/80 leading-relaxed">
+                  <p className="font-serif text-sm text-ink/85 leading-relaxed">
                     {post.insight}
                   </p>
                 </div>
@@ -105,7 +105,7 @@ export default async function AnalysisPage({
                   {post.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-xs text-white/30 border border-accent/15 px-2.5 py-1 rounded-full"
+                      className="font-sans text-xs text-green bg-sand border border-line px-2.5 py-1 rounded-full"
                     >
                       {tag}
                     </span>

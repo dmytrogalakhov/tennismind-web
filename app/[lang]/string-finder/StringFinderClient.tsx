@@ -277,26 +277,26 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
     ];
 
     return (
-      <div className="flex-1 py-16 px-4">
+      <div className="flex-1 py-16 px-6">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
             <h1 className="text-3xl sm:text-4xl font-bold mb-2">{t.result_title}</h1>
-            <p className="text-white/60">{t.result_subtitle}</p>
+            <p className="font-sans text-muted">{t.result_subtitle}</p>
           </div>
 
-          <div className="bg-accent/[0.06] border border-accent/30 rounded-2xl p-6 sm:p-8 mb-6 text-center">
+          <div className="bg-bisque border border-clay/30 rounded-card p-6 sm:p-8 mb-6 text-center">
             <div className="text-4xl mb-4">🚧</div>
-            <h2 className="text-xl font-semibold mb-2">{t.coming_soon_title}</h2>
-            <p className="text-sm text-white/60 leading-relaxed">{t.coming_soon_desc}</p>
+            <h2 className="font-serif text-xl font-semibold mb-2">{t.coming_soon_title}</h2>
+            <p className="font-sans text-sm text-muted leading-relaxed">{t.coming_soon_desc}</p>
           </div>
 
-          <div className="bg-accent/[0.04] border border-accent/10 rounded-2xl p-6 mb-6">
-            <p className="text-xs text-white/40 uppercase tracking-widest mb-4">{t.your_answers}</p>
+          <div className="bg-bisque border border-line rounded-card p-6 mb-6">
+            <p className="font-sans text-xs text-muted uppercase tracking-widest mb-4">{t.your_answers}</p>
             <div className="space-y-3">
               {summaryRows.map((row) => (
                 <div key={row.label} className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-white/45">{row.label}</span>
-                  <span className="text-white/80 font-medium text-right">{row.value || "—"}</span>
+                  <span className="font-sans text-muted">{row.label}</span>
+                  <span className="font-sans text-ink font-medium text-right">{row.value || "—"}</span>
                 </div>
               ))}
             </div>
@@ -307,13 +307,13 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
               href="https://t.me/tennismind"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 bg-accent text-white font-semibold px-5 py-3 rounded-full hover:bg-[#a84ad9] transition-colors text-sm"
+              className="flex-1 flex items-center justify-center gap-2 bg-green text-sand font-sans font-semibold px-5 py-3 rounded-full hover:bg-green-deep transition-colors text-sm"
             >
               {t.cta_telegram}
             </a>
             <Link
               href={`/${lang}/racket-finder`}
-              className="flex-1 flex items-center justify-center border border-cyan/40 text-cyan font-semibold px-5 py-3 rounded-full hover:bg-cyan/10 transition-colors text-sm"
+              className="flex-1 flex items-center justify-center border border-clay text-clay font-sans font-semibold px-5 py-3 rounded-full hover:bg-clay/10 transition-colors text-sm"
             >
               {t.cta_racket_finder}
             </Link>
@@ -322,7 +322,7 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
           <div className="mt-6 text-center">
             <button
               onClick={handleReset}
-              className="text-sm text-white/40 hover:text-white/70 transition-colors underline"
+              className="font-sans text-sm text-muted hover:text-ink transition-colors underline"
             >
               {t.start_over}
             </button>
@@ -334,24 +334,24 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
 
   if (phase === "racket") {
     return (
-      <div className="flex-1 py-16 px-4">
+      <div className="flex-1 py-16 px-6">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
             <h1 className="text-3xl sm:text-4xl font-bold mb-2">{t.title}</h1>
-            <p className="text-white/60">{t.subtitle}</p>
+            <p className="font-sans text-muted">{t.subtitle}</p>
           </div>
 
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-white/45">Question 1 of {totalSteps}</span>
-              <span className="text-xs text-white/45">0% complete</span>
+              <span className="font-sans text-xs text-muted">Question 1 of {totalSteps}</span>
+              <span className="font-sans text-xs text-muted">0% complete</span>
             </div>
-            <div className="w-full bg-accent/10 rounded-full h-1">
-              <div className="bg-accent h-1 rounded-full" style={{ width: "0%" }} />
+            <div className="w-full bg-sand border border-line rounded-full h-1">
+              <div className="bg-clay h-1 rounded-full" style={{ width: "0%" }} />
             </div>
           </div>
 
-          <div className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 sm:p-8">
+          <div className="bg-bisque border border-line rounded-card p-6 sm:p-8">
             <div className="text-3xl mb-4">🎾</div>
             <h2 className="text-xl sm:text-2xl font-semibold mb-6">{t.q_racket}</h2>
 
@@ -368,36 +368,36 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
                 placeholder={t.search_placeholder}
-                className="w-full bg-[#0a0015] border border-accent/20 rounded-xl px-4 py-3 text-white/90 placeholder-white/30 focus:outline-none focus:border-accent/50 transition-colors"
+                className="w-full bg-sand border border-line rounded-xl px-4 py-3 font-sans text-ink placeholder-muted focus:outline-none focus:border-clay/50 transition-colors"
               />
 
               {showDropdown && (
-                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-[#0d0020] border border-accent/20 rounded-xl overflow-hidden shadow-xl">
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-bisque border border-line rounded-xl overflow-hidden shadow-lg">
                   <div className="max-h-56 overflow-y-auto">
                     {filteredRackets.length > 0 ? (
                       filteredRackets.map((name) => (
                         <button
                           key={name}
                           onMouseDown={() => selectRacket(name)}
-                          className="w-full text-left px-4 py-2.5 text-sm text-white/80 hover:bg-accent/10 hover:text-white transition-colors"
+                          className="w-full text-left px-4 py-2.5 font-sans text-sm text-ink/80 hover:bg-sand hover:text-ink transition-colors"
                         >
                           {name}
                         </button>
                       ))
                     ) : (
-                      <p className="px-4 py-3 text-sm text-white/40">{t.no_matches}</p>
+                      <p className="px-4 py-3 font-sans text-sm text-muted">{t.no_matches}</p>
                     )}
                   </div>
-                  <div className="border-t border-accent/10">
+                  <div className="border-t border-line">
                     <button
                       onMouseDown={selectOther}
-                      className="w-full text-left px-4 py-2.5 text-sm text-white/60 hover:bg-accent/10 hover:text-white transition-colors"
+                      className="w-full text-left px-4 py-2.5 font-sans text-sm text-muted hover:bg-sand hover:text-ink transition-colors"
                     >
                       {t.other_racket}
                     </button>
                     <button
                       onMouseDown={selectDontKnow}
-                      className="w-full text-left px-4 py-2.5 text-sm text-white/40 hover:bg-accent/10 hover:text-white/70 transition-colors border-t border-accent/10"
+                      className="w-full text-left px-4 py-2.5 font-sans text-sm text-muted hover:bg-sand transition-colors border-t border-line"
                     >
                       {t.dont_know_racket}
                     </button>
@@ -413,12 +413,12 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
                 onChange={(e) => setOtherRacket(e.target.value)}
                 placeholder={t.type_racket_placeholder}
                 autoFocus
-                className="w-full bg-[#0a0015] border border-accent/30 rounded-xl px-4 py-3 text-white/90 placeholder-white/30 focus:outline-none focus:border-accent/60 transition-colors"
+                className="w-full bg-sand border border-clay/30 rounded-xl px-4 py-3 font-sans text-ink placeholder-muted focus:outline-none focus:border-clay/60 transition-colors"
               />
             )}
 
             {racketReady && !showDropdown && (
-              <p className="text-xs text-accent mt-2">
+              <p className="font-sans text-xs text-green mt-2">
                 ✓ {showOtherInput ? otherRacket : racketValue}
               </p>
             )}
@@ -428,7 +428,7 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
             <button
               onClick={handleRacketNext}
               disabled={!racketReady}
-              className="bg-accent text-white font-semibold px-8 py-3 rounded-full hover:bg-[#a84ad9] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-green text-sand font-sans font-semibold px-8 py-3 rounded-full hover:bg-green-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {t.next}
             </button>
@@ -441,12 +441,12 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
   const q = questions[step];
 
   return (
-    <div className="flex-1 py-16 px-4">
+    <div className="flex-1 py-16 px-6">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">{t.title}</h1>
           {racketParam && (
-            <p className="text-xs text-accent mt-1">
+            <p className="font-sans text-xs text-clay mt-1">
               {t.based_on_racket} {racketParam}
             </p>
           )}
@@ -454,22 +454,22 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
 
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-white/45">
+            <span className="font-sans text-xs text-muted">
               Question {currentStepNumber} of {totalSteps}
             </span>
-            <span className="text-xs text-white/45">
+            <span className="font-sans text-xs text-muted">
               {Math.round(progressPct)}% complete
             </span>
           </div>
-          <div className="w-full bg-accent/10 rounded-full h-1">
+          <div className="w-full bg-sand border border-line rounded-full h-1">
             <div
-              className="bg-accent h-1 rounded-full transition-all duration-300"
+              className="bg-clay h-1 rounded-full transition-all duration-300"
               style={{ width: `${progressPct}%` }}
             />
           </div>
         </div>
 
-        <div className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-6 sm:p-8">
+        <div className="bg-bisque border border-line rounded-card p-6 sm:p-8">
           <div className="text-3xl mb-4">{q.icon}</div>
           <h2 className="text-xl sm:text-2xl font-semibold mb-6">{q.text}</h2>
 
@@ -480,19 +480,19 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
                 onClick={() => setSelected(opt.value)}
                 className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${
                   selected === opt.value
-                    ? "border-accent bg-accent/10 text-white"
+                    ? "border-clay bg-clay/10 text-ink"
                     : opt.distinct
-                    ? "border-accent/10 bg-[#0a0015] text-white/40 hover:border-accent/20 hover:text-white/60"
-                    : "border-accent/15 bg-[#0a0015] text-white/80 hover:border-accent/30 hover:text-white"
+                    ? "border-line bg-sand text-muted hover:border-clay/20 hover:text-ink/60"
+                    : "border-line bg-sand text-ink/80 hover:border-clay/30 hover:text-ink"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-4 h-4 rounded-full border-2 shrink-0 transition-colors ${
-                      selected === opt.value ? "border-accent bg-accent" : "border-white/30"
+                      selected === opt.value ? "border-clay bg-clay" : "border-muted"
                     }`}
                   />
-                  <span className="font-medium">{opt.label}</span>
+                  <span className="font-sans font-medium">{opt.label}</span>
                 </div>
               </button>
             ))}
@@ -503,21 +503,21 @@ export default function StringFinderClient({ racketParam, lang, t }: Props) {
           <button
             onClick={handleBack}
             disabled={step === 0 && !!racketParam}
-            className="text-sm text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="font-sans text-sm text-muted hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {t.back}
           </button>
           <div className="flex items-center gap-3">
             <button
               onClick={handleReset}
-              className="text-sm text-white/40 hover:text-white/70 transition-colors"
+              className="font-sans text-sm text-muted hover:text-ink transition-colors"
             >
               {t.start_over}
             </button>
             <button
               onClick={handleNext}
               disabled={!selected}
-              className="bg-accent text-white font-semibold px-8 py-3 rounded-full hover:bg-[#a84ad9] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-green text-sand font-sans font-semibold px-8 py-3 rounded-full hover:bg-green-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {step === questions.length - 1 ? t.see_results : t.next}
             </button>

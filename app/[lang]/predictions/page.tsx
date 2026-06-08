@@ -1,7 +1,7 @@
 import { getDictionary, hasLocale } from "../dictionaries";
 import { notFound } from "next/navigation";
 import { getAllFeedCards } from "@/lib/feed";
-import FeedStatCard from "@/app/components/FeedStatCard";
+import NewsCard from "@/app/components/NewsCard";
 
 type Contender = {
   player: string;
@@ -14,7 +14,7 @@ type Contender = {
 type Tournament = {
   name: string;
   surface: string;
-  surfaceColor: string;
+  surfaceStyle: string;
   category: string;
   dates: string;
   location: string;
@@ -28,17 +28,17 @@ const tournaments: Tournament[] = [
   {
     name: "Roland Garros 2026",
     surface: "Clay",
-    surfaceColor: "text-orange-400 bg-orange-400/10 border-orange-400/20",
+    surfaceStyle: "text-clay bg-clay/10 border-clay/20",
     category: "Grand Slam",
     dates: "May 24 – Jun 7, 2026",
     location: "Paris, France",
     status: "upcoming",
     contenders: [
-      { player: "Jannik Sinner", flag: "🇮🇹", probability: 34, odds: "+190", trend: "up" },
-      { player: "Carlos Alcaraz", flag: "🇪🇸", probability: 26, odds: "+260", trend: "neutral" },
-      { player: "Novak Djokovic", flag: "🇷🇸", probability: 18, odds: "+450", trend: "neutral" },
-      { player: "Casper Ruud", flag: "🇳🇴", probability: 12, odds: "+750", trend: "down" },
-      { player: "Holger Rune", flag: "🇩🇰", probability: 10, odds: "+950", trend: "up" },
+      { player: "Jannik Sinner",   flag: "🇮🇹", probability: 34, odds: "+190",  trend: "up"      },
+      { player: "Carlos Alcaraz",  flag: "🇪🇸", probability: 26, odds: "+260",  trend: "neutral" },
+      { player: "Novak Djokovic",  flag: "🇷🇸", probability: 18, odds: "+450",  trend: "neutral" },
+      { player: "Casper Ruud",     flag: "🇳🇴", probability: 12, odds: "+750",  trend: "down"    },
+      { player: "Holger Rune",     flag: "🇩🇰", probability: 10, odds: "+950",  trend: "up"      },
     ],
     darkHorse: {
       player: "Stefanos Tsitsipas",
@@ -51,17 +51,17 @@ const tournaments: Tournament[] = [
   {
     name: "Wimbledon 2026",
     surface: "Grass",
-    surfaceColor: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+    surfaceStyle: "text-green bg-green/10 border-green/20",
     category: "Grand Slam",
     dates: "Jun 29 – Jul 12, 2026",
     location: "London, UK",
     status: "upcoming",
     contenders: [
-      { player: "Carlos Alcaraz", flag: "🇪🇸", probability: 35, odds: "+180", trend: "up" },
-      { player: "Novak Djokovic", flag: "🇷🇸", probability: 22, odds: "+350", trend: "up" },
-      { player: "Jannik Sinner", flag: "🇮🇹", probability: 15, odds: "+550", trend: "neutral" },
-      { player: "Taylor Fritz", flag: "🇺🇸", probability: 9, odds: "+900", trend: "up" },
-      { player: "Tommy Paul", flag: "🇺🇸", probability: 7, odds: "+1200", trend: "up" },
+      { player: "Carlos Alcaraz",  flag: "🇪🇸", probability: 35, odds: "+180",  trend: "up"      },
+      { player: "Novak Djokovic",  flag: "🇷🇸", probability: 22, odds: "+350",  trend: "up"      },
+      { player: "Jannik Sinner",   flag: "🇮🇹", probability: 15, odds: "+550",  trend: "neutral" },
+      { player: "Taylor Fritz",    flag: "🇺🇸", probability:  9, odds: "+900",  trend: "up"      },
+      { player: "Tommy Paul",      flag: "🇺🇸", probability:  7, odds: "+1200", trend: "up"      },
     ],
     darkHorse: {
       player: "Lorenzo Musetti",
@@ -74,17 +74,17 @@ const tournaments: Tournament[] = [
   {
     name: "US Open 2026",
     surface: "Hard",
-    surfaceColor: "text-blue-400 bg-blue-400/10 border-blue-400/20",
+    surfaceStyle: "text-muted bg-sand border-line",
     category: "Grand Slam",
     dates: "Aug 31 – Sep 13, 2026",
     location: "New York, USA",
     status: "upcoming",
     contenders: [
-      { player: "Jannik Sinner", flag: "🇮🇹", probability: 30, odds: "+240", trend: "up" },
-      { player: "Carlos Alcaraz", flag: "🇪🇸", probability: 26, odds: "+280", trend: "neutral" },
-      { player: "Daniil Medvedev", flag: "🇷🇺", probability: 14, odds: "+580", trend: "up" },
-      { player: "Novak Djokovic", flag: "🇷🇸", probability: 12, odds: "+700", trend: "neutral" },
-      { player: "Alex Zverev", flag: "🇩🇪", probability: 10, odds: "+850", trend: "up" },
+      { player: "Jannik Sinner",   flag: "🇮🇹", probability: 30, odds: "+240",  trend: "up"      },
+      { player: "Carlos Alcaraz",  flag: "🇪🇸", probability: 26, odds: "+280",  trend: "neutral" },
+      { player: "Daniil Medvedev", flag: "🇷🇺", probability: 14, odds: "+580",  trend: "up"      },
+      { player: "Novak Djokovic",  flag: "🇷🇸", probability: 12, odds: "+700",  trend: "neutral" },
+      { player: "Alex Zverev",     flag: "🇩🇪", probability: 10, odds: "+850",  trend: "up"      },
     ],
     darkHorse: {
       player: "Ben Shelton",
@@ -97,17 +97,17 @@ const tournaments: Tournament[] = [
   {
     name: "ATP Finals 2026",
     surface: "Hard (Indoor)",
-    surfaceColor: "text-sky-400 bg-sky-400/10 border-sky-400/20",
+    surfaceStyle: "text-muted bg-sand border-line",
     category: "ATP Finals",
     dates: "Nov 8 – Nov 15, 2026",
     location: "Turin, Italy",
     status: "upcoming",
     contenders: [
-      { player: "Jannik Sinner", flag: "🇮🇹", probability: 28, odds: "+280", trend: "up" },
-      { player: "Carlos Alcaraz", flag: "🇪🇸", probability: 22, odds: "+360", trend: "neutral" },
-      { player: "Alex Zverev", flag: "🇩🇪", probability: 18, odds: "+450", trend: "up" },
-      { player: "Daniil Medvedev", flag: "🇷🇺", probability: 14, odds: "+580", trend: "neutral" },
-      { player: "Taylor Fritz", flag: "🇺🇸", probability: 9, odds: "+950", trend: "up" },
+      { player: "Jannik Sinner",   flag: "🇮🇹", probability: 28, odds: "+280",  trend: "up"      },
+      { player: "Carlos Alcaraz",  flag: "🇪🇸", probability: 22, odds: "+360",  trend: "neutral" },
+      { player: "Alex Zverev",     flag: "🇩🇪", probability: 18, odds: "+450",  trend: "up"      },
+      { player: "Daniil Medvedev", flag: "🇷🇺", probability: 14, odds: "+580",  trend: "neutral" },
+      { player: "Taylor Fritz",    flag: "🇺🇸", probability:  9, odds: "+950",  trend: "up"      },
     ],
     darkHorse: {
       player: "Hubert Hurkacz",
@@ -119,8 +119,8 @@ const tournaments: Tournament[] = [
   },
 ];
 
-const trendIcon = { up: "↑", down: "↓", neutral: "→" };
-const trendColor = { up: "text-cyan", down: "text-pink", neutral: "text-white/30" };
+const trendIcon  = { up: "↑", down: "↓", neutral: "→" };
+const trendStyle = { up: "text-green", down: "text-clay", neutral: "text-muted" };
 
 export default async function PredictionsPage({
   params,
@@ -135,23 +135,23 @@ export default async function PredictionsPage({
   const matchPredictions = getAllFeedCards().filter((c) => c.type === "prediction");
 
   const statusBadge = {
-    live: "bg-pink/10 text-pink border-pink/20",
-    upcoming: "bg-cyan/10 text-cyan border-cyan/20",
-    completed: "bg-white/5 text-white/30 border-white/10",
+    live:      "bg-clay/10 text-clay border-clay/20",
+    upcoming:  "bg-green/10 text-green border-green/20",
+    completed: "bg-sand text-muted border-line",
   };
 
   const statusLabel = {
-    live: t.status_live,
-    upcoming: t.status_upcoming,
+    live:      t.status_live,
+    upcoming:  t.status_upcoming,
     completed: t.status_completed,
   };
 
   return (
-    <div className="flex-1 py-16 px-4">
+    <div className="flex-1 py-16 px-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">{t.title}</h1>
-          <p className="text-white/60 text-lg max-w-2xl">{t.subtitle}</p>
+          <p className="font-sans text-muted text-lg max-w-2xl">{t.subtitle}</p>
         </div>
 
         {matchPredictions.length > 0 && (
@@ -159,7 +159,7 @@ export default async function PredictionsPage({
             <h2 className="text-2xl font-bold mb-6">Match Predictions</h2>
             <div className="flex flex-col gap-6 max-w-2xl">
               {matchPredictions.map((card) => (
-                <FeedStatCard
+                <NewsCard
                   key={card.slug}
                   type={card.type}
                   title={card.title}
@@ -180,87 +180,93 @@ export default async function PredictionsPage({
           {tournaments.map((tournament) => (
             <div
               key={tournament.name}
-              className="bg-accent/[0.06] border border-accent/15 rounded-2xl overflow-hidden"
+              className="bg-bisque border border-line rounded-card overflow-hidden"
             >
-              <div className="px-6 sm:px-8 py-5 border-b border-accent/15 flex flex-wrap items-center justify-between gap-3">
+              {/* Header */}
+              <div className="px-6 sm:px-8 py-5 border-b border-line flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusBadge[tournament.status]}`}
+                      className={`font-sans text-xs font-medium px-2.5 py-1 rounded-full border ${statusBadge[tournament.status]}`}
                     >
                       {statusLabel[tournament.status]}
                     </span>
-                    <span className="text-xs text-white/30">{tournament.category}</span>
+                    <span className="font-sans text-xs text-muted">{tournament.category}</span>
                   </div>
                   <h2 className="text-xl sm:text-2xl font-bold">{tournament.name}</h2>
-                  <p className="text-sm text-white/45 mt-0.5">
+                  <p className="font-sans text-sm text-muted mt-0.5">
                     {tournament.dates} · {tournament.location}
                   </p>
                 </div>
                 <span
-                  className={`text-sm font-semibold px-3 py-1.5 rounded-xl border ${tournament.surfaceColor}`}
+                  className={`font-sans text-sm font-semibold px-3 py-1.5 rounded-xl border ${tournament.surfaceStyle}`}
                 >
                   {tournament.surface}
                 </span>
               </div>
 
               <div className="px-6 sm:px-8 py-6">
-                <p className="text-xs text-white/45 uppercase tracking-widest mb-4">
+                {/* Probability label */}
+                <p className="font-sans text-xs text-muted uppercase tracking-widest mb-4">
                   {t.win_probability}
                 </p>
+
+                {/* Contenders */}
                 <div className="space-y-3 mb-6">
                   {tournament.contenders.map((c, i) => (
                     <div key={c.player} className="flex items-center gap-3">
-                      <span className="text-xs text-white/30 w-4 text-right shrink-0">
+                      <span className="font-sans text-xs text-muted w-4 text-right shrink-0">
                         {i + 1}
                       </span>
                       <span className="text-sm shrink-0">{c.flag}</span>
-                      <span className="text-sm font-medium w-36 shrink-0 truncate">
+                      <span className="font-sans text-sm font-medium w-36 shrink-0 truncate">
                         {c.player}
                       </span>
-                      <div className="flex-1 bg-accent/10 rounded-full h-1.5 min-w-0">
+                      <div className="flex-1 bg-sand border border-line rounded-full h-1.5 min-w-0">
                         <div
-                          className="bg-accent h-1.5 rounded-full transition-all"
+                          className="bg-clay h-1.5 rounded-full transition-all"
                           style={{ width: `${c.probability}%` }}
                         />
                       </div>
-                      <span className="text-sm font-semibold text-accent w-9 text-right shrink-0">
+                      <span className="font-sans text-sm font-semibold text-clay w-9 text-right shrink-0">
                         {c.probability}%
                       </span>
                       <span
-                        className={`text-xs font-bold w-4 text-right shrink-0 ${trendColor[c.trend]}`}
+                        className={`font-sans text-xs font-bold w-4 text-right shrink-0 ${trendStyle[c.trend]}`}
                       >
                         {trendIcon[c.trend]}
                       </span>
-                      <span className="text-xs text-white/30 w-14 text-right shrink-0 hidden sm:block">
+                      <span className="font-sans text-xs text-muted w-14 text-right shrink-0 hidden sm:block">
                         {c.odds}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-accent/10 border border-accent/15 rounded-xl px-4 py-4 mb-4">
-                  <p className="text-xs text-white/45 uppercase tracking-widest mb-2">
+                {/* Dark horse */}
+                <div className="bg-sand border border-line rounded-xl px-4 py-4 mb-4">
+                  <p className="font-sans text-xs text-muted uppercase tracking-widest mb-2">
                     {t.dark_horse}
                   </p>
                   <div className="flex items-start gap-2">
                     <span className="text-base">{tournament.darkHorse.flag}</span>
                     <div>
-                      <span className="font-semibold text-white">
+                      <span className="font-serif font-semibold text-ink">
                         {tournament.darkHorse.player}
                       </span>
-                      <p className="text-sm text-white/60 mt-0.5 leading-relaxed">
+                      <p className="font-sans text-sm text-muted mt-0.5 leading-relaxed">
                         {tournament.darkHorse.note}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-accent/5 border border-accent/10 rounded-xl px-4 py-3">
-                  <p className="text-xs text-accent font-semibold uppercase tracking-widest mb-1">
+                {/* Our take */}
+                <div className="bg-sand border border-line rounded-xl px-4 py-3">
+                  <p className="font-sans text-xs text-green font-semibold uppercase tracking-widest mb-1">
                     {t.our_take}
                   </p>
-                  <p className="text-sm text-white/80 leading-relaxed">
+                  <p className="font-serif text-sm text-ink/85 leading-relaxed">
                     {tournament.insight}
                   </p>
                 </div>
@@ -269,7 +275,7 @@ export default async function PredictionsPage({
           ))}
         </div>
 
-        <p className="text-xs text-white/30 text-center mt-12">{t.disclaimer}</p>
+        <p className="font-sans text-xs text-muted text-center mt-12">{t.disclaimer}</p>
       </div>
     </div>
   );

@@ -4,10 +4,10 @@ type Props = {
 
 export default function ApiError({ t }: Props) {
   return (
-    <div className="bg-accent/[0.06] border border-accent/15 rounded-2xl p-8 text-center">
+    <div className="bg-bisque border border-line rounded-card p-8 text-center">
       <div className="text-3xl mb-4">🎾</div>
-      <h3 className="text-lg font-semibold mb-2">{t.title}</h3>
-      <p className="text-sm text-white/60 leading-relaxed mb-8 max-w-sm mx-auto">
+      <h3 className="font-serif text-lg font-semibold mb-2">{t.title}</h3>
+      <p className="font-sans text-sm text-muted leading-relaxed mb-8 max-w-sm mx-auto">
         {t.desc}
       </p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -15,7 +15,7 @@ export default function ApiError({ t }: Props) {
           href="https://t.me/tennis_analyst_rafik_bot"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 bg-accent text-white font-semibold px-5 py-2.5 rounded-full hover:bg-[#a84ad9] transition-colors text-sm"
+          className="inline-flex items-center justify-center gap-2 bg-green text-sand font-sans font-semibold px-5 py-2.5 rounded-full hover:bg-green-deep transition-colors text-sm"
         >
           <TelegramIcon />
           {t.cta_bot}
@@ -24,7 +24,7 @@ export default function ApiError({ t }: Props) {
           href="https://t.me/tennismind"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 border border-cyan/40 text-cyan font-semibold px-5 py-2.5 rounded-full hover:bg-cyan/10 transition-colors text-sm"
+          className="inline-flex items-center justify-center gap-2 border border-clay/40 text-clay font-sans font-semibold px-5 py-2.5 rounded-full hover:bg-clay/10 transition-colors text-sm"
         >
           <TelegramIcon />
           {t.cta_channel}

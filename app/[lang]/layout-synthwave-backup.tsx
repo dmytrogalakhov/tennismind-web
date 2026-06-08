@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Newsreader, Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 import "@/app/globals.css";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
@@ -8,17 +8,9 @@ import { notFound } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const newsreader = Newsreader({
+const geist = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  style: ["normal", "italic"],
-  display: "swap",
-  variable: "--font-newsreader",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -56,8 +48,8 @@ export default async function LocaleLayout({
   const dict = await getDictionary(lang);
 
   return (
-    <html lang={lang} className={`${newsreader.variable} ${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col">
+    <html lang={lang} className={`${geist.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-[#0a0015] text-white">
         <Navbar lang={lang} navDict={dict.nav} />
         <main className="flex-1 flex flex-col">{children}</main>
         <Footer lang={lang} dict={dict.footer} navDict={dict.nav} />

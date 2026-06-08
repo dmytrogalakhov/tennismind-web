@@ -66,9 +66,6 @@
 
   hr { border: 0; border-top: 1px solid var(--color-line); }
 
-  /* Navigation and footer links are UI chrome — no underlines */
-  nav a, footer a { text-decoration: none; }
-
   ::selection {
     background-color: var(--color-green);
     color: var(--color-sand);

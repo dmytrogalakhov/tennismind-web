@@ -1,7 +1,7 @@
 import { getDictionary, hasLocale } from "../dictionaries";
 import { notFound } from "next/navigation";
 import { getAllFeedCards } from "@/lib/feed";
-import FeedStatCard from "@/app/components/FeedStatCard";
+import NewsCard from "@/app/components/NewsCard";
 
 export default async function NewsPage({
   params,
@@ -16,15 +16,15 @@ export default async function NewsPage({
 
   return (
     <div className="flex-1">
-      <div className="max-w-2xl mx-auto px-4 py-16">
+      <div className="max-w-2xl mx-auto px-6 py-16">
         <div className="mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Tennis News</h1>
-          <p className="text-white/60">Stay on top of what's happening on tour without spending hours following it yourself.</p>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3">Tennis News</h1>
+          <p className="font-sans text-muted">Stay on top of what's happening on tour without spending hours following it yourself.</p>
         </div>
 
         <div className="flex flex-col gap-6">
           {cards.map((card) => (
-            <FeedStatCard
+            <NewsCard
               key={card.slug}
               type={card.type}
               title={card.title}
@@ -37,7 +37,7 @@ export default async function NewsPage({
             />
           ))}
           {cards.length === 0 && (
-            <p className="text-white/40 text-sm">No news yet.</p>
+            <p className="font-sans text-muted text-sm">No news yet.</p>
           )}
         </div>
       </div>

@@ -1,0 +1,14 @@
+<svg width="300" height="300" viewBox="0 0 300 300" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>TennisMind crest</title>
+<desc>Circular crest: deep-green field, TennisMind arced top, analysis stats tactics arced bottom in cream, clay tennis ball centre.</desc>
+<circle cx="150" cy="150" r="148" fill="#123A2A"/>
+<circle cx="150" cy="150" r="134" fill="none" stroke="#F4ECDC" stroke-width="4"/>
+<path id="topArc" d="M 46 150 A 104 104 0 0 1 254 150" fill="none" stroke="none"/>
+<path id="botArc" d="M 22 150 A 128 128 0 0 0 278 150" fill="none" stroke="none"/>
+<text font-family="'Newsreader', Georgia, serif" font-size="23" font-weight="600" fill="#F4ECDC" letter-spacing="5"><textPath href="#topArc" startOffset="50%" text-anchor="middle">TENNISMIND</textPath></text>
+<text font-family="'Inter', system-ui, Arial, sans-serif" font-size="12" fill="#E7D8BE" letter-spacing="2.5"><textPath href="#botArc" startOffset="50%" text-anchor="middle">ANALYSIS · STATS · TACTICS</textPath></text>
+<circle cx="30" cy="150" r="3.5" fill="#C0512F"/>
+<circle cx="270" cy="150" r="3.5" fill="#C0512F"/>
+<circle cx="150" cy="150" r="48" fill="#C0512F"/>
+<path d="M 102 150 C 124 109, 176 191, 198 150" fill="none" stroke="#F4ECDC" stroke-width="7" stroke-linecap="round"/>
+</svg>

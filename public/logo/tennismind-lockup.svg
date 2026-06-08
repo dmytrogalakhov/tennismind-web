@@ -1,0 +1,9 @@
+<svg width="480" height="130" viewBox="0 0 480 130" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>TennisMind lockup</title>
+<desc>TennisMind icon, a green circle with a clay tennis ball, beside the green serif wordmark and a tracked tagline.</desc>
+<circle cx="65" cy="65" r="52" fill="#123A2A"/>
+<circle cx="65" cy="65" r="30" fill="#C0512F"/>
+<path d="M 35 65 C 49 41, 81 89, 95 65" fill="none" stroke="#F4ECDC" stroke-width="5" stroke-linecap="round"/>
+<text x="145" y="60" text-anchor="start" font-family="'Newsreader', Georgia, serif" font-size="42" font-weight="600" fill="#123A2A">TennisMind</text>
+<text x="147" y="88" text-anchor="start" font-family="'Inter', system-ui, Arial, sans-serif" font-size="12" fill="#7A7167" letter-spacing="2.5">TENNIS, READ CLOSELY</text>
+</svg>
