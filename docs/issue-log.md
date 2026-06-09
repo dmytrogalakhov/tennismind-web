@@ -247,6 +247,34 @@ Three failures compounding:
 
 ## Template for New Issues
 
+## Issue #011: News agent regenerated deleted cards and produced stale tournament recaps
+
+**Date:** June 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — repetitive, low-value output
+**Reporter:** Manual review
+
+### Symptoms
+After Roland Garros ended, the news agent produced three cards that were all RG result-recaps (Andreeva's win, Chwalinska's run, Zverev's win) — content already covered and no longer "news." A Zverev card that had been manually deleted regenerated identically on the next run.
+
+### Root Cause
+Three compounding issues:
+1. News queries were still tournament-focused (Roland Garros) after the tournament had ended — so search kept returning RG result articles, which are history, not current news.
+2. No deduplication: the agent didn't read its own published or pending content before generating, so it had no memory of what was already covered or deleted — the same lesson learned for recaps (Issue #009) had never been applied to news.
+3. No quality bar distinguishing "current and newsworthy" from "stale recap."
+
+### Fix
+1. Pivot queries off the ended tournament: when no tournament is active, use a diverse forward/outward query set (injuries, coaching changes, rankings, comebacks, upcoming-season previews, schedule).
+2. Deduplication: before generating, read published news (content/feed/) and pending candidates (feed-candidates/news/), extract core subjects, and instruct the agent not to reproduce them. Log deleted candidates to logs/rejected-news.jsonl so the agent won't regenerate anything the user explicitly rejected.
+3. Quality bar in the prompt: reject ended-tournament recaps, generic filler, and already-covered stories; favour current/specific developments; generate fewer cards rather than padding. One real story beats three stale ones.
+
+### Lessons Learned
+1. Every generative agent needs to read its own output before producing more — the dedup lesson from recaps (Issue #009) applies to all agents, not just the one where it was first learned. A fix learned in one place should be audited across the whole system.
+2. Queries tied to a transient context (a live tournament) must change when that context ends — otherwise the agent mines a past that's no longer relevant.
+3. "Generate fewer, better" must be explicit. Left unconstrained, agents pad to fill a quota with low-value output.
+
+---
+
 Copy this template for each new issue:
 
 ```

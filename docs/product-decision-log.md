@@ -393,6 +393,30 @@ Even with structured data, one field was unreliable: seedings. The data source d
 
 ---
 
+## PDL-011: What is "news" for TennisMind? (open strategic question)
+
+**Date:** June 2026
+**Status:** Open — deferred pending Wimbledon
+
+### The question
+The news agent is consistently the weakest content producer (see Issue #011). Each fix improves it incrementally, but a deeper question keeps surfacing: should TennisMind produce straight news reporting at all?
+
+### The tension
+TennisMind's mission and differentiator is explaining WHY things matter, not just WHAT happened — the curated, contextual, craft-driven content (articles, insights) that X/Twitter doesn't provide. Straight news is the OPPOSITE of that: it's the most commoditized content type, where X and dedicated tennis media are faster and broader. News is the one feature competing head-on with free, instant alternatives — the same trap identified for recaps.
+
+### Options
+1. **Fix-and-keep:** continue improving the news agent as straight reporting (current path — Issue #011 fixes). Accepts that news will likely remain the weakest feature.
+2. **Reframe as news-as-insight:** stop trying to match the news wire. Produce fewer, deeper cards that take a current development and explain what it MEANS in the TennisMind voice — turning news into a differentiated, on-mission product rather than a commodity feed.
+3. **Cut news:** drop the feature, redirect energy to articles and insights (the genuinely differentiated content).
+
+### Leaning
+Option 2 is most aligned with the mission, but unproven. Decision deferred until after observing news performance through Wimbledon (a live tournament, where news has more raw material and the agent's tournament-mode is stronger). Revisit then: if news still underdelivers relative to effort even during a Slam, commit to Option 2 or 3.
+
+### Why this is logged
+The recurring weakness of one feature is itself a strategic signal. The instinct to keep patching a commodity feature instead of questioning whether it fits the product is the same trap as the recap over-patching (PDL-010). Logging the question prevents drifting into "fix forever" without ever deciding what news is for.
+
+---
+
 ## Template for New Entries
 
 ```
