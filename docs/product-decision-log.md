@@ -393,6 +393,38 @@ Even with structured data, one field was unreliable: seedings. The data source d
 
 ---
 
+## PDL-012: Semantic memory (RAG) to give content agents recall
+
+**Date:** June 2026
+**Trigger:** Issue #011 — the news agent regenerated already-published and even manually-deleted cards because it had no memory of its own output
+
+### Context
+Content agents generated in isolation with no memory of what already existed. The mitigation was exact-string matching against the content folder — brittle, because it only caught identical wording. "Zverev wins Roland Garros" and "Zverev breaks through in Paris" are the same story; string matching treated them as different and regenerated the duplicate.
+
+### Decision
+Add a retrieval-augmented memory layer. Every published or rejected card is embedded (OpenAI text-embedding-3-small) and stored. Before generating, the agent embeds the candidate and runs a semantic similarity search against memory; near-duplicates above a calibrated threshold are blocked.
+
+### Deliberate implementation choices
+- **Embeddings via API, retrieval by hand.** The vector store and cosine-similarity search were implemented directly in NumPy rather than using a vector database (Chroma/Pinecone). Reason: understanding over convenience — and at hundreds of items, a flat-file store with in-memory cosine similarity is more than sufficient. Sizing infrastructure to the data, consistent with PDL-010.
+- **Scope: v1 = news-agent dedup only.** Continuity and other agents deferred. Prove the retrieval loop on the highest-pain case first.
+- **Rejections are remembered too.** A deleted card is stored as "rejected" so it is never regenerated — the direct fix for the Issue #011 symptom.
+
+### Threshold calibration
+0.82 similarity threshold. Confirmed: a near-duplicate scored 0.86 (blocked); an unrelated pair scored 0.48 (passed). Tunable as results accumulate.
+
+### Scope boundary (carried from PDL-010)
+RAG solves "have we said something like this" — a retrieval problem. It does NOT solve "what are the authoritative facts of yesterday's matches" — that remains structured data (Apify). The boundary is deliberate: retrieval for memory, structured data for facts.
+
+### Result
+The news agent stopped regenerating covered/deleted stories and began surfacing genuinely new material (e.g. ranking-movement stories in the grass-season window). Issue #011 resolved at the mechanism level, not patched.
+
+### Lessons
+1. Semantic memory beats string matching wherever "similar" matters more than "identical."
+2. Building retrieval by hand (vs. a library) was worth it for understanding — and sufficient at this scale.
+3. Every generative agent eventually needs memory of its own output; this is the reusable primitive.
+
+---
+
 ## PDL-011: What is "news" for TennisMind? (open strategic question)
 
 **Date:** June 2026

@@ -124,6 +124,34 @@ Runs automatically as part of the morning cron (--generate).
 
 ---
 
+## 🤖 Orchestrator
+
+### Generate a plan and send to Telegram
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 orchestrator.py --plan-notify
+```
+Generates today's content plan, saves it to `logs/plan-{date}.txt`, and sends it to Telegram.
+
+### Generate a plan (terminal only)
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 orchestrator.py --plan
+```
+Generates today's content plan and prints it — no Telegram, no files written.
+
+### Run full orchestration flow
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 orchestrator.py
+```
+Full pipeline: plan → guardrails → approve → delegate to agents.
+
+---
+
 ## 📊 Eval Harness (measure AI output quality)
 
 ### Run full evals (deterministic + LLM judge)
@@ -159,6 +187,41 @@ Test cases live in `evals/test_cases/recaps/`. Add new recaps there to expand co
 ```
 cp ~/tennismind-web/content/feed/roland-garros-day-11-men-women.md ~/match-analyst-bot/evals/test_cases/recaps/
 ```
+---
+
+## 🧠 Semantic Memory (RAG)
+
+### Backfill the memory store (seed from existing published content)
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 memory.py   # embeds published news + insights into data/memory.json
+```
+
+### Inspect what's in the store (human-readable, no embeddings)
+```bash
+python3 -c "
+import json
+data = json.load(open('data/memory.json'))
+print('Total items:', len(data))
+for item in data:
+    print(item['status'], '|', item['content_type'], '|', item['subject'])
+"
+```
+
+### Test semantic search
+```bash
+python3 memory.py --search "Zverev wins Roland Garros"
+# prints top matches with similarity scores
+```
+
+### How it works in the pipeline
+- Memory store: `data/memory.json` (flat file, OpenAI embeddings + hand-written cosine similarity)
+- Before saving a generated news card: checked against memory; semantic near-duplicates (similarity > 0.82) are blocked
+- On approve (review `y`): card added to memory as "published"
+- On reject (review `n`): card added to memory as "rejected" — stays blocked permanently
+- Dedup decisions logged to `logs/memory-dedup.log`
+
 ---
 
 ## 🔮 Match Predictions
