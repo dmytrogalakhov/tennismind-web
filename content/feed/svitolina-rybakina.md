@@ -1,5 +1,5 @@
 ---
-type: "NEWS"
+type: "news"
 title: "Svitolina fights back to beat Rybakina in Rome quarterfinal"
 date: "2026-05-14"
 tags:
