@@ -124,6 +124,44 @@ Runs automatically as part of the morning cron (--generate).
 
 ---
 
+## 📱 Telegram Approval Flow
+
+### Send pending candidates to Telegram for phone approval
+```bash
+cd ~/match-analyst-bot && source venv/bin/activate
+python3 telegram_review.py --send-pending
+# sends all unsent candidates with ✅ Publish / 📅 Later / 🗑 Reject buttons
+# runs automatically after --generate-insights and --generate-news
+```
+
+### Re-send cards saved for later
+```bash
+python3 telegram_review.py --send-pending --include-saved
+```
+
+### Start the approval listener (must be running to process button taps)
+```bash
+python3 telegram_review.py --listen
+# leave running in a terminal while reviewing from phone
+# Ctrl-C to stop
+```
+
+### Retrofit a missing image onto an already-published card
+```bash
+python3 telegram_review.py --generate-image-for <slug>
+# e.g. python3 telegram_review.py --generate-image-for halle-open-the-22000-person-town-hosting-an-atp-500
+```
+
+### Note: terminal review still works as before
+```bash
+python3 generate_feed.py --review-insights   # terminal flow unchanged
+python3 generate_feed.py --review-news       # same
+# If a card is approved via Telegram, it won't appear in terminal review (already published)
+# If approved via terminal, the Telegram buttons become stale
+```
+
+---
+
 ## 🤖 Orchestrator
 
 ### Generate a plan and send to Telegram

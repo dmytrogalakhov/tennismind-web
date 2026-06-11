@@ -1,6 +1,8 @@
 # PRD: Content Memory System (RAG) for TennisMind
 
 **Status:** Draft — design phase
+**v1 Status:** Complete — news-agent dedup, semantic search (cosine similarity), write-back on approve/reject.
+**v1.5 Status:** Planned — continuity retrieval, pre-write injection, other agents.
 **Author:** Dmytro Galakhov
 **Date:** June 2026
 **Related:** Issue #009 (recap hallucination), Issue #011 (news dedup), PDL-010 (structured-data rebuild), Tech Roadmap Tier 2.1

@@ -275,6 +275,33 @@ Three compounding issues:
 
 ---
 
+## Issue #012: Image generation failed silently at candidate creation
+
+**Date:** June 2026
+**Severity:** Medium — cards sent to Telegram for approval had no image; one published to the public channel without an image (the Halle card)
+**Trigger:** transient OpenAI API error during image generation at candidate creation time
+
+### What happened
+After the publish-path unification (which moved image generation from review-time to candidate-creation time), a transient API error hit during the first run. The except block caught it and returned False with only a print() — no log, no traceback. The candidates saved without an image_url in frontmatter, and when sent to Telegram appeared as text-only. One was approved via Telegram and published to the public channel without an image.
+
+### Root cause
+Every image-generation except block was silent — it caught the error, printed one line or nothing, and returned False. No log file, no traceback. This made transient failures invisible and indistinguishable from code bugs.
+
+### Fix
+Added `_log_image_error(context, exc)` helper that writes the full traceback to `logs/image-generation.log` AND prints a visible ⚠ with a pointer to the log. Applied to 5 exception sites:
+- `_art_direct_card` (was completely silent)
+- `_update_candidate_image_url`
+- `generate_image_for_candidate` outer except
+- `generate_image_for_candidate` inner collage fallback
+- `generate_image` (was one line)
+
+The Halle card was retrofitted with the correct image using `--generate-image-for slug`.
+
+### Lesson
+Silent exception handlers are production bugs waiting to happen. Every caught exception in an AI pipeline must log the full traceback. "It failed silently" should never be a valid answer to "what went wrong?" The move to candidate-creation-time image generation made this more critical — previously, a failure at review time was immediately visible to the human; now it happens in the background and must be logged.
+
+---
+
 Copy this template for each new issue:
 
 ```

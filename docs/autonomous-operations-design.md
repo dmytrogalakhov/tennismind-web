@@ -75,8 +75,14 @@ This is the founder's judgment, encoded once, executed daily.
 | **Grand Slam** | daily, tournament-flavored | daily, full (the RG format) | off-court only (injuries, withdrawals, drama) — recaps own results | QF onward, auto-proposed |
 | **1000** | daily, tournament-flavored | daily, full | off-court only | QF onward, auto-proposed |
 | **500** | tournament-flavored, fallback evergreen | daily, SHORT (4-6 sentences) | off-court only | final only |
-| **250** | try tournament angle, fallback evergreen | **none** — orchestrator monitors for transcendent stories and routes them to NEWS | significance-filtered: marquee players, big upsets, comebacks only | only if a marquee matchup (orchestrator flags, human decides) |
+| **250** | try tournament angle, fallback evergreen | **none, UNLESS strong field (see field-strength override) → daily short** | significance-filtered: marquee players, big upsets, comebacks only | only if a marquee matchup (orchestrator flags, human decides) |
 | **No tournament** | evergreen | none | the MAIN feed: rankings, injuries, comebacks, previews of what's next | none |
+
+**Field-strength override (amendment):** Tournament tier is a proxy for "are notable players playing" — and the proxy breaks during compressed surface windows. The grass season (~5 weeks between Roland Garros and Wimbledon) has so few events that top players enter 250s/500s for grass preparation — e.g. Stuttgart 2026 drew Fritz, Shelton, Tiafoe, Kyrgios, Bublik. Policy therefore keys on FIELD STRENGTH, not tier alone:
+
+- During the grass swing (and the pre-Australian Open January swing): grass/AO-prep 250s and 500s are recap-worthy — daily short recaps.
+- General rule (orchestrator v2): a tournament with 3+ top-20 players in the draw is recap-worthy regardless of tier. The orchestrator checks the entry list once at tournament start.
+- A 250 with an ordinary field: no recaps; monitor for transcendent stories and route them to news.
 
 **WHEN (the daily content clock, in the reader's day):**
 
@@ -169,7 +175,7 @@ The orchestrator's role shifts from "propose a plan for approval" (v1) to "**exe
 
 | Phase | Scope | Exit criterion |
 |---|---|---|
-| **1. Telegram approval** | Build the inline-button approve/reject flow; wire news + recaps + insights through it (all Level 1). Terminal review remains as fallback. | Founder runs a full week approving only by phone |
+| **1. Telegram approval** | ✅ COMPLETE — inline ✅/📅/🗑 buttons; image at candidate creation; unified publish_card() function; auto-send after --generate-insights and --generate-news; --listen listener; --send-pending --include-saved for saved cards; terminal review remains as fallback | Founder runs a full week approving only by phone |
 | **2. World-model + policy** | Full-season tournament calendar with tiers; encode the policy matrix into the orchestrator; orchestrator schedules per the content clock | Orchestrator's daily plans are correct for two consecutive weeks incl. a 250-week and a 500-week |
 | **3. Quality-gated autonomy** | Wire eval gates; promote insights to Level 2→3, recaps to Level 2 per the ladder rules | Insights publish hands-off for 2 weeks without a quality incident |
 | **4. Always-on host** | Move cron + listener to a VPS | Posts land on schedule regardless of the laptop |
