@@ -449,6 +449,111 @@ The recurring weakness of one feature is itself a strategic signal. The instinct
 
 ---
 
+## PDL-013: Telegram editorial workflow — plan approval, save-for-later, and lifecycle-aware dedup
+
+**Date:** June 2026
+**Trigger:** Telegram review flow lacked a "save for later" action, plan messages had no interactivity, and un-actioned candidates were invisible to the RAG dedup system.
+
+### Context
+The Telegram review flow had only Publish / Reject. Missing a "save later" option meant any card the editor wanted to revisit had to be either rejected (losing it) or left unactioned, with no way to signal intent. The morning orchestrator plan was sent as a read-only message — the editor had to switch to a terminal to approve or skip. And any card sitting in the "sent" state (awaiting a decision) was in no memory index, so the next generation run could regenerate the same card.
+
+### Decision
+1. **Added "📅 Later" as a third Telegram button** (callback `later:{sid}`). Status becomes `saved_later` in the queue. A `--include-saved` flag on `--send-pending` lets the editor resurface saved cards.
+2. **Wired plan approval into Telegram.** The morning plan message now carries `[✅ Run Plan] [❌ Skip Today]` buttons. Tapping ✅ triggers background generation via `asyncio.create_task()` — non-blocking, listener stays live. The plan queue (`data/tg-plan-queue.json`) tracks plan state.
+3. **Closed the lifecycle gap in RAG dedup.** Cards sent to Telegram are now written to memory with `status="pending"` immediately on send (in `_send_all_pending`, after a successful Telegram send). The reject handler was fixed to parse the card file BEFORE deleting it (the parse-after-delete bug meant rejected cards were stored with the slug as title, not the real title). Publish and reject handlers flip the status to "published" / "rejected" using the upsert `update_memory_status()` function, so no duplicate entries are created.
+
+### Impact
+- An un-actioned card now blocks regeneration of the same story — the lifecycle gap that caused three duplicates in one morning (Issue #013) is closed.
+- The editor can approve the day's generation plan without leaving Telegram.
+- A "save for later" shelf exists for cards the editor wants to reconsider.
+
+### Lesson
+A content platform's dedup system is only as good as its lifecycle coverage. "Published or rejected" is not exhaustive — the in-flight state between generation and decision is a gap that accumulates fast and silently. Instrument every state transition that matters to recall, not just the terminal ones.
+
+**Follow-up (PDL-014):** The plan-approval button in item 2 above was removed — see PDL-014.
+
+---
+
+## PDL-014: Remove orchestrator plan-approval gate
+
+**Date:** June 2026
+**Trigger:** The plan-approval tap (✅ Run Plan / ❌ Skip Today) added friction without adding value. The orchestrator's smart scheduling (LLM reasoning + guardrails) already produces a trustworthy plan; requiring a manual tap before generation just delays the morning cards by however long it takes to open Telegram.
+
+### Context
+PDL-013 added plan-approval buttons so the editor could veto the day's generation before it ran. In practice, the plan had never been wrong enough to skip, and the tap was never used as an override — it was just a gate. Meanwhile it blocked generation until the editor woke up and opened Telegram, shifting the first cards from 7 AM to whenever the tap happened.
+
+### Decision
+Remove the plan-approval gate. The orchestrator now:
+1. Sends a plain FYI message ("Generating: news + insight. Skipping: recap.") — transparent, no tap required.
+2. Runs generation immediately after.
+3. Cards arrive in Telegram with the usual ✅/📅/🗑 buttons for card-level approval.
+
+Kept: `--plan` flag for on-demand reasoning inspection. The editor still controls every card; they just no longer control whether generation runs at all (the orchestrator is trusted to make that call).
+
+### Impact
+Cards arrive earlier. The morning workflow is simpler: wake up to approval-ready cards, not a pending plan button. The transparency is preserved (FYI message) without the friction.
+
+### Lesson
+Approval gates are only worth the friction if the editor would actually veto. If a gate has never been used to say "no," it's a delay, not a control. Move approval to the granularity where it genuinely matters — individual cards — not the meta-decision of whether to generate at all.
+
+---
+
+## PDL-015: Multi-candidate generation — up to 3 per run, quality-gated
+
+**Date:** June 2026
+**Trigger:** Generation was producing 1 candidate per run even though prompts allowed 3. The cause was narrow search coverage (all queries about one tournament) and no instruction to produce distinct stories.
+
+### Context
+News and insights agents each ran 5-6 search queries but all queries clustered around the same tournament or topic. Sonnet would correctly find 1 interesting story rather than produce 3 variants of the same one. The result was 1 candidate per run — far below the potential 3.
+
+### Decision
+1. **Restructured search queries for guaranteed topic diversity.** News: 3 buckets (results / human-off-court / incidents), 2 queries sampled per bucket = 6 distinct-topic queries. During grass week with multiple active events, one result query per active event so Stuttgart, Halle, and Queen's Club all get coverage. Insights: 7 queries guaranteed across 5 topic buckets (stats, business, gear, history, training) plus max 2 tournament-specific.
+2. **Widened content window** from 14,000 to 22,000 chars so more diverse sources reach the model.
+3. **Sharpened the "distinct stories" rule** in both prompts: produce 3 cards only if 3 genuinely different stories exist; never pad with 3 angles on the same story.
+4. **Added within-batch pairwise dedup** (`_deduplicate_within_batch()`): after Sonnet returns cards, embed all of them and run pairwise cosine similarity at the same 0.82 threshold. Near-duplicates within the batch are dropped before the memory check runs.
+
+### Impact
+News: Sonnet returned 3 candidates from multi-tournament grass week queries; 1 correctly blocked as memory duplicate (Udvardy story already rejected), 2 distinct cards saved.
+Insights: 3 distinct cards generated and saved (Stuttgart history, Queen's Club history, Murray's Queen's record).
+
+### Lesson
+Search query diversity is upstream of LLM output diversity. If 6 queries all cover the same story, the model can't produce 3 distinct cards no matter how the prompt is worded. The fix isn't a better prompt — it's ensuring the search basket actually contains material for 3 different stories.
+
+---
+
+## PDL-016: News discovery rebuild — date-aware search + deterministic significance scoring
+
+**Date:** June 2026
+**Trigger:** Issue #014 — news agent producing stale, insignificant, and false cards despite multiple prompt-level patches
+
+### Context
+After five rounds of patching (query pivots, dedup, freshness rules, significance filter, multi-candidate), news quality remained the weakest content type. Root-cause analysis (Issue #014) identified three structural absences rather than prompt problems. All five previous patches were fixing symptoms at the wrong layer.
+
+### Decision
+Rebuild news discovery on three structural changes, staged:
+
+1. **Date-aware search (Stage 1 — highest impact):** migrate from deprecated TavilySearchResults to langchain_tavily.TavilySearch with topic="news", days=2, include_domains (trusted tennis sources), max_results=8. Hard-gate in code: any result older than 48h is dropped before the LLM sees it — a deterministic rule, not a prompt instruction. Compute current tournament round from the calendar; inject into queries.
+
+2. **RSS as a second channel (Stage 2):** parse ATP/WTA/BBC-tennis/ESPN-tennis RSS feeds for last-48h items. Merge with Tavily results as candidate material. RSS gives fully structured, dated, trusted-source material — the news equivalent of what Apify is to recaps.
+
+3. **Deterministic significance scoring (Stage 3):** weekly-cached ATP/WTA top-100 (data/rankings.json) + a maintainable marquee-player list (data/marquee-players.json). Score each candidate story in code (ranking of player involved, marquee flag, upset ranking-gap size, tournament tier, injury/comeback flag). Publish-threshold ≥5. Stories that don't clear the bar never reach Sonnet. Significance becomes a scoring problem instead of a vibes problem.
+
+### Alternatives considered
+
+**"Human-curated news" (rejected):** founder flags interesting stories; agent writes them. Rejected because it contradicts the product vision (autonomous agent finds interesting content in a large internet) and the founder's time budget. Valid as an optional bonus channel; not the design.
+
+**Change search provider entirely (deferred):** NewsAPI.org, GNews, Exa are all date-filterable alternatives. Deferred because Tavily in news-mode with proper parameters is untested and likely sufficient — change providers only if Stage 1 doesn't resolve the discovery problem.
+
+**Prompt-only fixes (rejected, pattern well-established):** five prior patches were prompt-only. Each fixed a symptom while the structural absence remained. The lesson is institutionalized: prompt rules cannot compensate for missing data at the input layer.
+
+### Scope boundary
+This rebuild addresses discovery and judgment. It does not change what the LLM does after passing candidates — it writes cards as before. It does not address the recap pipeline (separate, already solid). It does not address insights (different failure mode — tournament-calendar accuracy, handled separately).
+
+### Expected outcome
+News cards that reach the founder for approval are: published within 48h, about the current tournament round, involving players the audience cares about. The founder's review collapses from "is this even true and current?" to taste ("is this well-written and the right story for today?"). That is the correct division of labor between code and human.
+
+---
+
 ## Template for New Entries
 
 ```

@@ -302,6 +302,71 @@ Silent exception handlers are production bugs waiting to happen. Every caught ex
 
 ---
 
+## Issue #013: RAG dedup silently absent for non-news content types
+
+**Date:** June 2026
+**Severity:** High — duplicate content reached the public channel; the platform's core dedup feature was only working for one of several content types
+**Reporter:** Manual review (spotted three duplicate cards in one morning)
+
+### Symptoms
+Three duplicate cards regenerated in a single day despite the RAG semantic-dedup system being "live":
+1. A news card about Mboko's injury regenerated (yesterday's version was un-actioned, sitting in "saved_later")
+2. An insight about defending champion Tatjana Maria regenerated (un-actioned the day before)
+3. An insight "Queen's Club becomes first grass tournament to host both ATP and WTA events" regenerated, despite a near-identical insight ("Queen's Club makes WTA history after 50-year absence") having been PUBLISHED two days earlier. These are the same story in different words — exactly what semantic dedup exists to catch.
+
+### Root Cause
+Three distinct bugs, one shared origin. The RAG dedup system was built and tested with an explicit v1 scope of "news-agent dedup only" (PDL-012). When the other content types flowed through the same pipeline, the dedup logic was never extended to them. The fix learned for one agent was never audited across all agents.
+
+1. **publish_card wrote only news to memory.** A guard `if card.get("type") == "news"` meant published insights, history, form, stat, and gear cards were never written to RAG memory. The Queen's insight (type "history") was published but left no trace, so the next day's near-duplicate had nothing to match against. (The reject path had the same guard — rejected non-news cards also failed to enter memory.)
+2. **Insights generation never called the dedup check.** `_run_generate_agent` had only an exact-slug check; `is_semantic_duplicate` was wired into news generation alone. Insights had zero semantic dedup.
+3. **Lifecycle gap — un-actioned candidates aren't in memory.** A card is only written to memory on publish or reject. A generated-but-un-actioned card (status "sent" or "saved_later", e.g. a card sitting in Telegram awaiting a decision) is in no index, so the next generation run regenerates it.
+
+### Fix
+1. Removed the `== "news"` guard in both publish_card and the reject path — all content types now write to memory with their correct content_type. Backfilled memory.json with all already-published cards of every type (previously only news).
+2. Added `is_semantic_duplicate` to `_run_generate_agent` (insights) at the same 0.82 threshold, keeping the slug check as a second line. Audited every candidate-creating path (news, insights, recap, prediction) to confirm the check runs in all of them — not just the one where the bug was first seen.
+3. Closed the lifecycle gap so an un-actioned candidate cannot regenerate (cards entering the review queue are tracked in memory with a status that flips through pending → published/rejected as they're actioned).
+
+### Verification
+Re-ran the Queen's test: embedded the regenerated Queen's insight and searched memory — it now matches the earlier published Queen's card above the 0.82 threshold and is blocked. Confirmed memory.json now contains all content types, and the dedup check fires in every generation path.
+
+### Lessons Learned
+1. **A fix scoped to one agent must be audited across all agents.** This is the same lesson as Issue #011 (news dedup), now proven again: the dedup pattern built for news silently failed everywhere else it should have applied. When a capability is added to one part of a multi-agent system, explicitly check every other part that shares the pattern.
+2. **"v1 scope: news only" is a real boundary that must be tracked.** The dedup was correctly scoped to news for v1 (PDL-012) — but the scope boundary wasn't documented as an open gap, so it read as "dedup is done" when it was "dedup is done for news." Deliberate scope limits need to be visible as outstanding work, not invisible assumptions.
+3. **Type guards (`== "news"`) are a code smell in a multi-type pipeline.** A single line restricting behavior to one type silently excludes all others. Where logic should apply to every type, the default should be "all types" with explicit exclusions, not "one type" with everything else implicitly dropped.
+4. **A feature being "live" is not the same as a feature being "complete."** RAG dedup was demonstrably working (on news) and therefore assumed working (everywhere). Visible success on a subset masked silent absence on the rest.
+
+---
+
+## Issue #014: News agent produces stale, insignificant, and sometimes false cards
+
+**Date:** June 2026
+**Severity:** High — trust-breaking; output cannot be published without manual fact-checking, which eliminates the value of automation
+**Examples:** R1 exit story published on R16 day; McNally–Navarro (both low-ranked) flagged as "significant upset"; Serena/Mboko doubles story published after they had already exited via walkover
+**Root cause:** three compounding structural failures across discovery, verification, and judgment
+
+### Discovery failure
+The news agent calls Tavily through a deprecated wrapper (TavilySearchResults) with no time-axis parameters — no topic="news", no days, no time_range, no include_domains. Tavily's news-mode returns results with published_date and enforces recency; general-mode returns results ranked by relevance and link density. We called a date-capable API in dateless mode. Older, well-linked articles (R1 results) outrank fresher ones (R16 results) because they've accumulated more links over the tournament. Additionally: queries weren't anchored to tournament state (no round number injected), and no trusted-domain steering used.
+
+Plain English: we asked for "tennis articles" instead of "today's tennis articles from trusted sources." The search tool could have given us fresh, dated results the whole time — we just never asked it to.
+
+### Verification failure
+No published_date gate exists in code. The LLM was asked to "judge freshness" from text snippets, which is impossible when articles don't include their own date in the snippet. No event-date grounding: the system doesn't know what round the tournament is on, so it cannot flag a "first-round exit" story as stale on R16 day. Single-snippet claims are never re-verified against a second source.
+
+Plain English: we were reading newspaper clippings with the dates cut off, then asking the model to guess which ones were from today.
+
+### Judgment failure
+Significance decisions were made by the LLM from prompt instructions ("is this interesting?") without any structured data. No ranking data: the agent doesn't know that #25 vs unranked is a minor match. No marquee player model: "upset" was pattern-matched from article phrasing, not computed from ranking gap. The agent guesses importance instead of measuring it.
+
+Plain English: the system had no editorial rulebook — it was trying to infer what a tennis fan cares about without knowing who the fans' favourite players are or what the rankings actually say.
+
+### Proposed fix
+See PDL-016 and docs/news-agent-rebuild.md for the full solution. In summary: replace dateless discovery with date-aware Tavily news-mode + RSS feeds; add a hard 48h published_date gate in code; compute current tournament round from the calendar; score significance deterministically from ATP/WTA rankings and a marquee-player list. Discovery stays agentic; freshness and significance become code, not vibes.
+
+### Lesson
+"Using Tavily" is not the same as "using Tavily well." A tool that supports date-filtering used without date parameters is a dateless tool. Always verify that API parameters match the use case, not just that the API is connected. The fix that unlocks most of the value here is a parameter change, not an architecture change.
+
+---
+
 Copy this template for each new issue:
 
 ```
