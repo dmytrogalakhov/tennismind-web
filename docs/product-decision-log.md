@@ -554,6 +554,36 @@ News cards that reach the founder for approval are: published within 48h, about 
 
 ---
 
+## PDL-017: RSS as primary news source, search index as supplement
+
+**Date:** June 2026
+**Trigger:** During the news discovery rebuild (PDL-016), live testing showed RSS feeds dramatically outperforming the Tavily search index for current news.
+
+### The evidence
+On a single test day: Tavily news-mode returned 2 stories; RSS feeds (BBC, ESPN only — ATP/WTA were down) returned 12, including all the marquee stories Tavily missed entirely (Boulter's upset of world #2 Rybakina, Kyrgios's comeback ending, Evans's retirement announcement).
+
+### Why the search index underperformed (the technical reason)
+A search index (Tavily) and a publisher feed (RSS) are structurally different tools:
+- **Indexing lag:** a search engine must discover, crawl, and index an article before it can return it — hours of delay. RSS is publisher-pushed: the article appears the instant it's published, zero lag.
+- **Relevance ranking ≠ recency:** search ranks by authority signals (links, popularity). A freshly published article has no links yet, so it ranks LOW precisely when it's most current. RSS doesn't rank — it returns everything in chronological order, so the freshest stories sit at the top.
+
+Plain English: a search engine is like asking a librarian for "good tennis books" — you get established, well-regarded ones, which takes time to become established. RSS is like standing at the newspaper's printing press grabbing each paper as it comes off. For TODAY's news you want the printing press, not the librarian. Tavily wasn't the wrong tool — it was the wrong tool for THIS job (current news). It's built for discovery, not for current truth.
+
+### Decision
+Make RSS the primary news source (the trusted, real-time, dated backbone) and the search index the supplement (the wide net for stories breaking on sources we don't have a feed for).
+- RSS first: ATP, WTA, BBC, ESPN publisher feeds.
+- Tavily second: catches the long tail — stories on publications outside our feed list.
+- On duplicates, RSS wins (accurate publisher pubDate vs. indexing-lag-affected estimate).
+- Robustness: if RSS feeds are down, continue with what works; if all are down, fall back to Tavily-only with a degraded-mode warning.
+
+### Why not RSS-only
+RSS only covers feeds we've configured — its strength (everything from these publishers) is its limit (nothing from publishers we haven't added). Tavily provides the long-tail breadth. The two together — RSS for depth on known sources, search for breadth across unknown ones — beat either alone.
+
+### The pattern (third instance — see master PRD lessons)
+This is the same lesson as the recap rebuild (PDL-010): for time-sensitive, factual content, a structured/direct source beats a search index. Recaps: web search → Apify structured data. News: search index → RSS publisher feeds. The principle is now institutionalized.
+
+---
+
 ## Template for New Entries
 
 ```

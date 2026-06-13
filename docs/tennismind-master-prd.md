@@ -340,6 +340,7 @@ A transient image-API error → full traceback to image-generation.log + visible
 5. **Never let a model grade its own work** — judge with hostile framing; segment metrics by pipeline version.
 6. **Agent reasoning quality = context completeness,** not prompt cleverness (the orchestrator's wrong-tournament reasoning traced to an incomplete calendar, not a bad prompt).
 7. **One code path per concern** — terminal and Telegram approval both call the same `publish_card()`; divergent paths drift (the imageless-Halle bug).
+8. **For time-sensitive factual content, a structured or direct source beats a search index — every time.** Search indexes are for discovery ("find me things about X"); structured feeds are for current truth ("what just happened, from the source"). Proven twice: recaps (web search → Apify structured data, PDL-010), news (search index → RSS publisher feeds, PDL-017). When content must be both current and true, reach for the publisher's direct feed or a structured data source before a search index. Use the search index only for the long-tail breadth a curated feed list can't cover.
 
 ## 7.2 Known limitations (open, acknowledged)
 
