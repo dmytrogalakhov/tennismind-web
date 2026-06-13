@@ -106,12 +106,14 @@ Rebuilt the pipeline so discovery is agentic but truth-keeping is code:
 - **A hard 48-hour date gate in code** — stale articles dropped before the model ever sees them, deterministically
 - **Tournament-round awareness** computed from the calendar, so "first-round exit" stories are flagged as stale on quarterfinal day
 - **Deterministic significance scoring** — each story scored in code from ATP/WTA rankings + a marquee-player list (top-10 +5, marquee +4, big upset +2, Slam context +2...); only stories above a threshold reach the writing step
+- **Event-date stamping** — every card carries an `event_date` in its frontmatter (news cards get the actual source publication date, not the generation date), enabling staleness to be checked against when the event actually happened
+- **Round-staleness gate with a content-type distinction** — match-result articles are dropped if the tournament has already moved ≥2 rounds past them (a "second round" story is stale on quarterfinal day), but player-news articles (retirements, comebacks, injuries) are EXEMPT from this check, because those stories stay true regardless of tournament round. The system distinguishes content that expires when the draw advances from content that doesn't.
 - **The LLM only writes** what cleared the gates; it no longer decides what's current or significant
 
-**Result:** Discovery became fully agentic (the system finds the news), while freshness and significance became deterministic code (the system can't be fooled by a stale date or a breathless headline). On a quiet pre-quarterfinal day the pipeline honestly surfaced only the genuinely fresh stories rather than confidently publishing four wrong ones.
+**Result:** The full pipeline now runs: RSS+Tavily discovery → 48h date gate → relevance gate → significance scoring → round-staleness check → LLM writes. On a representative run, 14 raw stories narrowed to 6 scored-and-fresh candidates before writing. Discovery became fully agentic (the system finds the news), while freshness and significance became deterministic code (the system can't be fooled by a stale date or a breathless headline).
 
 ## The transferable lesson
-**Separate the three jobs of a content system — discovery, verification, judgment — and assign each to the right mechanism.** Discovery suits an agent; verification and judgment must be deterministic code grounded in real data, not LLM intuition. And the meta-lesson, learned twice now: prompt rules cannot compensate for missing data at the input layer. (Institutionalized as Issues #011, #013, #014; PDL-011, #013, #014.)
+**Separate the three jobs of a content system — discovery, verification, judgment — and assign each to the right mechanism.** Discovery suits an agent; verification and judgment must be deterministic code grounded in real data, not LLM intuition. And the meta-lesson, learned twice now: prompt rules cannot compensate for missing data at the input layer. (Institutionalized as Issues #011, #013, #014; PDL-011, #016, #017.) And a subtle but important design distinction emerged — not all content ages the same way. A match result expires when the tournament advances; a retirement announcement does not. A staleness system must know the difference.
 
 ---
 
