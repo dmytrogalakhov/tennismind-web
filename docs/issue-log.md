@@ -367,6 +367,47 @@ See PDL-016 and docs/news-agent-rebuild.md for the full solution. In summary: re
 
 ---
 
+## Issue #015: Significance scoring dropped SF results and inflated QF scores via body-text scanning
+
+**Date:** June 2026
+**Project:** match-analyst-bot
+**Severity:** High — correct late-round results missed; stale early-round results surfaced instead
+**Reporter:** Live diagnostic after `--generate-news` surfaced QF results on Sunday instead of SF results
+
+### Symptoms
+
+- Saturday's SF results (Raducanu into Queen's final) absent from generated cards on Sunday
+- Sunday generated Boulter/Rybakina QF story instead, as if it was Saturday
+- "Brits Emma Raducanu and Katie Boulter through to Queen's quarterfinals" scored [11] — incorrectly high
+
+### Root cause: two compounding flaws in `score_story()`
+
+**Flaw 1 — No stage signal.** `score_story()` had no signal for tournament stage. Raducanu's SF headline "'I'm back and better' - Raducanu reaches Queen's final" scored only [4] (marquee only) — one below the threshold of 5. Opponent Jovic was outside the top 20. "Powers into" isn't in the upset vocabulary. Queen's is a 500-level event (not GS/1000). The article existed in the pool but was gated out.
+
+**Flaw 2 — Full-body player detection.** `name_hit()` scanned `title + content` to find player names. Articles often mention top-ranked players incidentally (doubles asides, historical context, quotes). "Brits Raducanu and Boulter through to Queen's quarterfinals" scored [11] because the body mentioned Mboko (top-10 at the time) and Zverev (marquee) as context. Score: Raducanu marquee (+4) + Mboko top-10 (+5) + Zverev marquee (+4) = would've been even higher if not capped, then injury term in body (+3) = 11. The article was a QF recap — it had no business scoring that high.
+
+### Fix
+
+**Stage signals:** Added +4 for "final" and +2 for "SF/last four" detected from **title only**. Added a floor rule: marquee/top-20 player at SF or later → unconditional pass (score = max(score, threshold)).
+
+**Title-only player detection:** Changed `name_hit()` to `name_in_title()` — ranking and marquee checks now scan **title only**. Contextual signals (injury/comeback, GS/1000 from active tournament calendar) use title + lead paragraph where appropriate.
+
+**Marquee list fix:** Changed "Serena" → "Serena Williams" in `data/marquee-players.json` so titles that say "Williams" (without "Serena") now trigger the marquee signal via the multi-word name match.
+
+### Verification
+
+Post-fix `--discover-news` output (June 14):
+- "'I'm back and better' - Raducanu powers into Queen's final" → [8] ✅ (marquee +4, stage: final +4)
+- "Emma Raducanu reaches last four at Queen's" → [6] ✅ (marquee +4, stage: SF +2)
+- "Raducanu loses Queen's final as trophy wait continues" → [8] ✅
+- "Brits Raducanu and Boulter through to QF" → too old (52h gate), but hypothetical title-only score = [4] 🚫 correct
+
+### Lesson
+
+Score the EVENT, not the article. Titles are written to capture the story subject; bodies contain all kinds of contextual mentions. The fix pattern: use the structured short-form (title) for who-is-this-about; use the long-form only for signals that can't be in a title (injury confirmed in lead para). Also: tournament stage is a first-order editorial signal — a marquee player reaching a final is significant regardless of opponent rank or tournament tier.
+
+---
+
 Copy this template for each new issue:
 
 ```
