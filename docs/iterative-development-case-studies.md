@@ -226,6 +226,28 @@ The WTA Queen's Club articles dropped cleanly. Remaining results: Tiafoe/Cobolli
 
 ---
 
+## Post-implementation: why_source field/body decoupling
+
+### Problem statement
+A published card contained: *"The result marked Tiafoe's first top-10 win since 2024."* This is a recalled historical claim — match-by-match opponent ranking history across 2024-2025 is not in any pipeline data source. It passed the `why_source` validator cleanly.
+
+### What actually happened
+`why_source` is a citation forcing function, not a body validator. Its job is to make the model locate evidence *before* writing the WHY line. But the model writes the body and `why_source` in the same forward pass and treats them as independent fields. It wrote the historical claim in the body, then cited a different (computable) angle — `computable: stage/calendar` — in `why_source`. The validator accepted the computable declaration without checking whether it matched the actual claim in the body. The historical claim sailed through.
+
+### Solution
+Two targeted prompt changes:
+
+1. **`why_source` field description rewritten** to make correspondence explicit: the field must back *the specific claim written in the final body sentence*, not just any WHY angle from the source. Verbatim: *"This field must correspond to the specific claim made in the final sentence of 'body'."*
+
+2. **`computable:` explicitly forbidden for historical claims**: added rule that "first top-10 win since [year]", "career-best", "earliest X since Y" type claims must always be quoted verbatim from the source — `computable:` is not a valid declaration for them. If no verbatim quote exists, the model must rewrite the final sentence to use a computable angle instead.
+
+3. **"first top-10 win since [year]" added to the common traps list** alongside "earliest result since [year]".
+
+### Lesson
+**A citation field only works if it's semantically coupled to the claim it's supposed to back.** `why_source` was designed as a forcing function but became a parallel field — the model satisfied it independently rather than using it to anchor the body. The fix is not more validation but tighter field semantics: the field description must name the specific output it corresponds to ("the final sentence of body"), and the rules must close the escape hatch (`computable:` not valid for historical claims). Without that closure, the model will always find a way to satisfy the form while violating the intent.
+
+---
+
 # CROSS-CUTTING LESSONS (what a hiring manager should take from this)
 
 1. **Diagnose to root cause, not symptom.** Every feature went through a symptom-patching phase before the real iteration began. The breakthrough each time was an **issue-tree** analysis that found the structural cause beneath the visible failures.
