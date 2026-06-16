@@ -49,6 +49,15 @@ python3 generate_feed.py --review
 
 ## 📰 News Agent
 
+### Audit the discovery pool (no card generation)
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --discover-news
+```
+Shows every fresh story scored for significance — title, source (tavily / rss:bbc / rss:espn), score, pass/fail verdict, and scoring reasons. Also shows all date/relevance drops. Use to diagnose why a story is missing or to calibrate the significance threshold.
+Logs: `logs/news-discovery.log` (raw discovery) and `logs/significance.log` (scores).
+
 ### Let the agent find news
 ```bash
 cd ~/match-analyst-bot
@@ -164,29 +173,36 @@ python3 generate_feed.py --review-news       # same
 
 ## 🤖 Orchestrator
 
-### Generate a plan and send to Telegram
-```bash
-cd ~/match-analyst-bot
-source venv/bin/activate
-python3 orchestrator.py --plan-notify
+### Morning cron (automatic)
+Runs daily at 7 AM:
 ```
-Generates today's content plan, saves it to `logs/plan-{date}.txt`, and sends it to Telegram.
+plan → guardrails → FYI to Telegram → generate directly → cards arrive in Telegram for approval
+```
+No button tap required. A plain FYI message arrives first ("Generating: news + insight"), then candidate cards follow with ✅/📅/🗑 buttons.
 
-### Generate a plan (terminal only)
+### Inspect today's plan (terminal only)
 ```bash
 cd ~/match-analyst-bot
 source venv/bin/activate
 python3 orchestrator.py --plan
 ```
-Generates today's content plan and prints it — no Telegram, no files written.
+Prints reasoning, what would generate, what's skipped — no Telegram, no generation, no files written. Useful to understand why the orchestrator made its choices.
 
-### Run full orchestration flow
+### Manual full flow (interactive)
 ```bash
 cd ~/match-analyst-bot
 source venv/bin/activate
 python3 orchestrator.py
 ```
-Full pipeline: plan → guardrails → approve → delegate to agents.
+Interactive path: plan → guardrails → terminal approval prompt → generate. Use when you want to run the orchestrator manually and review the plan before committing.
+
+### Trigger cron path manually
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 orchestrator.py --plan-notify
+```
+Same as the cron: FYI to Telegram + generate immediately (no approval gate).
 
 ---
 
@@ -327,6 +343,45 @@ cd ~/match-analyst-bot
 source venv/bin/activate
 python3 predict_draw.py --auto "Roland Garros 2026"
 ```
+
+---
+
+## 💡 Provocation Agent (article ideation)
+
+Surfaces observable patterns from recent match data and hands you an open question to spark article ideas. Never writes the thesis — you form the take.
+
+### On-demand: see all candidates with scores
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --provoke
+```
+Prints 3–5 provocation candidates to terminal, each with a score and scorer note. Use this when you want to dig deeper than the weekly send or explore all angles before writing.
+
+### Manual send: run the quality gate and send the best to Telegram
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --provoke-send
+```
+Scores all candidates, picks the highest-scoring one that clears the quality bar (6/10), and sends it to your personal Telegram chat. If nothing clears the bar, logs the skip and sends nothing.
+
+### Weekly cron (Monday 8 AM)
+```
+0 8 * * 1 cd /Users/dg/match-analyst-bot && /Users/dg/match-analyst-bot/venv/bin/python3 generate_feed.py --provoke-send >> logs/provocation-cron.log 2>&1
+```
+Fires only when the Mac is awake. Logs to `logs/provocation.log` (selection decision) and `logs/provocation-cron.log` (stdout).
+
+### Output format (Telegram)
+Each provocation has three parts:
+- **THE PATTERN** — one factual statement of something observable in the data
+- **THE DATA** — the actual matches/numbers behind it (verifiable)
+- **THE QUESTION** — a genuinely open question, never a thesis
+
+### Quality rules
+- Threshold: 6/10 (min of data-specificity and question-openness scores)
+- Auto-disqualified if: pattern contradicts its own data; pattern claims a historical anomaly without sourced history; question implies an answer
+- Silence on a thin week is correct — no send is better than a weak send
 
 ---
 

@@ -584,6 +584,151 @@ This is the same lesson as the recap rebuild (PDL-010): for time-sensitive, fact
 
 ---
 
+## PDL-018: Event-centric significance scoring — title-only player detection + stage signals
+
+**Date:** June 2026
+**Trigger:** Post-SF diagnostic showed Raducanu's SF/final headline scored [4] (dropped) while a QF recap scored [11] (due to incidental body mentions). See Issue #015.
+
+### The problem with full-text scoring
+
+`score_story()` checked `title + content` for player names and marquee membership. This is wrong for two reasons:
+
+1. **Incidental body mentions inflate scores.** A QF recap might say "Raducanu and Boulter through, while Mboko [world no. 9] withdrew from doubles." Mboko's mention as context adds +5 (top-10). The article is genuinely about a QF result, not about a top-10 player. Score inflates by 5 because of a parenthetical.
+
+2. **Important late-round results deflate.** A marquee player's SF win headline scored [4] (marquee only) because the opponent wasn't top-20, the tournament wasn't GS/1000, and "powers into" isn't in the upset vocabulary. There was simply no signal for "the tournament is now at semifinal stage."
+
+### The fix: two-part
+
+**Score the EVENT, not the article.** Titles are written to name the story subject — they reliably tell you who the article is about. Bodies contain contextual mentions that have nothing to do with the event. Player/marquee detection now uses TITLE ONLY.
+
+**Add tournament stage as a first-order signal.** Final: +4. Semifinal: +2. Floor rule: any featured player (marquee/top-20/top-10) reaching SF or later → unconditional pass. A marquee player's final is always news, regardless of opponent rank or tournament tier.
+
+### Rubric after this change
+
+| Signal | Scope | Points |
+|--------|-------|--------|
+| Top-10 player | Title only | +5 |
+| Top-11-to-20 player | Title only | +3 |
+| Marquee player | Title only | +4 |
+| Stage: final | Title only | +4 |
+| Stage: SF | Title only | +2 |
+| Floor (featured + SF+) | — | ≥5 guaranteed |
+| Upset vocabulary | Title only | +2 |
+| GS/1000 context | Active tier or title | +2 |
+| Injury/comeback/retirement | Title + lead para | +3 |
+
+### Why lead-only for injury (not full body)?
+
+Injury and retirement are typically confirmed in the title or opening paragraph. Using `content[:200]` captures the lead paragraph where the fact is stated, without scanning deep-body context where recovery rumours or historical injuries might appear.
+
+### The pattern (now second instance)
+
+The recap rebuild (PDL-009) made the same move: stop asking the LLM to judge significance from open-ended text; give it structured inputs where the facts are already pre-filtered. Significance scoring now follows: structured short-form (title) for who → deterministic rubric for how important. The LLM never sees a candidate below threshold.
+
+---
+
+## PDL-019: Pre-filter pool before Sonnet using semantic dedup + keyword overlap
+
+**Date:** June 2026
+**Trigger:** Even after removing significance-filtering from the curation prompt, Sonnet still used its internal card budget (1-3 per call) to write already-covered stories, leaving no budget for genuinely new ones. See Issue #016.
+
+### The problem with post-generation dedup only
+
+The semantic memory dedup ran AFTER Sonnet generated cards. With a pool of 7 stories, 4-5 of which were already covered in memory, Sonnet would write 2-3 already-covered stories (Raducanu final, Boulter, Williams/Muchova), use up its budget, and never reach Stuttgart [5]. The dedup would then block the covered cards — net result: 0 new cards, despite a passing story sitting in the pool.
+
+### Decision: pre-filter the pool before Sonnet sees it
+
+Run semantic dedup (memory store, threshold 0.78) and keyword overlap (2+ shared significant words with already_covered titles) on each event group BEFORE formatting the pool for Sonnet. Already-covered groups are dropped. Sonnet receives only genuinely new stories.
+
+**Why 0.78 threshold (not 0.82)?** The post-generation check compares Sonnet's generated card title+body against memory. The pre-generation check compares raw article title+body against memory. Raw article text is more verbose and less focused than a generated card, so embedding similarity is lower. The gap observed in practice: Raducanu SF article vs "Raducanu battles through Queen's semis" scored 0.84 post-generation but ~0.79 pre-generation. Setting threshold to 0.78 closes this gap.
+
+**Why keyword fallback?** For stories sharing the same player name AND tournament name (e.g., "Raducanu reaches last four at Queen's" vs "Raducanu battles through Queen's semis"), keyword overlap catches near-duplicates that fall slightly below the semantic threshold. Two significant words (>4 chars) in common is the heuristic — verified not to false-positive on "Shelton Stuttgart" vs "Shelton cracks top 5" (only "Shelton" shared → 1 word, below threshold).
+
+### Pool formatting change
+
+Pool items grouped by event (title-word overlap ≥50%). Grouped as "STORY N (score: N)" with a "POOL: N distinct event(s)" header. Sonnet sees exactly how many new stories it needs to write, sorted by score.
+
+### Impact
+
+After fix: pool pre-filter drops covered stories silently, Sonnet receives 2-3 genuinely new events, writes cards for all of them. Stuttgart [5] generated on first Sonnet call after fix. No more already-covered stories consuming the card budget.
+
+### The pattern (now second instance — see PDL-018)
+
+Pre-filter before LLM; post-filter as backup. Don't rely on post-generation dedup as the only gate when the LLM has a hard card budget. The budget gets consumed by duplicates before it reaches new stories. The principle: give the LLM a clean input, not a dirty pool with dedup as a cleanup step.
+
+---
+
+## PDL-020: Google News RSS as ATP/WTA discovery layer; Flashscore as gap-fill
+
+**Date:** June 2026
+**Trigger:** ATP/WTA official RSS feeds confirmed dead (Issue #018); Libema Open coverage gap structural diagnosis
+
+### Context
+
+The news discovery pipeline was BBC RSS + ESPN RSS + Tavily. For tournaments not covered by Anglophone broadcasters (Dutch ATP 250, smaller WTA events), we had a structural gap. We also knew ATP official RSS was returning 403 and WTA had no RSS endpoint — these were previously just logged and skipped.
+
+### Decision
+
+Two complementary fixes at different layers:
+
+**Layer 1 — Google News RSS** (live now, zero cost):
+- Queries `news.google.com/rss/search?q=tennis+results+2026` 
+- Filters by `_GNEWS_ACCEPTED_SOURCES` (ATP Tour, WTA Tennis, tennis-specific publishers)
+- For each fresh item from accepted sources, fetches actual content via Tavily (which already includes atptour.com + wtatennis.com in its domain list)
+- Deduplicates against existing RSS pool before adding
+- This replaces the dead official feeds with a Google-proxied version
+
+**Layer 2 — Flashscore gap-fill** (feature-flagged off, enable June 29 / Wimbledon):
+- Pulls last 48h structured results from ALL tournaments via Apify Flashscore
+- Scores each match against the significance rubric using synthetic titles
+- For significant results with no corresponding article in the pool → adds as a structured gap-fill item (`_source: "flashscore"`, `_structured: {...}`)
+- Sonnet writes from structured facts only: ranking upset, stage, tier, surface — no invented tactical detail
+- Enable: `FLASHSCORE_NEWS_ENABLED=true`
+
+### Impact
+
+Layer 1: ATP Tour and WTA Tennis content (3 items within 48h in June 2026 testing) now enters the pool. Official ATP/WTA story angles that BBC/ESPN don't lead with become discoverable.
+
+Layer 2: Eliminates the Libema-class gap — non-Anglophone tournament finals with significant players pass through significance scoring regardless of whether BBC/ESPN covered them.
+
+### Lesson
+
+Structured data beats article search for gap-fill. When no article exists, the significance scorer works better on synthetic titles built from match facts (winner vs. loser, round, tournament) than on article prose that mentions 10 players in one paragraph. The division: Google News/BBC/ESPN for narrative coverage; Flashscore for tournament breadth.
+
+---
+
+## PDL-021: Mandatory WHY line with computable/recalled grounding distinction
+
+**Date:** June 2026
+**Trigger:** Audit of generated cards showed WHY lines containing recalled claims — some inverted (N2 said "players accepted" when sources said "dispute continues"), some unverifiable ("earliest exit since 2009"), some fabricated (invented Roddick quote).
+
+### Context
+
+Card bodies had a soft "explain significance" rule but no structure enforcement. The model consistently filled the final sentence with impressive-sounding recalled claims: career records, historical comparisons, player sentiment — often wrong or unverifiable. Prompt-based guardrails ("if in doubt, write a computable WHY") were ignored; the model rationalized around them.
+
+### Decision
+
+Three-layer change to `generate_feed.py`:
+
+**1. Structural JSON requirement (`why_source` field):**
+Both prompts now require a `why_source` field alongside each card body. The model must either (a) copy-paste the exact phrase from the search results that backs the WHY, or (b) write `computable:` + the field (calendar date, stage, ranking gap) it derives from. This forces the model to locate evidence before writing the WHY rather than inventing it after.
+
+**2. Post-generation validation (`_validate_why_source`):**
+`generate_cards()` now calls `_validate_why_source()` on each card. It normalizes the `why_source` text and checks whether it appears in the search content string. If not found, it prefixes the field with `⚠ RECALLED (not found in source):` — visible at review time, not published.
+
+**3. Named grounding tiers (computable vs. recalled):**
+Both prompts define two explicit tiers. Computable grounding (ranking gap, stage, calendar proximity, tournament tier, any number from the source) is always safe. Recalled grounding (season records, historical comparisons, player sentiment, economic trends) requires passing a mandatory checkpoint: "Can I quote the exact source sentence?" If not, fall back to a computable WHY.
+
+### Impact
+
+Validator catches all three audit failure classes: unsourced historical claim, inverted fact (model said "accepted" when source said "dispute continues"), and fully invented quote. Cards with unverified recalled WHYs are flagged at review, not silently published.
+
+### Lesson
+
+Prompt guardrails alone don't stop hallucination in the WHY line — the model generates text in one forward pass and rationalizes that it's grounded. The only reliable control is structural: require evidence citation as part of the output format, then validate that citation programmatically. The cost is one extra JSON field; the benefit is that fabricated WHYs surface at review rather than going live.
+
+---
+
 ## Template for New Entries
 
 ```

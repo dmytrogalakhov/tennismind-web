@@ -1,6 +1,7 @@
 ---
 type: "news"
 title: "French Open Players Plan Media Boycott Over Prize Money Share"
+dek: "Players threaten to boycott Roland Garros media duties over their share of the tournament's revenues."
 date: "2026-05-21"
 tags:
   - "Roland Garros"

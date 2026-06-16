@@ -142,13 +142,13 @@ export default function NewsCard({ type, title, body, tags, date, keyNumber, ima
           boxSizing: "border-box",
         }}
       >
-        {/* Hero image */}
+        {/* Hero image — 1200×630 (1.91:1). No fixed height; img drives the box. */}
         {imageUrl && (
-          <div style={{ width: "100%", aspectRatio: "3/2", overflow: "hidden" }}>
+          <div style={{ width: "100%" }}>
             <img
               src={imageUrl}
               alt={title}
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }}
+              style={{ width: "100%", height: "auto", display: "block" }}
             />
           </div>
         )}

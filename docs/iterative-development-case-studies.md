@@ -121,7 +121,7 @@ The news agent surfaces current tennis stories (off-court news during tournament
 - *Verification:* no **deterministic** date gate in code; no awareness of the current tournament round.
 - *Judgment:* significance decided by model priors, not ranking data.
 
-## Final solution — date-aware discovery + deterministic gates (PDL-013, PDL-014)
+## Final solution — date-aware discovery + deterministic gates (PDL-016)
 The architecture now splits **discovery (agentic) from verification and judgment (deterministic code)**:
 - **RSS publisher feeds as the primary retrieval source** (ATP, WTA, BBC, ESPN) — real-time, dated, publisher-pushed — with the **search index demoted to a supplement** for long-tail coverage. (Live test: RSS returned 12 of 14 stories including all marquee ones; the index returned 2. PDL-014 explains why a search index structurally lags a publisher feed: indexing latency, plus relevance-ranking that buries fresh articles because they have no inbound links yet.)
 - **A hard 48-hour date gate in code** — stale articles dropped **deterministically** before the model sees them, each drop logged with its age. This is the verification job moved out of the LLM and into code.

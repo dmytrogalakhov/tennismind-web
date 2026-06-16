@@ -21,9 +21,9 @@ export default async function ArticlesPage({
           <p className="font-sans text-muted">Long-form tennis writing. One match, one story, one argument.</p>
         </div>
 
-        <div className="flex flex-col gap-6">
-          {articles.map((article) => (
-            <ArticleCard key={article.slug} article={article} />
+        <div className="flex flex-col gap-7">
+          {articles.map((article, i) => (
+            <ArticleCard key={article.slug} article={article} first={i === 0} />
           ))}
           {articles.length === 0 && (
             <p className="font-sans text-muted text-sm">No articles yet.</p>

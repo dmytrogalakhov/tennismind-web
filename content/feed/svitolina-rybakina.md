@@ -1,6 +1,7 @@
 ---
 type: "news"
 title: "Svitolina fights back to beat Rybakina in Rome quarterfinal"
+dek: "Saved 16 of 20 break points — Svitolina beats Rybakina 2–6, 6–4, 6–4 to reach the Rome semis."
 date: "2026-05-14"
 tags:
   - "Elina Svitolina"

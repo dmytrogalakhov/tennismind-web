@@ -1,6 +1,7 @@
 ---
 type: "news"
 title: "Svitolina beats Swiatek to reach third Rome final"
+dek: "Wins 6–4, 2–6, 6–2 to reach her third Rome final, where she meets Coco Gauff for the trophy."
 date: "2026-05-15"
 tags:
   - "Elina Svitolina"

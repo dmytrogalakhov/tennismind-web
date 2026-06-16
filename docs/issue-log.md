@@ -408,9 +408,134 @@ Score the EVENT, not the article. Titles are written to capture the story subjec
 
 ---
 
+## Issue #016: Deterministic significance scorer overruled by Sonnet's internal editorial judgment
+
+**Date:** June 2026
+**Project:** match-analyst-bot
+**Severity:** High — stories that passed the gate were silently dropped by the LLM before a card was written
+**Reporter:** Diagnostic after Stuttgart final (Shelton beats Fritz, [5] pass) produced no card despite reaching Sonnet in the 7-story pool
+
+### Symptoms
+
+- `--generate-news` on Sunday evening: Stuttgart final not generated. Pool had 7 stories; Sonnet produced 1-2 cards, always picking Queen's stories over Stuttgart.
+- Repeatable: even after removing the significance-filtering language from the curation prompt and raising the card cap from 3 to 6, Sonnet still wrote 2 cards and skipped Stuttgart.
+- Diagnostic confirmed the story cleared all gates (48h, relevance, significance [5], round-staleness) and was in the pool Sonnet received.
+
+### Root Cause (3 compounding issues)
+
+**1. Dual significance filters.** `build_news_curation_prompt()` included a "PRIORITIZE/DE-PRIORITIZE" block that told Sonnet to independently judge tournament significance. This re-applied significance logic AFTER the deterministic scorer had already decided. Sonnet's filter (ATP 250 = skip) overrode the scorer's verdict ([5] = pass). Stuttgart, being an ATP 250, was silently dropped.
+
+**2. Already_covered list suppressed same-player stories.** "Ben Shelton cracks top 5 for first time" was published weeks earlier. The covered-section instruction said "do NOT generate any card whose CORE SUBJECT matches." Sonnet interpreted "Shelton" as the core subject shared with Stuttgart, and skipped it — same player ≠ same event.
+
+**3. Post-generation dedup was the only dedup.** The semantic memory dedup ran only AFTER Sonnet generated cards. This meant Sonnet spent its limited card budget writing Raducanu/Queen's and Boulter/Rybakina stories (all already in memory), leaving no budget for Stuttgart. By the time dedup blocked the duplicates, Stuttgart had never been written.
+
+### Fix
+
+Three changes:
+
+**Prompt layer:** Removed the "TOURNAMENT SIGNIFICANCE — PRIORITIZE/DE-PRIORITIZE" block from `build_news_curation_prompt()`. Rewritten: "Every story in the pool passed the gate — your job is to write cards, not re-decide significance." Fixed the covered-section instruction from "core subject matches" to "exact same EVENT — same player ≠ same event; 'Shelton wins Stuttgart' and 'Shelton cracks top 5' are different events, write both."
+
+**Pool formatting:** `collect_search_content_news()` now groups pool items by event (title-word overlap ≥50%), numbers each group explicitly as "STORY N (score: N)", and passes a "POOL: N distinct event(s)" header. Sonnet sees the exact count of stories it needs to write, sorted by score.
+
+**Pre-filter (semantic + keyword):** Before sending the pool to Sonnet, each story group is checked against the memory store (semantic similarity threshold 0.78 — slightly below the post-gen threshold of 0.82 to account for raw article vs. generated card embedding divergence) AND against the already_covered title list (2+ significant words in common). Groups that are already covered are dropped before Sonnet sees the pool. This gives Sonnet a clean pool of genuinely new stories to write.
+
+### Verification
+
+After fix: pre-filter correctly dropped 4 already-covered stories (Williams/Muchova, Raducanu final ×2, Raducanu SF), leaving Sonnet with 3 genuinely new events. Sonnet wrote cards for all 3; within-batch dedup collapsed 2 Raducanu articles to 1; net 2 saved: Raducanu "double duty" angle + Stuttgart final. Stuttgart card in Telegram.
+
+### Lesson
+
+The deterministic scorer and the LLM prompt must not both be significance filters. Once you've built a deterministic gate, remove the equivalent logic from the LLM prompt — otherwise the LLM silently overrides the gate using different (and harder-to-debug) criteria. Division of labor: gate = code, writing = LLM. Post-generation dedup is not enough when the card budget is small; a pre-filter using the same dedup logic gives the LLM a pre-curated input rather than asking it to curate from a dirty pool.
+
+---
+
 Copy this template for each new issue:
 
 ```
+## Issue #017: @resvg/resvg-js fontBuffers missing from .d.ts — production build fails
+
+**Date:** June 15, 2026
+**Project:** tennismind-web
+**Severity:** High — production build blocked; news tile image generation broken at deploy time
+**Reporter:** `npm run build` TypeScript error
+
+### Symptoms
+
+- `npm run build` failed with a TypeScript error on `lib/cards/newsCard.ts` line 233: property `fontBuffers` does not exist on the Resvg font config type
+- Error only appeared on build; local `npx tsx` runs worked fine (tsx skips type-checking)
+- Switching to the type-safe `fontFiles` API caused silent font failure: the card rendered correctly (background, frames, rule, icon) but all text was blank
+
+### Investigation
+
+1. Checked installed version: `@resvg/resvg-js@2.6.2`
+2. Read `node_modules/@resvg/resvg-js/index.d.ts` — `fontBuffers` absent; only `fontFiles`, `fontDirs`, and family-name options present
+3. Read `node_modules/@resvg/resvg-js/README.md` — `fontBuffers` documented as "New in 2.5.0" with a WOFF2 example; confirms it exists at runtime
+4. Switched to `fontFiles` as the "type-safe" fix — rendered a card → 11K output (vs 44K with fonts), all text blank
+5. Checked `@fontsource/newsreader` and `@fontsource/inter` for TTF/OTF files → none; packages ship WOFF/WOFF2 only
+6. Confirmed root cause: `fontFiles` only loads TTF/OTF via resvg's fontdb; WOFF silently fails through that path
+
+### Root Cause
+
+The `@resvg/resvg-js@2.6.2` `.d.ts` was never updated to include `fontBuffers`, which was added to the runtime in v2.5.0. The fonts in `assets/fonts/` are WOFF1 files (from `@fontsource`), which only load correctly via `fontBuffers`. `fontFiles` silently ignores WOFF inputs and produces blank text with no error.
+
+### Fix
+
+Added a local type extension in `lib/cards/newsCard.ts` that augments the package's font options with `fontBuffers`:
+
+```typescript
+type ResvgFont = NonNullable<ResvgRenderOptions["font"]> & {
+  fontBuffers?: Uint8Array[];
+};
+```
+
+Font config is assigned through `ResvgFont`, satisfying TypeScript while using the correct runtime API. `fontBuffers` remains in use; `fontFiles` was reverted.
+
+### Lessons Learned
+
+`fontFiles` ≠ "works with any font file." resvg's fontdb only loads TTF/OTF via that path — WOFF silently produces blank text with no warning. When a package's `.d.ts` is behind its runtime (documented feature missing from types), the fix is a local type extension, not switching to a different API that appears type-safe but breaks the actual output.
+
+---
+
+## Issue #018: ATP/WTA official RSS feeds dead — silent discovery gap
+
+**Date:** June 15, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — reduces news coverage of official ATP/WTA content; BBC/ESPN RSS still functional
+**Reporter:** Investigation after Libema Open miss
+
+### Symptoms
+
+- ATP Tour RSS (`atptour.com/en/news/rss`): 403 Forbidden on all requests, including browser User-Agent
+- WTA Tennis RSS: 404 on all candidate paths; no RSS endpoint exists anywhere on wtatennis.com
+- ATP news was listed in `RSS_FEEDS` at some point and silently dropped; WTA was never added after testing
+
+### Investigation
+
+1. Tested `atptour.com/en/media/rss-feed-results`, `atptour.com/en/news/rss` — both 403 with curl default UA
+2. Retested with full browser User-Agent (Chrome 124) — still 403; intentional CDN-level block
+3. Tested `wtatennis.com` for any RSS paths — all 404; site is a React SPA using PulseLive API
+4. Probed PulseLive API at `api.wtatennis.com` — `content/wta/en/*` returns 400 (requires session cookie)
+5. Tested Google News RSS `news.google.com/rss/search` — returns 200, includes source labels ("ATP Tour", "WTA Tennis")
+6. Confirmed fresh ATP/WTA content from Google News with `tennis+results+2026` query: 3 items within 48h (WTA Tennis 15h, ATP Tour 41h, WTA Tennis 42h)
+
+### Root Cause
+
+ATP intentionally blocks all RSS/crawl access via CDN rules. WTA decommissioned their RSS feed when they migrated to a React SPA (PulseLive platform) — no replacement was provided.
+
+### Fix
+
+Added `fetch_google_news_atp_wta()` as a new discovery layer in `collect_news_pool()`:
+- Parses Google News RSS with `tennis+results+2026` query
+- Filters by `_GNEWS_ACCEPTED_SOURCES` (ATP Tour, WTA Tennis, Tennis365, etc.) + 48h freshness gate
+- For each accepted item, fetches content via Tavily title search (Tavily already includes `atptour.com` and `wtatennis.com` in trusted domains)
+- Deduplicates against existing BBC/ESPN RSS items before adding to pool
+
+### Lessons Learned
+
+Official sport federation RSS feeds are maintained on IT timelines, not editorial timelines — they can die silently. Google News RSS is a reliable proxy: it indexes content from any source, provides clean publisher name labels, and has no auth requirement. The architecture should treat `_GNEWS_ACCEPTED_SOURCES` as a curated list of publishers we trust, maintained alongside `marquee-players.json`.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]

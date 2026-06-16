@@ -1,6 +1,7 @@
 ---
 type: "news"
 title: "Sinner’s Masters 1000 streak reaches 34"
+dek: "Sinner surpasses Djokovic’s record of 31 consecutive Masters 1000 wins, extending his run to 34."
 date: "2026-05-19"
 tags:
 - "Jannik Sinner"

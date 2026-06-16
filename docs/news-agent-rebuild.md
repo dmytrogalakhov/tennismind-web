@@ -1,6 +1,6 @@
 # News Agent Rebuild: Date-Aware Discovery + Deterministic Significance
 
-**Status:** Design — implementation staged for pre-Wimbledon window (June 2026)
+**Status:** All 4 stages complete (June 2026).
 **Replaces:** five prior prompt-level patches (freshness rules, query pivots, significance filter, multi-candidate, dedup wiring)
 **Related:** Issue #014, PDL-016
 
@@ -83,39 +83,99 @@ Discovery is agentic. Freshness and significance are code. The LLM writes. The h
 
 ## Staged build plan
 
-### Stage 1 — Date-aware search (highest impact, do first)
-- Upgrade: `pip install -U langchain-tavily`; replace TavilySearchResults with TavilySearch (also clears the long-standing deprecation warning)
-- Parameters: `topic="news"`, `days=2`, `include_domains=[atptour.com, wtatennis.com, espn.com, bbc.com, tennis.com, tennis365.com]`, `max_results=8`
-- Hard gate in code: drop any result with published_date older than 48h (or missing) before Sonnet sees it. Log every drop with its date.
-- Round-aware queries: compute current round from tournament calendar; inject into queries ("Queen's Club R16")
-- Test: run raw discovery for today, show surviving results with published_dates
+### Stage 1 — Date-aware search ✅ DONE (June 2026)
+- Upgraded to TavilySearch (langchain_tavily) — clears deprecation warning
+- Parameters: `topic="news"`, `days=2`, `include_domains=[atptour.com, wtatennis.com, espn.com, bbc.co.uk, tennis.com, tennis365.com, tennishead.net]`, `max_results=8`
+- Hard 48h gate in code (not prompt) — every drop logged to `logs/news-discovery.log`
+- Tennis relevance gate: domains like atptour/wtatennis pass unconditionally; ESPN/BBC require `/tennis/` in URL or "tennis" in title — prevents basketball, World Cup from slipping through
+- Round-aware queries via `_get_tournament_round_label()`: QF/SF/R16 injected into each tournament query
+- `--discover-news` mode: raw audit with pass/drop breakdown, no card generation
 
-### Stage 2 — RSS channel
-- `pip install feedparser`
-- Feeds: ATP official, WTA official, BBC Sport Tennis, ESPN Tennis
-- Take items from last 48h only (pubDate filter)
-- Merge with Tavily results, dedup by URL/title
-- Test: show merged, dated candidate pool
+### Stage 2 — RSS channel ✅ DONE (June 2026)
+- `feedparser` installed; `RSS_FEEDS` = BBC Sport Tennis + ESPN Tennis
+  - ATP 403 (down), WTA 404 (down) — skipped with log entry
+- `fetch_rss_news()`: parses feeds, applies 48h gate on pubDate, returns `(items, feed_stats)` per-feed health map
+- **RSS is primary, Tavily is supplement** (re-architected after Day 1 data: 13/14 stories came from BBC RSS — Boulter/Rybakina, Evans retirement, Kyrgios comeback; Tavily added only 1 net-new)
+- `collect_news_pool()`: RSS runs first → Tavily adds only net-new stories (dedup by URL + >70% title-word overlap, RSS version wins on conflict)
+- Degraded mode: if ALL RSS feeds are down → log `⚠ All RSS feeds unavailable — running on Tavily only`
+- Per-run breakdown log: `Discovery: X from RSS (rss:bbc: N, rss:espn: M), +Y net-new from Tavily, Z total after dedup`
 
-### Stage 3 — Deterministic significance scoring
-- Weekly-cached `data/rankings.json` (ATP + WTA top-100)
-- `data/marquee-players.json` (founder-maintained, start with: Kyrgios, Serena Williams, Osaka, Raducanu, Nadal, Djokovic, Murray, Alcaraz, Zverev, Sinner, Sabalenka, Swiatek)
-- Scoring in code:
-  - Top-10 player involved: +5
-  - Top-20 player involved: +3
-  - Marquee player involved: +4
-  - Upset with ranking gap >50: +2
-  - GS/1000 context: +2
-  - Injury/comeback/retirement of ranked player: +3
-  - Threshold to pass: ≥5
-- Every candidate logged with its score and pass/drop decision
-- Test: show today's scored list with pass/drop
+### Stage 3 — Deterministic significance scoring ✅ DONE (June 2026)
+- `fetch_rankings()`: fetches ATP + WTA top-100 from JeffSackmann/GitHub CSVs; cached to `data/rankings.json` for 7 days; falls back to cache on error
+- `data/marquee-players.json`: founder-maintained list (22 names, "Serena" stored as "Serena Williams" so "Williams" in titles triggers the match)
+- `score_story()` rubric (logged to `logs/significance.log`):
+  - **Player detection is TITLE-ONLY** — prevents incidental body mentions (doubles asides, quotes, contextual references) from inflating significance scores
+  - Top-10 player in title: +5
+  - Top-11-to-20 player in title: +3 (mutually exclusive with top-10)
+  - Marquee player in title: +4 (multi-word names match on any word >3 chars, e.g. "Williams" → "Serena Williams")
+  - **Stage signal (title only):** Final: +4 | Semifinal: +2 (detects "final" excluding "quarter-final"/"semi-final"; "last four", "semis", "semi-final" for SF)
+  - **Floor rule:** featured player (marquee/top-20) at SF or later → score = max(score, threshold) — unconditional pass
+  - Upset vocabulary in title ("stuns", "shocks", etc.): +2
+  - GS/1000 context (active tournament tier or keyword in title): +2
+  - Injury/comeback/retirement (title + lead paragraph): +3
+  - Threshold: ≥5 to pass to Sonnet
+- Pre-scoring filters added to `fetch_rss_news()`:
+  - Skip BBC video clips (`/videos/` in URL)
+  - Skip broadcast guides (title starts with "how to follow/watch/listen")
+- `--discover-news` shows ALL scored stories sorted by score (pass + fail) with "Event:" label for threshold calibration
+- Day-1 results: 14 fresh stories → 9 after date/relevance/video → 7 pass significance (Boulter/Rybakina, Kyrgios comeback, Evans retirement, Mboko injury × 2, Raducanu QF)
+- Post-fix (June 14): 8 stories in pool → 7 pass; Raducanu final [8] and Raducanu SF [6] both pass on stage signals; QF "Brits" article drops at 48h gate (correct); "Players: Wimbledon prize increase not enough" [2] correctly rejected
+- Known open: threshold (5) is an estimate — calibrate after 2 weeks; ranking gap >50 approximated by upset vocabulary for now
 
-### Stage 4 — Event-date grounding
-- event_date frontmatter on every card (computed from source published_date)
-- Computed staleness check against current tournament round
-- Blocks cards about events older than (current round − 1)
-- Applies to insights too (same class of problem)
+### Stage 5 — Division-of-labor fix: scorer owns significance, Sonnet owns writing ✅ DONE (June 2026)
+- Removed "TOURNAMENT SIGNIFICANCE — PRIORITIZE/DE-PRIORITIZE" block from `build_news_curation_prompt()` — Sonnet was independently re-applying significance logic (ATP 250 = skip) that the deterministic scorer had already decided
+- Fixed already_covered instruction: "exact same EVENT, not same player" — prevents suppressing new events about players with prior coverage
+- Pool formatted as numbered stories ("STORY N (score: N)", "POOL: N distinct event(s)") so Sonnet writes one card per story rather than selecting from an unstructured blob
+- **Pre-filter in `collect_search_content_news()`**: drops already-covered event groups before Sonnet sees the pool using:
+  - Semantic check: memory store similarity ≥0.78 (slightly below post-gen threshold of 0.82 to account for raw article vs. generated card embedding divergence)
+  - Keyword fallback: 2+ significant words (>4 chars) shared with any already_covered prompt-list title
+- Hard card cap raised from 3 to 6 in `generate_cards()` — dedup is the real cap, not an arbitrary number
+- Curation prompt: Sonnet's role is now "write every distinct event in the pre-filtered pool, collapse same-event multi-source articles to 1 card"
+- Verified: Stuttgart final (Shelton beats Fritz, [5]) generated correctly after fix; pre-filter silently dropped 4 covered stories before they could consume Sonnet's budget
+- See Issue #016 and PDL-019
+
+### Stage 4 — Event-date grounding ✅ DONE (June 2026)
+- `event_date` frontmatter on every card:
+  - News cards: set to the most recent `published_date` in the pool (cached in `_news_pool_event_date` after each `collect_news_pool()` run)
+  - All other cards (insights, recap, prediction): fallback to today's date
+  - Emitted in `_build_frontmatter()` between `date` and `status` fields
+- Round-staleness gate (`_is_round_stale()`): after significance scoring, before returning pool
+  - Only fires on articles containing round-specific vocabulary ("second round", "r16", "quarter-final", etc.)
+  - Computes article's tournament day from `published_date` vs tournament `start`, maps to round
+  - If article_round is ≥2 rounds behind current round for a named active tournament → dropped
+  - Player-news articles (retirement, comeback without round mention) are exempt — gate only applies to match-result reports
+  - Logged to `logs/significance.log` alongside Stage 3 decisions
+- Day-1 results: no round-stale drops (correct — pool was player-news articles, not stale round reports)
+- Gate will activate in later-round scenarios: e.g. SF day at Wimbledon with a 30h-old R32 article
+
+### Stage 6 — ATP/WTA discovery gap + Flashscore gap-fill ✅ DONE (June 2026)
+
+**ATP/WTA official feeds are dead:**
+- ATP Tour RSS: HTTP 403 on all paths, including browser User-Agent — intentional CDN block
+- WTA Tennis RSS: no RSS endpoint exists; site is a React SPA (PulseLive API, JS-gated)
+- Result: zero official ATP/WTA content was entering the pipeline via RSS
+
+**Fix A — Google News RSS as ATP/WTA discovery layer:**
+- `fetch_google_news_atp_wta()`: parses `news.google.com/rss/search?q=tennis+results+2026`
+- Filters by `_GNEWS_ACCEPTED_SOURCES` (ATP Tour, WTA Tennis, Tennis365, etc.) and 48h freshness gate
+- Google News redirect URLs can't be followed (JS-gated), so each discovered title is re-searched via Tavily to retrieve actual article content
+- Tavily's `include_domains` already includes `atptour.com` and `wtatennis.com` — the title-based search finds the article reliably
+- Confirmed: `tennis+results+2026` query surfaces 3 fresh ATP/WTA items within 48h in June 2026 testing ("Vekic vs. Raducanu | Final", "Queen's Club draw", etc.)
+- Integrated in `collect_news_pool()` after BBC/ESPN RSS, before Tavily supplement; deduplicates via URL + title overlap (same as Tavily dedup)
+- `_GNEWS_ACCEPTED_SOURCES` should be maintained alongside `marquee-players.json` as a curated publisher trust list
+- See Issue #018 and PDL-020
+
+**Fix B — Flashscore structured gap-fill (feature-flagged off until June 29):**
+- `collect_flashscore_gap_fill()`: pulls 48h of ATP/WTA SINGLES results from ALL tournaments via Apify Flashscore
+- Scores each match with the existing significance scorer using synthetic titles built from structured facts ("Griekspoor beats Bublik in Final of Libema Open")
+- Structured scoring eliminates a key scorer weakness: incidental body-text mentions of other players can't inflate scores when there is no article body
+- Results above threshold not covered by any article → added to pool as `_source: "flashscore"` items with `_structured` dict attached
+- Pool formatter: renders structured facts block ("winner (ranked N) beat loser (ranked M) 6-3 6-4 in Final of X") instead of article content
+- Curation prompt: new FLASHSCORE ITEMS section instructs Sonnet to write from structural WHY only (ranking upset delta, stage, tier, surface); forbidden: tactical detail, quotes, "first title" claims without data
+- Separate per-day cache (`flashscore-news-{date}.json`) to avoid bleeding into recap cache
+- Enable with: `FLASHSCORE_NEWS_ENABLED=true python3 generate_feed.py --generate-news`
+- Timed to Apify credit refresh on June 29 (Wimbledon day 1)
+- See PDL-020
 
 ---
 

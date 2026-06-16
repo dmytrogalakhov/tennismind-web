@@ -9,6 +9,7 @@ export type FeedCard = {
   type: FeedCardType;
   title: string;
   date: string;
+  publishedAt?: string;
   tags: string[];
   source?: string;
   keyNumber?: string;
@@ -34,6 +35,7 @@ export function getAllFeedCards(): FeedCard[] {
         type: (data.type ?? "stat") as FeedCardType,
         title: data.title ?? "",
         date: data.date ?? "",
+        publishedAt: data.published_at ?? undefined,
         tags: data.tags ?? [],
         source: data.source ?? undefined,
         keyNumber: data.keyNumber ?? undefined,
@@ -43,9 +45,12 @@ export function getAllFeedCards(): FeedCard[] {
       } satisfies FeedCard;
     })
     .sort((a, b) => {
-      const dateCmp = b.date.localeCompare(a.date);
-      if (dateCmp !== 0) return dateCmp;
-      // Same date: high priority first
+      // Sort by published_at (full datetime) when available, fall back to date
+      const aKey = a.publishedAt ?? a.date;
+      const bKey = b.publishedAt ?? b.date;
+      const cmp = bKey.localeCompare(aKey);
+      if (cmp !== 0) return cmp;
+      // Same sort key: high priority first
       if (a.priority === "high" && b.priority !== "high") return -1;
       if (b.priority === "high" && a.priority !== "high") return 1;
       return 0;
