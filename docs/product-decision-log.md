@@ -729,6 +729,35 @@ Prompt guardrails alone don't stop hallucination in the WHY line — the model g
 
 ---
 
+## PDL-022: Tournament-specific Google News queries to catch ATP 500 / WTA R1 results
+
+**Date:** June 2026
+**Trigger:** Halle Open and Queen's Club R1 results (e.g. Tiafoe d. Cobolli) were not appearing in the pipeline despite being covered on Google News and YouTube.
+
+### Context
+
+The Google News RSS layer (`fetch_google_news_atp_wta`) used a single generic query (`tennis+results+2026`) with a 6-source allowlist. ATP 500 / WTA 250 first-round articles are published by Reuters, Eurosport, tennismajors.com, and others — none of which were in the allowlist. The generic query also didn't surface tournament-specific news from BBC Sport, Guardian, or Sky Sports because those publishers post standalone articles only for notable matches, not all R1 results. The domain-restricted `news_search_tool` (`include_domains`) prevented resolution of articles from non-trusted publishers even when their titles appeared in the GNews feed.
+
+### Decision
+
+Three changes to `generate_feed.py`:
+
+**1. Tournament-specific GNews queries:** In addition to the generic query, `fetch_google_news_atp_wta()` now fetches one Google News RSS query per active tournament (from `TOURNAMENT_CALENDAR_2026` via `get_active_tournaments(lookahead_days=1)`). These queries use no source filter — the specificity of the tournament name is the quality gate. FAQ/aggregation titles (`What are the X results?`, `How to watch...`) are filtered before Tavily lookup.
+
+**2. Expanded `_GNEWS_ACCEPTED_SOURCES`:** Added BBC Sport, The Guardian, Eurosport, tennismajors.com, Sky Sports, Sport.de to the generic-query allowlist.
+
+**3. `gnews_lookup_tool` (no `include_domains`):** Tournament-specific GNews items are resolved via a new unrestricted Tavily tool that can reach Reuters, Eurosport, tennismajors etc. Domain-restricted `news_search_tool` stays for the main discovery pipeline. URL-level dedup prevents the same article appearing multiple times from different GNews sources. Non-tennis results (e.g. FIFA videos linked from ATP YouTube) filtered by regex.
+
+### Impact
+
+Halle Open R1 results (Tiafoe d. Cobolli, Reuters roundup) now surface in the pipeline. ATP 500 / WTA 250 first-round coverage from sports wire services is now reachable. Each pipeline run gains 1-3 tournament-specific articles that the generic query missed.
+
+### Lesson
+
+Generic queries + narrow source allowlists miss the tail of ATP 500 / WTA 250 coverage because those results don't appear on a handful of flagship outlets — they appear on wire services, local sports portals, and specialist publishers. Tournament-specific queries + broad resolution (no `include_domains`) is the right pattern. The quality gate for these queries is query specificity, not source allowlisting.
+
+---
+
 ## Template for New Entries
 
 ```

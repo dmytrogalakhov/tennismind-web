@@ -726,6 +726,20 @@ found in the search content, the field is prefixed `⚠ RECALLED (not found in s
 visible at review, not published. This catches inverted facts, invented quotes, and
 unverifiable historical claims before they go live.
 
+**News discovery layers (in order):**
+1. **BBC/ESPN RSS** — official tennis feeds (BBC active, ESPN often empty)
+2. **Google News RSS — generic** (`tennis+results+2026`): source-filtered to
+   `ATP Tour`, `WTA Tennis`, `Tennis365`, `Tennishead`, `tennis.com`, `Ubitennis`,
+   `BBC Sport`, `The Guardian`, `Eurosport`, `tennismajors.com`, `Sky Sports`, `Sport.de`
+3. **Google News RSS — tournament-specific** (e.g. `Halle+Open+2026+tennis`):
+   no source filter; one query per active tournament (derived from `TOURNAMENT_CALENDAR_2026`
+   at runtime via `get_active_tournaments(lookahead_days=1)`). Catches ATP 500 / WTA 250
+   R1 results that the generic query misses. FAQ-pattern titles (`What are... / How to...`)
+   filtered before Tavily lookup. Resolved via `gnews_lookup_tool` (no `include_domains`)
+   so Reuters, Eurosport, tennismajors etc. are reachable.
+4. **Tavily supplement** — active-tournament queries for results / upsets / draws
+5. **Apify** — Flashscore structured match data for tournament recaps
+
 **Content sources:**
 - Time-sensitive: daily agent discovers streaks, upsets, milestones
 - Evergreen: admin manually adds deep domain insights (equipment science, 
