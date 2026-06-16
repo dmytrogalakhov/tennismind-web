@@ -208,7 +208,9 @@ Same as the cron: FYI to Telegram + generate immediately (no approval gate).
 
 ## 📊 Eval Harness (measure AI output quality)
 
-### Run full evals (deterministic + LLM judge)
+### Recap evals (existing)
+
+#### Run full recap evals (deterministic + LLM judge)
 ```bash
 cd ~/match-analyst-bot
 source venv/bin/activate
@@ -216,7 +218,7 @@ python3 evals/run_evals.py
 ```
 Runs deterministic checks + Sonnet "harsh editor" judge on all recap test cases. Costs ~€0.10-0.15 per run (one Sonnet call per test case). Use after changing a prompt to see if quality scores moved.
 
-### Run quick evals (deterministic only — free)
+#### Run quick recap evals (deterministic only — free)
 ```bash
 cd ~/match-analyst-bot
 source venv/bin/activate
@@ -224,13 +226,13 @@ python3 evals/run_evals.py --quick
 ```
 Deterministic checks only — length, sections, no markdown artifacts, no seed numbers, no fabricated players. Free and instant. Use for fast iteration.
 
-### What the scores mean
+#### What the recap scores mean
 - **explains_why** (1-5): does it explain why results matter, not just what happened? Our core differentiator.
 - **writing_quality** (1-5): engaging and tight, or generic and clichéd?
 - **story_selection** (1-5): did it lead with the most newsworthy results?
 - **hard_fail**: True if a recap fabricated a player or is missing a section — overrides any quality score.
 
-### Eval workflow
+#### Eval workflow
 1. Note current baseline scores
 2. Change a prompt
 3. Re-run evals
@@ -241,6 +243,48 @@ Test cases live in `evals/test_cases/recaps/`. Add new recaps there to expand co
 ```
 cp ~/tennismind-web/content/feed/roland-garros-day-11-men-women.md ~/match-analyst-bot/evals/test_cases/recaps/
 ```
+
+---
+
+### News evals (`eval_news.py`)
+
+#### Full report — Stage 1 (deterministic) + Stage 3 (LLM) per card + jsonl log
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 evals/eval_news.py --eval-news          # last 10 published cards
+python3 evals/eval_news.py --eval-news --all    # all published cards
+```
+Costs ~€0.05-0.10 per run (one Sonnet call per card). Appends results to `evals/news_eval_log.jsonl` for trend tracking. Shows delta vs. previous run once a baseline exists.
+
+#### Stage 1 — deterministic checks (free)
+```bash
+python3 evals/eval_news.py --stage1          # last 10 cards (any status)
+python3 evals/eval_news.py --stage1 --all
+```
+Checks: freshness (date lag), length (≤80w), significance score match, fabrication (player name verification against rankings). No LLM cost.
+
+#### Stage 2 — decision-history axis (free)
+```bash
+python3 evals/eval_news.py --stage2
+```
+Cross-references the significance scorer's pass/fail with your actual publish/reject decisions from the memory store. Computes agreement rate (TP/FP/FN/TN). Surfaces false positives (scorer said pass, you rejected) prominently. Only covers cards from June 13 onwards (when significance.log started).
+
+#### Stage 3 — LLM judge (costs per card)
+```bash
+python3 evals/eval_news.py --stage3          # last 10 published cards
+python3 evals/eval_news.py --stage3 --all
+```
+Sonnet rates each published card on:
+- **explains_why** (1-5): does it explain WHY the result matters — stakes, draw implications, calendar significance?
+- **why_groundedness** (1-5): is the "why" claim computable from body data, or a recalled historical stat?
+- **reads_as_publication** (1-5): polished TennisMind copy, or generic sports aggregator?
+
+#### What the news scores mean
+- **explains_why** — our core differentiator. 3 = vague "confidence boost". 5 = concrete draw/ranking consequence named.
+- **why_groundedness** — most important for accuracy. Score 1 = historical claim with no source. Score 5 = computable from stage/surface/schedule.
+- **reads_as_publication** — currently the weakest axis (avg 3.0). Cliché closers ("timely confidence boost", "wide-open draw") are the main failure mode.
+- Baseline (June 16, 2026, 10 cards): explains_why 3.7 · why_groundedness 3.3 · reads_as_pub 3.0 · overall 3.2
 ---
 
 ## 🧠 Semantic Memory (RAG)
