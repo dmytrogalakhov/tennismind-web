@@ -179,6 +179,53 @@ Insights (surprising tennis facts) were the most reliable feature but one-dimens
 
 ---
 
+# CASE 4 — NEWS DISCOVERY: closing the ATP 500 / WTA 250 gap
+
+## Problem statement
+Halle Open and Queen's Club first-round match results were not appearing in the pipeline. The user could see them on Google News and YouTube, so the data existed — the pipeline just wasn't finding it.
+
+## Hypothesis
+The Google News RSS layer was too narrow in two ways: (1) a single generic query (`tennis+results+2026`) that doesn't surface tournament-specific coverage, and (2) a 6-source allowlist that excluded every publisher that actually writes ATP 500 R1 articles — Reuters, Eurosport, BBC Sport, tennismajors.com. Even if a good article appeared in the feed, the Tavily resolution step used a domain-restricted tool (`include_domains`) that couldn't fetch it.
+
+## Solution
+Three changes:
+
+1. Added tournament-specific Google News queries — one per active tournament, derived at runtime from `TOURNAMENT_CALENDAR_2026`. No source filter; query specificity is the quality gate. FAQ/aggregation titles (`What are the X results?`) filtered before lookup so they don't consume the article cap.
+
+2. Expanded `_GNEWS_ACCEPTED_SOURCES` from 6 to 12 publishers for the generic query (added BBC Sport, Guardian, Eurosport, tennismajors.com, Sky Sports, Sport.de).
+
+3. Added `gnews_lookup_tool` — an unrestricted Tavily instance (no `include_domains`) used only for resolving GNews titles to content. URL-level dedup collapses the same article appearing from multiple sources. Tennis-relevance regex filters FIFA/World Cup false positives from ATP YouTube links.
+
+## Result
+Tiafoe d. Cobolli (Halle R1, Reuters roundup via Deadspin) now surfaces in the pipeline. The pipeline went from 0 tournament-specific articles to 1-2 per run. Other R1 results that don't get standalone articles (Altmaier, Tien) still don't appear — but that's correct: no publisher wrote text articles about those matches; only ATP Tour highlight video pages exist.
+
+## The transferable lesson
+**Generic queries + narrow source allowlists cover flagship outlets but miss the tail of ATP 500 / WTA 250 coverage**, which lands on wire services and specialist publishers. The right pattern for tournament coverage is: specific query (tournament name) + broad resolution (no domain restriction). The quality gate for broad resolution is query specificity, not publisher allowlisting. Also: `include_domains` on a Tavily tool is an invisible ceiling — it silently drops valid articles from any publisher not in the list, including Reuters.
+
+---
+
+## Post-implementation: cross-tournament contamination
+
+### Problem statement
+After shipping the title-parsing fallback, the pipeline surfaced articles about Vekic d. Raducanu (Queen's Club WTA final) and Raducanu's post-match reaction — events from a tournament that had already concluded. These appeared in the output despite the 48h date gate.
+
+### Hypothesis
+The 48h gate failed. Initial assumption: articles from a concluded tournament should be too old to pass.
+
+### What actually happened
+The 48h gate had not failed — it was working exactly as designed. Both articles were published June 14 (the day of the WTA final), well within 48h of June 16. The real failure was a **query boundary issue**: `"Queen's Club 2026 tennis"` is the query for the ATP Queen's Club (active June 15–21), but Google News returns articles from both the ATP and WTA events at the same venue. The WTA tournament (ended June 14) and the ATP tournament (started June 15) share the same name in search results. No existing gate distinguished them.
+
+### Solution
+One targeted check in the title-parsing fallback: require `pub_date >= tournament_start`. An article published before the queried tournament's own start date cannot be about that tournament. Articles published June 14 are dropped for the ATP Queen's Club query (which started June 15) but kept for the WTA Queen's Club query if that were active.
+
+### Result
+The WTA Queen's Club articles dropped cleanly. Remaining results: Tiafoe/Cobolli (Halle), Tien d. Schoenhaus (Halle), Shapovalov/Paul Day 1 wins (ATP Queen's Club, published June 15 — after the ATP start date). No false positives.
+
+### Lesson
+**Diagnose before assuming gate failure.** The instinct was "the 48h gate let through old events" — but the gate was correct; the source was wrong. The deeper failure was that a tournament name query (`"Queen's Club"`) was semantically ambiguous — it matched two different events at the same venue in consecutive weeks. The fix is structural: gate on the queried tournament's own date window, not just recency. Any system that queries by name rather than ID is vulnerable to this class of ambiguity.
+
+---
+
 # CROSS-CUTTING LESSONS (what a hiring manager should take from this)
 
 1. **Diagnose to root cause, not symptom.** Every feature went through a symptom-patching phase before the real iteration began. The breakthrough each time was an **issue-tree** analysis that found the structural cause beneath the visible failures.
