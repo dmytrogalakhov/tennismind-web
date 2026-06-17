@@ -581,6 +581,66 @@ Verified immediately: "Zverev digs in to oust Kopriva in Halle, equals Nadal's A
 
 ---
 
+## Issue #020: --generate-news scored 9 passing stories then produced 0 cards — two stacked silent failures
+
+**Date:** June 2026
+**Project:** match-analyst-bot
+**Severity:** Critical — entire card generation step produced no output with no visible error
+**Reporter:** Manual observation after `--generate-news` ran to completion with 0 candidates saved
+
+### Symptoms
+
+- `--discover-news` showed 9 stories passing the significance gate (threshold ≥5)
+- `--generate-news` ran to completion with no crash, no error message, 0 cards saved
+- The pipeline appeared to succeed — the only sign of failure was the absence of output
+
+### Root Cause — two stacked failures
+
+**Failure 1: single-tournament curation filter discarded concurrent-tournament stories**
+
+`build_news_curation_prompt()` called `get_current_tournament()` — a function that returns one tournament — and injected:
+
+```
+DURING Halle: Only cover stories related to Halle. Ignore all other ATP/WTA news.
+If nothing interesting happened at Halle in the last 24-48 hours, return 0 cards.
+```
+
+Three tournaments were active simultaneously (Halle, Queen's Club, Nottingham). The 9 passing stories were spread across all three. The curation prompt told Sonnet to ignore everything except Halle — so any story from Queen's or Nottingham was silently discarded before a card was written. Sonnet obeyed and returned 0 cards.
+
+**Failure 2: JSON parse failure returned silently**
+
+When Sonnet's response couldn't be parsed as a JSON array (prose preamble before the `[`), `generate_cards()` caught the `JSONDecodeError` and returned `[]` with only a `print()`:
+
+```python
+except json.JSONDecodeError:
+    print("Failed to parse response as JSON")
+    return []
+```
+
+No retry. No traceback. No log file entry. The empty list propagated silently up the call stack, and the pipeline printed its normal completion message.
+
+### Fix
+
+**Tournament filter:** replaced `get_current_tournament()` with `get_active_tournaments(lookahead_days=1)` (returns a list). The injected context now names ALL active tournaments and explicitly removes the filter:
+
+```
+CONTEXT: TODAY IS {date}. Active tournaments right now: Halle, Queen's Club, Nottingham.
+Cover stories from ALL active tournaments and breaking player news.
+The significance scorer already decided what is worth publishing —
+do NOT apply a tournament filter. Write a card for every story in the pool.
+```
+
+**JSON parse failure:** added `_strip_json_fences()` to find `[` buried after prose preamble, plus a retry with a strict repair prompt ("return ONLY the JSON array, start with `[`, end with `]`"). On second failure, logs `🚨 GENERATION FAILED` with the raw response to stderr — never silently returns `[]`.
+
+### Lessons Learned
+
+1. **A single-tournament selector in a multi-tournament context is a silent data loss bug.** When three tournaments run concurrently, any code path that filters to one will discard 2/3 of the data without warning. Always use the plural form (`get_active_tournaments`) when multiple events can overlap.
+2. **"Return 0 cards if nothing happened" is a dangerous fallback phrase in a prompt.** Combined with an overly narrow filter, it gives the LLM permission to produce empty output and report success. The prompt should never offer silence as a valid outcome when a non-empty pool was supplied.
+3. **Silent `except: return []` in a generation function is a production bug.** An empty list is indistinguishable from "nothing to generate" — the pipeline can't tell whether it ran correctly or crashed. Every parse failure must log the full response and either retry or raise visibly.
+4. **Two silent failures can compound into a completely invisible total failure.** Neither bug alone would have been obvious — the filter would have left some Halle cards, the parse retry would have recovered. Together they produced zero output with a success exit code. Stack-rank silent failures as the highest-severity class of bug.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
