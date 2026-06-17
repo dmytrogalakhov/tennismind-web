@@ -536,6 +536,51 @@ Official sport federation RSS feeds are maintained on IT timelines, not editoria
 
 ---
 
+## Issue #019: Marquee scorer capped at one player per story — dual-marquee matches scored as single-player
+
+**Date:** June 17, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — newsworthy dual-marquee matchups scored below significance threshold and never reached card generation
+**Reporter:** Manual review after adding Giovanni Mpetshi Perricard to the marquee list
+
+### Symptoms
+
+Moutet vs Mpetshi Perricard (Queen's Club R1, 6/7 6/4 7/6 — three-set all-French thriller) was not discovered as a candidate story. The match result article would have scored only **4** despite both players being on the marquee list — one below the threshold of 5.
+
+### Root Cause
+
+`score_story()` used `next()` to find the first marquee name in the title, scored it +4, and stopped:
+
+```python
+marquee_hit = next((n for n in marquee_names if name_in_title(n)), None)
+if marquee_hit:
+    score += 4
+    reasons.append(f"marquee ({marquee_hit})")
+```
+
+A match between two marquee players scored identically to a match involving only one. The second marquee player was silently ignored.
+
+### Fix
+
+Changed to iterate all marquee hits — first hit +4, each additional +2:
+
+```python
+marquee_hits = [n for n in marquee_names if name_in_title(n)]
+marquee_hit = marquee_hits[0] if marquee_hits else None
+for i, mh in enumerate(marquee_hits):
+    pts = 4 if i == 0 else 2
+    score += pts
+    reasons.append(f"marquee ({mh})")
+```
+
+Verified immediately: "Zverev digs in to oust Kopriva in Halle, equals Nadal's ATP..." scored **[11]** — top-10 (Zverev) +5, marquee (Nadal) +4, marquee (Zverev) +2 — confirming stacking works.
+
+### Lessons Learned
+
+`next()` on a scored dimension is a semantic bug: it finds "is there a marquee player?" instead of "how many marquee players are here?" Whenever a dimension can appear multiple times in a single item, the scorer should aggregate, not short-circuit. Matchups between two known players are inherently more significant than unilateral stories — the scorer should reflect that.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]

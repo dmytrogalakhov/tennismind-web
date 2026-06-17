@@ -248,6 +248,42 @@ Two targeted prompt changes:
 
 ---
 
+## Post-implementation: dual-marquee match scoring capped at single player
+
+### Problem statement
+After adding Giovanni Mpetshi Perricard to the marquee list (June 17), an investigation showed that his R1 Queen's Club match against Moutet — a three-set all-French thriller (6/7, 6/4, 7/6) — would score only **4** despite both players being on the marquee list. That's one below the significance threshold of 5, meaning the match result article would never have reached card generation.
+
+### What actually happened
+`score_story()` used `next()` to find marquee players in the title:
+
+```python
+marquee_hit = next((n for n in marquee_names if name_in_title(n)), None)
+if marquee_hit:
+    score += 4
+    reasons.append(f"marquee ({marquee_hit})")
+```
+
+`next()` stops at the first hit. A match between two marquee players scored identically to a match involving only one — the second player's presence was silently ignored. A two-marquee matchup is inherently more newsworthy than a one-marquee story, but the scorer treated them as equal.
+
+### Solution
+Changed to iterate all marquee hits — first hit +4, each additional +2:
+
+```python
+marquee_hits = [n for n in marquee_names if name_in_title(n)]
+marquee_hit = marquee_hits[0] if marquee_hits else None
+for i, mh in enumerate(marquee_hits):
+    pts = 4 if i == 0 else 2
+    score += pts
+    reasons.append(f"marquee ({mh})")
+```
+
+Moutet vs Mpetshi Perricard now scores 6 (PASS). Verified immediately: "Zverev digs in to oust Kopriva in Halle, equals Nadal's ATP record" jumped to [11] — top-10 (Zverev) +5, marquee (Nadal) +4, marquee (Zverev) +2 — confirming stacking works for stories that name multiple marquee players as context.
+
+### Lesson
+**`next()` on a scored dimension is a semantic bug: it answers "is there a marquee player?" instead of "how many?"** Whenever a scoring dimension can appear multiple times in a single item (two players in a match, two names in a headline), the scorer should aggregate, not short-circuit. The fix pattern: collect all hits with a list comprehension, then assign decreasing point values (first occurrence full weight, subsequent occurrences half weight). This also means adding a new player to the marquee list has an immediate, observable effect on real stories — a useful property for tuning the list iteratively.
+
+---
+
 # CROSS-CUTTING LESSONS (what a hiring manager should take from this)
 
 1. **Diagnose to root cause, not symptom.** Every feature went through a symptom-patching phase before the real iteration began. The breakthrough each time was an **issue-tree** analysis that found the structural cause beneath the visible failures.
