@@ -641,6 +641,50 @@ do NOT apply a tournament filter. Write a card for every story in the pool.
 
 ---
 
+## Issue #021: WTA 500 Berlin (bett1open) invisible to pipeline; top-10 Halle players missing from discovery pool
+
+**Date:** June 18, 2026
+**Project:** match-analyst-bot
+**Severity:** High — world #1 WTA player's tournament win produced zero candidates; multiple top-10 ATP players' match results never reached scoring
+**Reporter:** Manual review after `--generate-news` produced no card for Sabalenka's Berlin win and nothing for Medvedev/Fritz/Auger-Aliassime at Halle
+
+### Symptoms
+
+- `--generate-news` output: no Sabalenka story despite her winning at bett1open (Berlin)
+- Discovery pool contained no articles mentioning Medvedev, Fritz, or Auger-Aliassime results from Halle, despite all three playing R2 that day
+- Active tournament banner showed `Halle Open | Queen's Club | Nottingham Open` — no Berlin
+
+### Root Cause — two independent gaps
+
+**Gap 1: bett1open absent from TOURNAMENT_CALENDAR_2026**
+
+`TOURNAMENT_CALENDAR_2026` had no entry for bett1open (Berlin, WTA 500, grass, June 15–21). `get_active_tournaments()` returned only `[Halle, Queen's, Nottingham]`. As a result:
+- `fetch_google_news_atp_wta()` never generated a `"bett1open 2026 tennis"` Google News query
+- `build_news_queries()` never emitted `"bett1open R16 results"` Tavily queries
+- The curation prompt listed Berlin as neither active nor relevant
+
+Sabalenka is both WTA #1 (top-10 +5) and on the marquee list (+4) — any article with her name in the title would score [9]. The problem was no article appeared at all. The one Berlin article that surfaced ("Serena/Muchova doubles") came via BBC RSS by chance, not via a targeted query.
+
+**Gap 2: Top-10 ATP singles results produce roundup articles with generic titles**
+
+Medvedev (rank 8, marquee), Auger-Aliassime (rank 4, marquee), Fritz (rank 9), Shelton (rank 5) are all correctly in `rankings.json`. The scorer would give them [5]–[9] if their names appeared in any title. The problem was upstream: BBC and ESPN don't write standalone articles for routine top-10 wins at ATP 500s — those only appear in roundup pieces titled "Halle Day 2 results" or "R16 recap" with no player name in the title. Title-only scoring (introduced to fix Issue #015's body-inflation problem) means a roundup with Medvedev's result in the body but not the title scores [0] and never reaches the significance gate.
+
+Tavily queries for `"Halle R16 results"` returned +0 net-new articles because everything it found was already in the pool — the same generic-title roundups.
+
+### Fix
+
+**Gap 1:** Added `{"name": "bett1open", "start": "2026-06-15", "end": "2026-06-21", "surface": "grass", "tier": "500", "tour": "WTA", "recap_eligible": False}` to the calendar. bett1open now appears in `get_active_tournaments()`, generates its own Google News and Tavily queries, and is listed in the curation prompt.
+
+**Gap 2:** Added a player-targeted query layer to `build_news_queries()`: for multi-tournament weeks, generate one Tavily query per top-5 ATP/top-5 WTA player combining their last name with the active tournament names (e.g. `"Sinner Halle Open Queen's Club 2026"`). Capped at 4 queries to stay within budget. Raised total query cap from 9 to 13 to accommodate the new layer.
+
+### Lessons Learned
+
+1. **Every WTA event running concurrently with ATP grass events must be in the calendar.** The pre-Wimbledon weeks have 4-event stacks (Halle, Queen's, Nottingham, bett1open). Missing one silently removes an entire tour's results from the pipeline.
+2. **Title-only scoring is correct but requires query compensation.** Moving from body-text to title-only scoring (Issue #015) was the right fix for inflation, but it created a blind spot: players covered only in roundup bodies are invisible to the scorer. The counter-measure is richer queries that surface player-specific articles in the first place, not reverting to body scanning.
+3. **`+0 net-new from Tavily` is a signal worth investigating.** When Tavily returns no new articles on a day with multiple active tournaments and top-10 players competing, it often means the queries are too generic to find the player-specific articles that do exist.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
