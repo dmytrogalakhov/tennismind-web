@@ -68,6 +68,18 @@ python3 generate_feed.py --review-news
 Review options: `y`=publish, `n`=delete permanently, `t`=save for later, `edit`=edit card.
 Cards saved with `t` will appear again in the next `--review-news` run.
 
+### Force a specific story through (editorial override)
+```bash
+python3 generate_feed.py --generate-news --force "Sabalenka"
+python3 generate_feed.py --generate-news --force "Bellucci"
+```
+Matches any story in today's discovery pool whose title contains the substring (case-insensitive). The matched story is promoted past the significance gate AND the semantic pre-filter — it goes straight to Sonnet alongside whatever else passed normally. Use when the scorer underrated a story you want to publish.
+
+What `--force` skips: significance threshold, semantic pre-filter (memory dedup).
+What `--force` does NOT skip: 48h freshness gate, round-staleness gate. If the story isn't in today's pool, it won't be found — use `--discover-news` first to confirm it's there.
+
+If the substring matches nothing: `⚠ --force 'Sabalenka' matched no below-threshold stories in today's pool.`
+
 ### Check news candidates
 ```bash
 ls ~/tennismind-web/content/feed-candidates/news/
