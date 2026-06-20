@@ -12,7 +12,7 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const png = renderArticleCover({ category: article.category });
+  const png = renderArticleCover({ category: article.category, headline: article.title });
 
   return new Response(new Uint8Array(png), {
     headers: {

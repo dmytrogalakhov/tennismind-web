@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import type { FeedCardType } from "@/lib/feed";
+import TagPill from "./TagPill";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function formatDate(iso: string): string {
@@ -230,9 +231,7 @@ export default function NewsCard({ type, title, body, tags, date, keyNumber, ima
           <div style={{ borderTop: "1px solid var(--color-line)", paddingTop: "0.875rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" as const }}>
             <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" as const }}>
               {tags.slice(0, 3).map((tag) => (
-                <span key={tag} style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: "var(--color-green)", background: "var(--color-sand)", borderRadius: "999px", padding: "2px 8px" }}>
-                  {tag}
-                </span>
+                <TagPill key={tag} tag={tag} />
               ))}
             </div>
             <span style={{ fontFamily: SANS, fontSize: 12, color: "var(--color-muted)" }}>

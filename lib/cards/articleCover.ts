@@ -1,6 +1,6 @@
 /**
  * renderArticleCover — square title cover for the articles index list.
- * 1080×1080 px: eyebrow + headline + rule + lockup. No dek.
+ * 1080×1080 px: eyebrow + headline (700 Bold, vertically centred) + rule + lockup. No dek.
  * Separate from articleCard.ts (1200×630 landscape hero/OG).
  */
 
@@ -21,27 +21,42 @@ const W     = 1080;
 const H     = 1080;
 const SCALE = 1.0;
 
-// ── Layout ────────────────────────────────────────────────────────────────────
+// ── Layout anchors ────────────────────────────────────────────────────────────
 const PAD       = 96;
 const CONTENT_W = W - PAD * 2;   // 888 px
-const EYE_Y     = 225;
-const HL_START_Y = 330;
-const RULE_GAP  = 40;             // px below last headline baseline
-const LOCK_Y    = 962;
 
+// Eyebrow baseline
+const EYE_Y = 225;
+
+// Vertical zone available for the headline block:
+//   top of zone = just below eyebrow (EYE_Y + some breathing room)
+//   bottom of zone = just above lockup
+const ZONE_TOP    = EYE_Y + 60;   // ~285
+const LOCK_Y      = 962;
+const LOCK_HEIGHT = 44;            // approximate cap-height of the lockup text
+const ZONE_BOTTOM = LOCK_Y - LOCK_HEIGHT - 60;  // ~858
+
+// Rule gap below last headline line
+const RULE_GAP = 45;
+
+// Upward bias: shift headline above true centre toward the upper third
+const VERTICAL_BIAS = 60;
+
+// Frame insets
 const OUTER_INS = 14;
 const INNER_INS = 25;
 const OUTER_R   = 18;
 const INNER_R   = 13;
 
+// Lockup ball icon
 const ICON_R  = 14;
 const ICON_CX = PAD + ICON_R;
 
-// ── Headline size ladder ──────────────────────────────────────────────────────
+// ── Headline size ladder (80 → 68 → 58, up to 4 lines) ───────────────────────
 const HL_CONFIGS = [
-  { size: 78, leading: 92 },
-  { size: 66, leading: 80 },
-  { size: 56, leading: 68 },
+  { size: 80, leading: 94 },
+  { size: 68, leading: 82 },
+  { size: 58, leading: 70 },
 ] as const;
 const MAX_HL_LINES = 4;
 
@@ -103,17 +118,24 @@ function resolveHeadline(
 function buildSvg(
   category: string,
   headline: string,
-  font600: opentype.Font | null,
+  font700: opentype.Font | null,
 ): string {
-  const { lines, size, leading } = resolveHeadline(font600, headline);
+  const { lines, size, leading } = resolveHeadline(font700, headline);
 
-  // Rule sits a fixed gap below the last headline baseline
-  const ruleY = HL_START_Y + (lines.length - 1) * leading + RULE_GAP;
+  // Block height: from first baseline to bottom of last line (~0.25em descender)
+  const blockH = (lines.length - 1) * leading + size;
+
+  // Position the block in the available zone, biased above centre
+  const zoneH    = ZONE_BOTTOM - ZONE_TOP;
+  const hlStartY = ZONE_TOP + Math.round((zoneH - blockH) / 2) + size - VERTICAL_BIAS;
+
+  // Rule follows the block
+  const ruleY = hlStartY + (lines.length - 1) * leading + RULE_GAP;
 
   const hlSvg = lines
     .map((line, i) =>
-      `  <text x="${PAD}" y="${HL_START_Y + i * leading}" ` +
-      `font-family="Newsreader" font-weight="600" font-size="${size}" ` +
+      `  <text x="${PAD}" y="${hlStartY + i * leading}" ` +
+      `font-family="Newsreader" font-weight="700" font-size="${size}" ` +
       `fill="${C.warmWhite}" letter-spacing="-1">${esc(line)}</text>`,
     )
     .join("\n");
@@ -146,10 +168,10 @@ function buildSvg(
         font-family="Inter" font-weight="700" font-size="44"
         fill="${C.cream}" letter-spacing="6">${esc(category.toUpperCase())}</text>
 
-  <!-- Headline: Newsreader 600, warm cream, dynamic size+wrap -->
+  <!-- Headline: Newsreader 700 Bold, warm cream, vertically centred, dynamic size+wrap -->
 ${hlSvg}
 
-  <!-- Rule: cream @0.55, 2.5px, follows headline -->
+  <!-- Rule: cream @0.55, 2.5px, fixed gap below headline block -->
   <rect x="${PAD}" y="${ruleY}" width="${CONTENT_W}" height="2.5" rx="1.25"
         fill="${C.cream}" fill-opacity="0.55"/>
 
@@ -177,9 +199,9 @@ export interface ArticleCoverData {
 }
 
 export function renderArticleCover(data: ArticleCoverData): Buffer {
-  const font600 = loadCardFont(FONT_PATHS.newsreader600);
+  const font700 = loadCardFont(FONT_PATHS.newsreader700);
 
-  const svg = buildSvg(data.category, data.headline, font600);
+  const svg = buildSvg(data.category, data.headline, font700);
 
   const resvg = new Resvg(svg, {
     fitTo: { mode: "width", value: Math.round(W * SCALE) },

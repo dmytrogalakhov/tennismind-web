@@ -23,6 +23,7 @@ function p(name: string): string {
 export const FONT_PATHS = {
   newsreader600:       p("newsreader-600-merged.ttf"),
   newsreader600italic: p("newsreader-600-italic-merged.ttf"),
+  newsreader700:       p("newsreader-700-merged.ttf"),
   inter500:            p("inter-500-merged.ttf"),
   inter700:            p("inter-700-merged.ttf"),
 } as const;

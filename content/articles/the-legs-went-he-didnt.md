@@ -9,7 +9,7 @@ tags:
   - "Roland Garros"
   - "Analysis"
 readTime: "5 min"
-substack_url: ""
+substack_url: "https://open.substack.com/pub/tmtennismind/p/the-legs-went-he-didnt?r=8iadsy&utm_campaign=post-expanded-share&utm_medium=web"
 ---
 
 Fourth set, and Alexander Zverev's body is starting to quit on him.
