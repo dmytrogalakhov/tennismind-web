@@ -685,6 +685,59 @@ Tavily queries for `"Halle R16 results"` returned +0 net-new articles because ev
 
 ---
 
+## Issue #022: --force failed silently for passing stories; stage guard blocked advancing-round results
+
+**Date:** June 20, 2026
+**Project:** match-analyst-bot
+**Severity:** High — "Fritz defeats Zverev to reach Halle final" [13] was blocked by `--force` and by the pre-filter despite being the day's top story; 0 cards generated
+**Reporter:** Manual observation after `--generate-news --force "Fritz defeats Zverev"` produced no output
+
+### Symptoms
+
+- `--force "Fritz defeats Zverev"` printed `⚠ --force 'Fritz defeats Zverev' matched no below-threshold stories in today's pool.` and generated 0 cards
+- The story scored [13] and appeared in the significance log as ✅ PASS
+- Pre-filter log showed: `Fritz defeats Zverev once again to reach Halle final` blocked by `Cobolli & Shelton Knock Out Zverev in Halle Doubles`
+
+### Root Cause — two stacked failures
+
+**Failure 1: `--force` only scanned `sig_drop`, not `sig_pass`**
+
+The force logic searched only the below-threshold bucket:
+```python
+rescued = [r for r in sig_drop if fq in (r.get("title") or "").lower()]
+```
+Fritz scored [13] — comfortably in `sig_pass`, never in `sig_drop`. The warning was technically accurate ("no below-threshold stories match") but the story wasn't below threshold at all. It had already passed significance and was waiting for the pre-filter, which blocked it. `--force` had no path to bypass the pre-filter for a story that was already passing.
+
+**Failure 2: stage guard required `old_stage > 0`, blocking finals against stageless cards**
+
+The stage-progression guard (added to fix Issue #020's QF→final false duplicate) had the condition:
+```python
+if new_stage > old_stage > 0:
+    is_dup = False
+```
+"Fritz defeats Zverev to reach Halle final" (new_stage=5) was matched against "Cobolli & Shelton Knock Out Zverev in Halle Doubles" — a doubles result with no round indicator (old_stage=0). The `> 0` requirement caused the guard to skip: `5 > 0` is true, but `0 > 0` is false, so the whole condition failed. A finals result was blocked by a stageless doubles card sharing only the player name "Zverev".
+
+### Fix
+
+**Fix 1:** Extended `--force` to also scan `sig_pass` and mark matching stories as `_forced=True`, which causes the pre-filter to bypass them:
+```python
+rescued_pass = [r for r in sig_pass if fq in (r.get("title") or "").lower()]
+if rescued_pass:
+    for r in rescued_pass:
+        r["_forced"] = True
+        # logged as: 🔑 FORCED [13] ... (already passes significance — pre-filter bypassed)
+```
+
+**Fix 2:** Changed the stage guard condition from `new_stage > old_stage > 0` to `new_stage >= 3 and new_stage > old_stage`. Any QF/SF/final (stage ≥ 3) is never blocked by a stageless card (old_stage=0). Fritz final (5) > Doubles (0) → clears. Fritz final (5) > Fritz QF (3) → clears. Raducanu final (5) > Raducanu SF (4) → clears.
+
+### Lessons Learned
+
+1. **`--force` must bypass every automated gate, not just the one where the story is currently stuck.** The force was designed for below-threshold stories, but the same override intent applies to pre-filter blocks. An editorial override means "publish this regardless" — it needs to propagate through the entire pipeline.
+2. **A stage guard that requires `old_stage > 0` silently fails for the most common case: a player's later-round result matched against their earlier mention in a roundup or doubles article.** Stageless cards are common (injury news, doubles results, profile pieces that mention a player); any final/SF/QF result should clear the guard against them.
+3. **Two silent failures compound into a total failure, again.** The story was at [13] — the highest score of the day — and generated 0 cards. Neither failure alone would have been obvious without reading the pre-filter log carefully.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
