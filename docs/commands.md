@@ -183,6 +183,38 @@ python3 generate_feed.py --review-news       # same
 
 ---
 
+## 🎬 Video Agent
+
+### Discover official clips and send to Telegram for approval
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --generate-video
+```
+Searches YouTube for official match highlights from active tournaments (ATP Tour, WTA Tennis channels). Validates every clip against `data/video-sources-allowlist.json` — only official sources pass. Applies a stage-freshness gate: earlier in the week any stage is OK; by Day 4+ only QF/SF/Final clips are surfaced. Saves candidates to `content/feed-candidates/video/` and immediately sends them to Telegram with ✅/📅/🗑 buttons.
+
+On ✅ Publish: card written to `content/feed/`, YouTube URL posted to the public Telegram channel (auto-embeds as a video preview).
+
+### Check video candidates
+```bash
+ls ~/tennismind-web/content/feed-candidates/video/
+```
+
+### Edit the official sources allowlist
+```bash
+code ~/match-analyst-bot/data/video-sources-allowlist.json
+```
+Add a `"disabled": true` field to a source to temporarily exclude it. Each source has `title_signals` — distinctive strings that appear in official uploads but not fan reuploads. Add new signals when a tournament's naming convention changes.
+
+### Stage-freshness thresholds (automatic)
+| Days since tournament start | Min clip stage |
+|---|---|
+| Days 1–3 | Any (R1/R2 OK) |
+| Day 4 | QF and above |
+| Day 5+ | SF and above |
+
+---
+
 ## 🤖 Orchestrator
 
 ### Morning cron (automatic)
