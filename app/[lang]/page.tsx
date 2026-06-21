@@ -24,7 +24,7 @@ export default async function HomePage({
 
   const allFeedCards = getAllFeedCards();
   const newsCards    = allFeedCards.filter((c) => c.type === "news").slice(0, 3);
-  const insightsCount = allFeedCards.filter((c) => c.type !== "news").length;
+  const insightsCount = allFeedCards.filter((c) => !["news", "recap", "prediction", "video"].includes(c.type)).length;
   const newsCount     = allFeedCards.filter((c) => c.type === "news").length;
   const articlesCount = getAllArticles().length;
 
