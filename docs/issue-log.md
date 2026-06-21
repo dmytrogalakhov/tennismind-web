@@ -738,6 +738,58 @@ if rescued_pass:
 
 ---
 
+## Issue #023: Tournament finals by lower-ranked players score [0] and never surface
+
+**Date:** 2026-06-21
+**Project:** match-analyst-bot
+**Severity:** High — entire class of major stories silently dropped
+**Reporter:** User noticed neither Queen's nor Halle final was published despite being the day's lead stories
+
+### Symptoms
+
+- "Cerundolo wins biggest title of career at Queen's" → scored [0] "no signals" — never entered pool
+- "Cerundolo tops Paul to win Queen's Club title" → scored [0] "no signals"
+- "Bouzkova beats Navarro to clinch Nottingham title" → scored [0]
+- "Tiafoe beats Fritz to win all-American Halle final" → scored [9], passed significance, but was blocked by pre-filter as duplicate of the "Fritz beats Zverev to reach Halle final" story published the day before
+- Agent published a Murray interview instead
+
+### Root Causes
+
+**Root cause 1 (scoring):** `is_final` in `score_story()` checked for the word `"final"` and exact phrases `"wins title"`, `"lifts trophy"`. But publishers often use bare `"title"` ("wins biggest title"), `"champion"`, or `"clinches"` in headlines. These words weren't recognised as final-stage indicators, so articles scored 0. With no top-10 or marquee player in the title (Cerundolo is ranked ~23, Bouzkova ~40), the score stayed 0 — below threshold.
+
+**Root cause 2 (floor rule):** The existing floor rule only promoted scores to threshold for featured players (top-20/marquee) at SF+. There was no floor for the tournament final itself. A 500-level final between two players outside the top 20 scored below the gate by design.
+
+**Root cause 3 (pre-filter):** Fritz-Zverev SF ("Fritz beats Zverev to reach Halle final") was published Thursday. Friday's Tiafoe-Fritz Final ("Tiafoe beats Fritz to win all-American Halle final") matched against it in semantic memory: shared entity "Fritz", both at stage 5. Stage guard requires `new_stage > old_stage` (5 > 5 fails). Entity guard doesn't fire because Fritz overlaps. Result: the Final story is blocked as a duplicate of the SF story.
+
+### Fix
+
+**Fix 1 — Expanded `is_final` detection:** Added bare `"champion"`, `"clinches"`, `"crowned"` to `is_final`, and a combined check `title + (win|wins|beats|tops|claims)` to catch "wins the title" phrasing where "wins" and "title" are separated by the tournament name.
+
+**Fix 2 — Tournament-final floor:** Added a second floor rule: if `is_final` is True and score is still below threshold, force score to threshold. Any tournament final is always significant regardless of player ranking.
+
+**Fix 3 — Stage guard B2 (win-indicator check):** Added sub-check to the pre-filter stage guard: if the new story is at SF+ stage, `new_stage >= old_stage`, AND the title contains a win indicator (`win`, `title`, `champion`, `clinches`, `claims`, `crowned`) — clear the duplicate flag. "Tiafoe wins Halle final" is not a duplicate of "Fritz reaches Halle final" regardless of equal stage.
+
+**Fix 4 — `_STAGE_ORDER` level 6:** Added `"title"`, `"champion"`, `"clinches"`, `"crowned"` at stage 6 (above `"final"` at 5). Title-win articles now parse as a higher stage, so they naturally satisfy the existing `new_stage > old_stage` guard even without the B2 check.
+
+### Verification
+
+```
+✅ [ 5] Cerundolo wins biggest title of career at Queens    → stage: final, floor: tournament-final
+✅ [ 5] Cerundolo tops Paul to win Queens Club title        → stage: final, floor: tournament-final
+✅ [ 9] Tiafoe beats Fritz to win all-American Halle final → top-10 (Fritz), stage: final
+✅ [ 5] Bouzkova beats Navarro to clinch Nottingham title   → stage: final, floor: tournament-final
+```
+
+Pre-filter stage guard: Tiafoe-Fritz Final vs Fritz-Zverev SF → B2 clears (win=True, new_stage=5 ≥ old_stage=5).
+
+### Lessons Learned
+
+1. **"Title" and "final" are not synonymous in sports headlines.** Publishers use "title", "champion", "clinches" interchangeably with "final" — the scorer must recognise all of them.
+2. **Any tournament final is always significant.** The player-tier requirement on the floor rule was wrong. A 500-level final between two rank-22 players is always publishable news.
+3. **The stage guard only considered `new_stage > old_stage`, missing the case where new and old are both stage 5 but represent fundamentally different events** (reaching a final vs winning it).
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
