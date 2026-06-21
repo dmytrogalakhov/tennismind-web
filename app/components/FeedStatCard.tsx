@@ -30,6 +30,7 @@ const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string }> = {
   news:       { icon: "📰", label: "News"          },
   recap:      { icon: "📋", label: "Daily Recap"   },
   prediction: { icon: "🔮", label: "Match Preview" },
+  video:      { icon: "🎬", label: "Video"         },
 };
 
 const COLLAPSED_HEIGHT = 3 * 1.6 * 18;

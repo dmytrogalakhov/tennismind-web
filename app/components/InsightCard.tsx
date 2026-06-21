@@ -30,6 +30,7 @@ const TYPE_CONFIG: Record<FeedCardType, { icon: string; label: string }> = {
   news:       { icon: "📰", label: "News" },
   recap:      { icon: "📋", label: "Recap" },
   prediction: { icon: "🔮", label: "Match Preview" },
+  video:      { icon: "🎬", label: "Video" },
 };
 
 // 3 lines at body line-height
