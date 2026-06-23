@@ -790,6 +790,94 @@ Pre-filter stage guard: Tiafoe-Fritz Final vs Fritz-Zverev SF → B2 clears (win
 
 ---
 
+## Issue #024: Video agent missed Tennis TV finals because query didn't match "For The Title" format
+
+**Date:** 2026-06-21
+**Project:** match-analyst-bot
+**Severity:** Medium — finals-day video discovery silently incomplete
+**Reporter:** User noticed Cerundolo vs Paul highlights visible on Tennis TV YouTube but not surfaced by `--generate-video`
+
+### Symptoms
+
+- `--generate-video` found the Halle Final (Fritz vs Tiafoe) but not the Queen's Club Final (Cerundolo vs Paul)
+- Running the standard queries returned only SF videos and day-compilation clips for Queen's
+- The video existed on Tennis TV's YouTube channel and was publicly available
+
+### Investigation
+
+1. Ran targeted Tavily searches for the Cerundolo-Paul final directly
+2. Found `youtube.com/watch?v=JZYZQvA8vV0` — "Francisco Cerundolo vs Tommy Paul For The Title" — in results for the query "Tommy Paul Francisco Cerundolo Queens Final Highlights Tennis TV 2026"
+3. Checked allowlist: the signal `"For The Title"` was already present in the Tennis TV entry — the video would have passed validation if returned
+4. Conclusion: the video wasn't missing from YouTube; it was missing from our query results
+
+### Root Cause
+
+Tennis TV uses two different title formats:
+- **Standard highlights:** `"Cerundolo vs Nakashima | HSBC Championships 2026 SF Highlights"` — contains "Final Highlights" or "SF Highlights"
+- **Finals day branding:** `"Francisco Cerundolo vs Tommy Paul For The Title"` — no round word, no "highlights"
+
+The discovery queries targeted `"Final highlights"` phrasing exclusively. Tavily matched those queries to videos containing those exact words. The Cerundolo-Paul video title contained neither, so it was never returned despite the `"For The Title"` signal already being in the allowlist.
+
+### Fix
+
+Added a dedicated `"For The Title"` query that runs on finals day for all ATP tournaments:
+
+```python
+queries.append((f"{short} 2026 For The Title tennis", name))
+```
+
+This runs alongside the existing `"Final highlights"` query when `min_stage >= 4`, so both Tennis TV title formats are covered.
+
+### Lessons Learned
+
+- Having the right allowlist signal is not enough — the query also needs to return the video in the first place
+- When a video is known to exist but isn't found, test queries directly against Tavily before assuming the video isn't indexed
+- Official channels use different title branding for flagship content (finals) vs routine matches; query strategy should cover both patterns
+
+## Issue #025: Serena Wimbledon singles wildcard not published — three stacked failures
+
+**Date:** 2026-06-23
+**Project:** match-analyst-bot
+**Severity:** High — major story missed entirely; multiple pipeline failures compounded
+**Reporter:** User noticed the story was not broadcast despite being top tennis news
+
+### Symptoms
+
+- Serena Williams receiving a Wimbledon singles wildcard (her first singles match since retiring in 2022) was not published
+- Only the earlier doubles wildcard (Serena + Venus) from June 17 had been covered
+- Running `--force "Serena Williams Wimbledon singles wildcard"` generated unrelated cards (Vondrousova, Draper, Osaka/Zheng) alongside or instead of the Serena card
+- Vondrousova card appeared twice in the review queue (two different titles, both pending)
+
+### Investigation
+
+1. Checked `orchestrator-cron.log` — found a `404 Not Found` error on model `claude-sonnet-4-20250514`; the orchestrator had been crashing on every cron run since the model was retired
+2. The story was in the Tavily pool but was blocked by the pre-filter as "covered" — keyword overlap with the already-published doubles wildcard card matched "Serena" + "Wimbledon"
+3. Ran `--force` to bypass the pre-filter, but `--force` did not filter the pool to the requested story — all uncovered stories were passed to Sonnet, generating unintended cards
+4. Semantic dedup was skipped run-wide during `--force`, so Vondrousova (generated in run 1) was generated again in run 2 with a slightly different title that had a different slug, bypassing slug dedup
+
+### Root Cause
+
+Three independent failures stacked:
+
+**1. Orchestrator model retired.** `orchestrator.py` was hardcoded to `claude-sonnet-4-20250514`, which Anthropic retired. Every cron run since retirement crashed with a 404 before reaching the discovery step. The Serena story landed during the outage window and was never automatically surfaced.
+
+**2. Pre-filter false positive.** The singles wildcard was flagged as already covered because it shared two long words (`serena`, `wimbledon`) with the previously published doubles wildcard card. Different story, same subject — the keyword-overlap heuristic has no awareness of "singles" vs "doubles" as distinct contexts.
+
+**3. `--force` passed the entire uncovered pool to Sonnet.** The flag marked the target story as forced but did not filter the pool — every story that survived the pre-filter was sent to Sonnet and generated a card. Combined with the run-wide semantic dedup skip, duplicate and unrelated cards were saved and sent to the review queue.
+
+### Fix
+
+1. Updated `orchestrator.py` model to `claude-sonnet-4-6`
+2. Made `--force` bypass the pre-filter covered check (singles wildcard now passes through even when a related doubles wildcard is already published)
+3. After the pre-filter, when `--force` is active, filtered `groups` to only the forced groups before sending to Sonnet — suppresses all unrelated stories
+4. Scoped the semantic dedup skip to the forced card only (previously skipped for the entire run)
+
+### Lessons Learned
+
+- Hardcoded model IDs are a silent failure risk — when a model is retired the process crashes with a 404 and no alert is raised; consider reading the model ID from an env variable or config file
+- Pre-filter keyword overlap is too blunt for update stories: "Serena Wimbledon singles" is not a duplicate of "Serena Wimbledon doubles" — distinct context words should prevent the covered flag
+- `--force` must mean "generate only this" not "make sure this gets through" — any other interpretation creates queue pollution
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
