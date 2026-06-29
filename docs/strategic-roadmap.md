@@ -629,21 +629,32 @@ update_memory_status() used for status transitions (pending→published, pending
   to avoid duplicate embeddings — upsert pattern, not insert.
 ```
 
-#### 4.3.3 Orchestrator Morning Flow (orchestrator.py)
+#### 4.3.3 Orchestrator Daily Flow (orchestrator.py)
 ```
 Cron (7 AM daily):
-  1. gather_context()     — tournament state, Apify cache, recent content (no LLM)
-  2. propose_plan()       — Sonnet reasons about what to generate today
-  3. apply_guardrails()   — hard rules override LLM (no recap without confirmed matches, etc.)
-  4. FYI to Telegram      — plain message: "Generating: news + insight. Skipping: recap (no data)."
-  5. delegate()           — runs each agent directly (non-interactive, skips prediction if no match string)
-  6. Auto-send to Telegram — generated candidates sent with ✅/📅/🗑 buttons for card-level approval
+  1. gather_context()     — tournament state, Apify cache (live fetch if cache cold), recent content
+  2. propose_plan()       — Sonnet reasons about what to generate today (claude-sonnet-4-6)
+  3. apply_guardrails()   — hard rules override LLM:
+                            • recap: blocked unless Apify cache confirms ≥1 match
+                            • prediction: blocked unless details contain "Player A vs Player B"
+                            • cap: max 3 items total
+  4. FYI to Telegram      — plain message: "Commissioning: news + insights. Skipping: recap (Apify unavailable)."
+  5. delegate()           — runs each agent directly (no interactive prompt)
+  6. Cards arrive on phone — generated candidates sent with ✅/📅/🗑 buttons for card-level approval
 
-No plan-approval tap required. The editor approves individual cards, not the generation decision.
+No plan-approval tap required. The editor approves individual CARDS, not the generation decision.
 
-python3 orchestrator.py --plan     → reasoning only, no generation, no Telegram
-python3 orchestrator.py --plan-notify → cron path (FYI + generate directly)
-python3 orchestrator.py            → interactive: plan → terminal approval → generate
+Content type definitions (locked):
+  RECAP       — yesterday's match results (Apify-confirmed only)
+  NEWS        — off-court player narratives ONLY (NOT match results — those are recap's job)
+  INSIGHTS    — evergreen analytical content, good every day
+  PREDICTION  — Grand Slam: any R1+ match; non-GS: QF-onward only; must name specific matchup
+
+Apify cache:  orchestrator.py tries a live Apify call when no local cache exists.
+              If Apify fails, recap is skipped and the error is noted in the FYI message.
+
+python3 orchestrator.py --plan   → reasoning only, no generation, no Telegram
+python3 orchestrator.py --run    → full daily run (reason → FYI → commission → cards to phone)
 ```
 #### 4.4 Technology Options
 

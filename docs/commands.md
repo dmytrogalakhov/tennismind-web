@@ -227,26 +227,16 @@ No button tap required. A plain FYI message arrives first ("Generating: news + i
 ### Inspect today's plan (terminal only)
 ```bash
 cd ~/match-analyst-bot
-source venv/bin/activate
 python3 orchestrator.py --plan
 ```
-Prints reasoning, what would generate, what's skipped — no Telegram, no generation, no files written. Useful to understand why the orchestrator made its choices.
+Gathers context (tournament state, Apify live-check if no local cache, recent published content), reasons with Sonnet, applies guardrails, prints the commissioning decision. No Telegram, no generation, no files written.
 
-### Manual full flow (interactive)
+### Full daily run (reason → FYI → commission)
 ```bash
 cd ~/match-analyst-bot
-source venv/bin/activate
-python3 orchestrator.py
+python3 orchestrator.py --run
 ```
-Interactive path: plan → guardrails → terminal approval prompt → generate. Use when you want to run the orchestrator manually and review the plan before committing.
-
-### Trigger cron path manually
-```bash
-cd ~/match-analyst-bot
-source venv/bin/activate
-python3 orchestrator.py --plan-notify
-```
-Same as the cron: FYI to Telegram + generate immediately (no approval gate).
+Full orchestrator path: gather context → Sonnet reasoning → guardrails → FYI message to Telegram → delegate to agents. Generated cards arrive on Telegram with ✅/📅/🗑 buttons for card-level approval. No plan-approval step — you approve individual cards, not the generation decision.
 
 ---
 
