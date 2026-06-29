@@ -11,7 +11,7 @@ Every feature, every card, every piece of content must pass this test: does it h
 **Author:** Dmytro Galakhov  
 **Date:** April 2026  
 **Status:** Active  
-**Last Updated:** May 24, 2026
+**Last Updated:** June 29, 2026
 
 ---
 
@@ -496,11 +496,15 @@ Purpose: specialized agents for distinct content needs, each with its own search
     Schedule: on-demand via publish_now.py
     Special rules: no vague language, specific numbers required, honest failure when data unavailable
 
-  **Agent 5: Prediction Agent (predictor.py)**
-    Job: predict match outcomes or full tournament draws
-    Searches: H2H records, form data, surface stats
-    Output: prediction with confidence rating
-    Schedule: on-demand via predict_draw.py
+  **Agent 5: Prediction Agent (generate_feed.py — run_predict)**
+    Job: predict match outcomes and render branded prediction cards
+    Searches: H2H records, form data, surface stats, match previews
+    Output: prediction card (Wimbledon-branded SVG→PNG for grass, AI image for other surfaces)
+    Schedule: daily at 8 AM via orchestrator.py cron; on-demand via --predict flag
+    Confidence: four-factor algorithmic model (seed ±20, H2H ±15, surface ±10, form ±10),
+                base 60, clamped [40, 92] — LLM pick and take only, not the number.
+                JeffSackmann GitHub CSVs (2024-2026) for surface stats, cached 7 days.
+                See docs/confidence-scoring.md for full spec.
 
   **Agent 6: Racket Advisor (racket_advisor.py)**
     Job: recommend a racket based on player profile
