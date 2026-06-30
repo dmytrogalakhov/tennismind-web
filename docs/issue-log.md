@@ -878,6 +878,46 @@ Three independent failures stacked:
 - Pre-filter keyword overlap is too blunt for update stories: "Serena Wimbledon singles" is not a duplicate of "Serena Wimbledon doubles" — distinct context words should prevent the covered flag
 - `--force` must mean "generate only this" not "make sure this gets through" — any other interpretation creates queue pollution
 
+## Issue #026: Recap duplicated next morning; no plan/FYI/predictions at 08:00
+
+**Date:** 2026-06-30
+**Project:** match-analyst-bot
+**Severity:** High — duplicate recap sent to review queue; orchestrator plan, FYI message, and all match predictions failed silently
+**Reporter:** User observation
+
+### Symptoms
+
+- At 08:00 on Day 2 of Wimbledon, a "Day 2" recap was generated and sent for review — but its content was identical to the Day 1 recap published the previous evening
+- No plan message, no FYI, and no match predictions arrived at 08:00 despite the orchestrator cron being scheduled
+
+### Root Cause — three compounding failures
+
+**Failure 1: Wrong day number in recap.** `_get_day_number()` returns `(today − tournament_start).days + 1`. At 08:00 on Day 2, today is Day 2 — but Day 2 matches haven't started yet. ESPN only has Day 1 data. The recap was labelled "Day 2" but written from Day 1 match results, duplicating the previous night's card.
+
+**Failure 2: Dedup filename mismatch.** The existing-recap check looked for `wimbledon-day-1-recap.md` in candidates/ and feed/. The actual published file is `wimbledon-day-1-men-women.md` (named from the card title slug by `publish_card`). The check never matched, so dedup passed and a duplicate was generated.
+
+**Failure 3: `--run` cron missing `cd`.** The `--run` crontab entry was:
+```
+0 8 * * * /Users/dg/match-analyst-bot/venv/bin/python3 orchestrator.py --run
+```
+No `cd /Users/dg/match-analyst-bot &&` prefix. Cron's working directory is the user home (`/Users/dg/`), so Python couldn't find `orchestrator.py`. The process crashed with `No such file or directory` before any planning, FYI, or prediction work ran. The `--recap` cron had the correct `cd` prefix and ran fine.
+
+### Fix
+
+1. **Yesterday's day number:** `run_generate_recap` now computes `recap_date = (datetime.now() − timedelta(days=1)).date()` and `day_number = (recap_date − tournament_start).days + 1`. The 08:00 run always recaps yesterday's play, not today's.
+
+2. **Glob-based dedup:** Replaced the exact filename check with `glob(f"{tournament_slug}-day-{day_number}*.md")` against both candidates/ and feed/. This catches any filename variant for that day — `wimbledon-day-1-recap.md`, `wimbledon-day-1-men-women.md`, or any future naming convention.
+
+3. **Fixed `--run` crontab:** Added `cd /Users/dg/match-analyst-bot &&` before the python call. All four cron entries now consistently use `cd` before invoking python.
+
+### Lessons Learned
+
+1. **A cron job running the wrong working directory is a silent total failure.** The process exits immediately with a file-not-found error, logs nothing useful, and leaves no trace in the application log — only the cron stderr log. Always verify that every cron entry uses `cd /path/to/project &&` before the python invocation, not just some of them.
+2. **Morning recaps must always be keyed to yesterday, not today.** The pattern "run at 08:00, recap today" is always wrong for a tournament where play starts at 11:00. Day N recap should never run before Day N matches exist.
+3. **Dedup checks must use the same filename convention as publish.** Candidates use one naming scheme; published files use another (title-slug). An exact filename check breaks silently the moment the two diverge — always use a glob or a type+day key that is independent of filename formatting.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
