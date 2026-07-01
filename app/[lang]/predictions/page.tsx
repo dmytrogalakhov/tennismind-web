@@ -134,8 +134,12 @@ export default async function PredictionsPage({
 
   const matchPredictions = getAllFeedCards().filter((c) => c.type === "prediction");
 
-  // Accuracy stats derived from resolved predictions
-  const resolved = matchPredictions.filter((c) => c.outcome && c.outcome !== "void");
+  // Accuracy stats — Wimbledon only, voids excluded
+  const ACTIVE_TOURNAMENT = "Wimbledon";
+  const tournamentPredictions = matchPredictions.filter((c) =>
+    c.tags.some((t) => t.toLowerCase().includes(ACTIVE_TOURNAMENT.toLowerCase()))
+  );
+  const resolved = tournamentPredictions.filter((c) => c.outcome && c.outcome !== "void");
   const correct  = resolved.filter((c) => c.outcome === "correct").length;
   const accuracy = resolved.length > 0 ? Math.round((correct / resolved.length) * 100) : null;
 
@@ -172,7 +176,7 @@ export default async function PredictionsPage({
 
         <div className="mb-10 bg-bisque border border-line rounded-card px-6 py-4 flex flex-wrap items-center gap-6 max-w-2xl">
           <div>
-            <p className="font-sans text-xs text-muted uppercase tracking-widest mb-1">Our record</p>
+            <p className="font-sans text-xs text-muted uppercase tracking-widest mb-1">Our record at {ACTIVE_TOURNAMENT}</p>
             {accuracy !== null ? (
               <p className="font-bold text-2xl">
                 {correct}/{resolved.length}

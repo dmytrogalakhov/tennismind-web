@@ -1,6 +1,7 @@
 ---
 
 
+
 type: "prediction"
 title: "Elsa Jacquemot vs Naomi Osaka [14] — R1 Prediction"
 date: "2026-06-29"

@@ -14,8 +14,6 @@ player2: "Chwalinska"
 surface: "clay"
 prediction_winner: "Kalinskaya"
 image_url: "/feed/kalinskaya-vs-chwalinska-sf-prediction.jpg"
-outcome: "incorrect"
-actual_winner: "Maja Chwalinska"
 ---
 
 Kalinskaya's experience at this level meets Chwalinska's fearless qualifier momentum in a clash between contrasting clay court styles. Chwalinska can extend her fairytale run if she maintains the aggressive baseline game that dismantled Parry and continues playing with nothing to lose against higher-ranked opposition. But Kalinskaya's superior power and composure in crucial moments should tell over three sets, especially after surviving that grueling comeback against Potapova. Kalinskaya in three tight sets.

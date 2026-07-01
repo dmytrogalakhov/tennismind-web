@@ -1,6 +1,7 @@
 ---
 
 
+
 type: "prediction"
 title: "Elena Rybakina vs Lois Boisson — R1 Prediction"
 date: "2026-06-30"

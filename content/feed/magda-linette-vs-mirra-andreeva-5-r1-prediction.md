@@ -1,6 +1,7 @@
 ---
 
 
+
 type: "prediction"
 title: "Magda Linette vs Mirra Andreeva [5] — R1 Prediction"
 date: "2026-06-29"

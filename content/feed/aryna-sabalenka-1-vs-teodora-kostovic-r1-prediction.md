@@ -1,6 +1,7 @@
 ---
 
 
+
 type: "prediction"
 title: "Aryna Sabalenka [1] vs Teodora Kostovic — R1 Prediction"
 date: "2026-06-29"

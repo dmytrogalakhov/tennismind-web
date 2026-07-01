@@ -1,6 +1,7 @@
 ---
 
 
+
 type: "prediction"
 title: "Jannik Sinner [1] vs Miomir Kecmanovic — R1 Prediction"
 date: "2026-06-29"

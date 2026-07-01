@@ -1,6 +1,7 @@
 ---
 
 
+
 type: "prediction"
 title: "Marin Cilic vs Daniil Medvedev [8] — R1 Prediction"
 date: "2026-06-29"
