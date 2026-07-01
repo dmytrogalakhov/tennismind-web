@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Matteo Berrettini vs Stan Wawrinka — R1 Prediction"
 date: "2026-06-30"

@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Nuno Borges vs Jannik Sinner — R2 Prediction"
 date: "2026-07-01"

@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Mirra Andreeva vs Barbora Krejcikova — R2 Prediction"
 date: "2026-07-01"

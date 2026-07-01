@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Tommy Paul vs SoonWoo Kwon — R2 Prediction"
 date: "2026-07-01"

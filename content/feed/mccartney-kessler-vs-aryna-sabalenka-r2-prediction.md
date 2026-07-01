@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "McCartney Kessler vs Aryna Sabalenka — R2 Prediction"
 date: "2026-07-01"

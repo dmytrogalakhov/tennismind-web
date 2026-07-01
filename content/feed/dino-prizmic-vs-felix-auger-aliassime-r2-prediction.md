@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Dino Prizmic vs Felix Auger-Aliassime — R2 Prediction"
 date: "2026-07-01"

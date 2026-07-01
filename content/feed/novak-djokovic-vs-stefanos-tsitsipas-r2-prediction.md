@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Novak Djokovic vs Stefanos Tsitsipas — R2 Prediction"
 date: "2026-07-01"

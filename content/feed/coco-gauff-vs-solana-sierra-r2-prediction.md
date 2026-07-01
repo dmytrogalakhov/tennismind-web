@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Coco Gauff vs Solana Sierra — R2 Prediction"
 date: "2026-07-01"

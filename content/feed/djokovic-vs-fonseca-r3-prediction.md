@@ -1,4 +1,5 @@
 ---
+
 type: "prediction"
 title: "Djokovic vs Fonseca — R3 Prediction"
 date: "2026-05-28"
