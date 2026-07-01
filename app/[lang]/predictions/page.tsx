@@ -170,21 +170,25 @@ export default async function PredictionsPage({
           <p className="font-sans text-muted text-lg max-w-2xl">{t.subtitle}</p>
         </div>
 
-        {accuracy !== null && (
-          <div className="mb-10 bg-bisque border border-line rounded-card px-6 py-4 flex flex-wrap items-center gap-6 max-w-2xl">
-            <div>
-              <p className="font-sans text-xs text-muted uppercase tracking-widest mb-1">Our record</p>
+        <div className="mb-10 bg-bisque border border-line rounded-card px-6 py-4 flex flex-wrap items-center gap-6 max-w-2xl">
+          <div>
+            <p className="font-sans text-xs text-muted uppercase tracking-widest mb-1">Our record</p>
+            {accuracy !== null ? (
               <p className="font-bold text-2xl">
                 {correct}/{resolved.length}
                 <span className="font-sans text-muted text-base font-normal ml-2">({accuracy}%)</span>
               </p>
-            </div>
-            <div className="h-8 w-px bg-line hidden sm:block" />
-            <p className="font-sans text-sm text-muted">
-              Based on {resolved.length} resolved prediction{resolved.length !== 1 ? "s" : ""}
-            </p>
+            ) : (
+              <p className="font-bold text-2xl text-muted">—</p>
+            )}
           </div>
-        )}
+          <div className="h-8 w-px bg-line hidden sm:block" />
+          <p className="font-sans text-sm text-muted">
+            {resolved.length > 0
+              ? `Based on ${resolved.length} resolved prediction${resolved.length !== 1 ? "s" : ""}`
+              : "Results tracked after each match day"}
+          </p>
+        </div>
 
         {matchPredictions.length > 0 && (
           <div className="mb-14">
