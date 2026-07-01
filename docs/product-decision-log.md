@@ -806,6 +806,37 @@ Content type boundaries must be defined in the prompt AND enforced by determinis
 
 ---
 
+## PDL-025: Recap match selection delegated to LLM; two deterministic floors retained
+
+**Date:** July 2026
+**Trigger:** Static tier system in the recap prompt was encoding editorial judgment that Claude already possesses — a redundant approximation that capped quality rather than ensuring it.
+
+### Context
+
+The recap prompt contained an explicit TIER 1/2/3 selection hierarchy: top seeds losing = always include, qualifiers advancing = include if space, routine wins = omit. This was built defensively early on to prevent Claude from covering meaningless matches or missing obvious leads. Over time it became clear the rules were unnecessary for selection (Claude knows a top-seed exit matters more than a routine straight-sets win) while being actively limiting — a static tier can't weigh whether a specific upset opens a specific quarter of a specific draw in a way that matters for today's narrative.
+
+Separately, the 8 matches selected for Tavily enrichment were chosen by a Python heuristic (marquee-player names first), meaning Tavily budget went to pre-decided names rather than the matches Claude actually wanted to write about.
+
+### Decision
+
+1. **Removed the tier system from the recap prompt.** Replaced with a single editorial instruction: cover what a knowledgeable fan would want to read about, omit what doesn't earn its place. No checklist.
+
+2. **Two deterministic floors kept, computed from data before the prompt is sent:**
+   - Retiring players (Wawrinka, Cirstea, Monfils, Murray etc.) — always first bullet in their section
+   - Top-10 losses — always included. These are injected as a `MANDATORY FLOORS` block with named matches, so Claude cannot miss them by editorial misjudgment.
+
+3. **Enrichment selection delegated to Sonnet.** A pre-call asks Sonnet to pick the 8 matches most worth Tavily research (favouring upsets, close matches, surprising results). The marquee-name heuristic becomes a fallback only if the call fails.
+
+### Impact
+
+Recap editorial quality should improve on days with complex draws or non-marquee storylines — the model can weigh draw implications, career arcs, and narrative texture that our tier rules couldn't capture. The floors ensure the two categories readers would notice if missing (farewell seasons, big upsets) are never dropped.
+
+### Lesson
+
+Distinguish between accuracy guardrails (must be deterministic — don't invent scores) and editorial guardrails (should be delegated — the model has better judgment than a static tier list). Encoding editorial rules in code is a ceiling, not a floor. Reserve deterministic enforcement for factual correctness and explicit brand promises; trust the model for everything else.
+
+---
+
 ```
 ## PDL-XXX: [Short decision title]
 
