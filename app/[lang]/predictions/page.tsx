@@ -134,6 +134,22 @@ export default async function PredictionsPage({
 
   const matchPredictions = getAllFeedCards().filter((c) => c.type === "prediction");
 
+  // Accuracy stats derived from resolved predictions
+  const resolved = matchPredictions.filter((c) => c.outcome && c.outcome !== "void");
+  const correct  = resolved.filter((c) => c.outcome === "correct").length;
+  const accuracy = resolved.length > 0 ? Math.round((correct / resolved.length) * 100) : null;
+
+  const outcomeLabel: Record<string, string> = {
+    correct:   "Correct",
+    incorrect: "Incorrect",
+    void:      "Void",
+  };
+  const outcomeBadge: Record<string, string> = {
+    correct:   "bg-green/10 text-green border-green/20",
+    incorrect: "bg-clay/10 text-clay border-clay/20",
+    void:      "bg-sand text-muted border-line",
+  };
+
   const statusBadge = {
     live:      "bg-clay/10 text-clay border-clay/20",
     upcoming:  "bg-green/10 text-green border-green/20",
@@ -154,22 +170,52 @@ export default async function PredictionsPage({
           <p className="font-sans text-muted text-lg max-w-2xl">{t.subtitle}</p>
         </div>
 
+        {accuracy !== null && (
+          <div className="mb-10 bg-bisque border border-line rounded-card px-6 py-4 flex flex-wrap items-center gap-6 max-w-2xl">
+            <div>
+              <p className="font-sans text-xs text-muted uppercase tracking-widest mb-1">Our record</p>
+              <p className="font-bold text-2xl">
+                {correct}/{resolved.length}
+                <span className="font-sans text-muted text-base font-normal ml-2">({accuracy}%)</span>
+              </p>
+            </div>
+            <div className="h-8 w-px bg-line hidden sm:block" />
+            <p className="font-sans text-sm text-muted">
+              Based on {resolved.length} resolved prediction{resolved.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+        )}
+
         {matchPredictions.length > 0 && (
           <div className="mb-14">
             <h2 className="text-2xl font-bold mb-6">Match Predictions</h2>
             <div className="flex flex-col gap-6 max-w-2xl">
               {matchPredictions.map((card) => (
-                <NewsCard
-                  key={card.slug}
-                  type={card.type}
-                  title={card.title}
-                  body={card.body}
-                  tags={card.tags}
-                  date={card.date}
-                  keyNumber={card.keyNumber}
-                  imageUrl={card.imageUrl}
-                  lang={lang}
-                />
+                <div key={card.slug} className="relative">
+                  {card.outcome && (
+                    <div className="mb-2 flex items-center gap-2">
+                      <span
+                        className={`font-sans text-xs font-medium px-2.5 py-1 rounded-full border ${outcomeBadge[card.outcome]}`}
+                      >
+                        {card.outcome === "correct" ? "✓ " : card.outcome === "incorrect" ? "✗ " : ""}
+                        {outcomeLabel[card.outcome]}
+                      </span>
+                      {card.outcome === "incorrect" && card.actualWinner && (
+                        <span className="font-sans text-xs text-muted">{card.actualWinner} won</span>
+                      )}
+                    </div>
+                  )}
+                  <NewsCard
+                    type={card.type}
+                    title={card.title}
+                    body={card.body}
+                    tags={card.tags}
+                    date={card.date}
+                    keyNumber={card.keyNumber}
+                    imageUrl={card.imageUrl}
+                    lang={lang}
+                  />
+                </div>
               ))}
             </div>
           </div>

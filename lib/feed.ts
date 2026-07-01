@@ -4,6 +4,8 @@ import matter from "gray-matter";
 
 export type FeedCardType = "stat" | "gear" | "form" | "history" | "upset" | "news" | "recap" | "prediction" | "video";
 
+export type PredictionOutcome = "correct" | "incorrect" | "void";
+
 export type FeedCard = {
   slug: string;
   type: FeedCardType;
@@ -16,6 +18,13 @@ export type FeedCard = {
   imageUrl?: string;
   priority?: "high";
   body: string;
+  // prediction-specific fields
+  predictionWinner?: string;
+  confidence?: number;
+  outcome?: PredictionOutcome;
+  actualWinner?: string;
+  player1?: string;
+  player2?: string;
 };
 
 const feedDir = path.join(process.cwd(), "content/feed");
@@ -42,6 +51,12 @@ export function getAllFeedCards(): FeedCard[] {
         imageUrl: data.image_url ?? undefined,
         priority: data.priority === "high" ? "high" : undefined,
         body: content.trim(),
+        predictionWinner: data.prediction_winner ?? undefined,
+        confidence: typeof data.confidence === "number" ? data.confidence : undefined,
+        outcome: data.outcome ?? undefined,
+        actualWinner: data.actual_winner ?? undefined,
+        player1: data.player1 ?? undefined,
+        player2: data.player2 ?? undefined,
       } satisfies FeedCard;
     })
     .sort((a, b) => {
