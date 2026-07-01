@@ -918,6 +918,61 @@ No `cd /Users/dg/match-analyst-bot &&` prefix. Cron's working directory is the u
 
 ---
 
+## Issue #027: Recap failed silently at 08:00 — stale ESPN cache had no completed matches
+
+**Date:** 2026-07-01
+**Project:** match-analyst-bot
+**Severity:** High
+**Reporter:** User (no recap in Telegram at 08:00)
+
+### Symptoms
+
+Recap cron fired at 08:00 but produced no card. Log showed 478 matches loaded from cache for both ATP and WTA, then: `⚠ No structured results available for 2026-06-30.` and `⚠ No structured results — card not saved.`
+
+### Root Cause
+
+The `espn-atp-20260630.json` and `espn-wta-20260630.json` cache files were written by the 10:00 predictions run on June 30 — at that time, all 478 matches had `status.completed = false` (play hadn't started). When the recap ran the next morning, `fetch_espn_events` loaded the stale cache and `_parse_espn_results` found zero completed matches.
+
+### Fix
+
+Added `skip_cache: bool = False` parameter to `fetch_espn_events`. `fetch_structured_results` now passes `skip_cache=True` so the recap always fetches live data. The cache is still used by the predictions path (schedule data is valid all day).
+
+### Lessons Learned
+
+A single ESPN cache file was being used for two purposes with opposite freshness requirements: schedule (valid all day) and results (stale the moment matches finish). Any shared cache serving both read patterns needs either separate keys or a caller-controlled bypass.
+
+---
+
+## Issue #028: Recap not sent to Telegram after regeneration; predictions dispatched at wrong time
+
+**Date:** 2026-07-01
+**Project:** match-analyst-bot
+**Severity:** Medium
+**Reporter:** User (recap missing from Telegram; Toby Samuel prediction arrived at 08:00 instead of 10:00)
+
+### Symptoms
+
+1. After recap was successfully regenerated (Day 2, correct content), it never appeared in Telegram for review.
+2. The Toby Samuel vs Jakub Mensik prediction card was dispatched at 08:00 during the recap run — it should only fire at 10:00 via `--predict`.
+
+### Root Cause
+
+**Issue 1:** `_recap_already_queued()` treated `"rejected"` as a terminal state. The Day 2 recap had been sent the previous day with bad content and rejected. When regenerated with the same filename, the queue check found the old rejected entry and skipped it silently.
+
+**Issue 2:** `run_generate_recap()` called `send_pending()` with no type filter. `send_pending()` iterates all candidate directories, so any pending prediction card was also dispatched alongside the recap.
+
+### Fix
+
+1. Removed `"rejected"` from `_recap_already_queued`'s terminal set — a rejected recap can always be retried.
+2. Added `only_types: set | None` to `send_pending()` and `_send_all_pending()`. The recap path now calls `send_pending(only_types={"recap"})`.
+
+### Lessons Learned
+
+1. "Rejected" should never block a retry on content that may have been regenerated — the queue tracks message state, not content validity.
+2. Any `send_pending()` call from within a specific agent should pass an explicit type filter. A shared flush with no scope guard is a cross-contamination risk when multiple agents have pending candidates simultaneously.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
