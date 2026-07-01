@@ -973,6 +973,85 @@ A single ESPN cache file was being used for two purposes with opposite freshness
 
 ---
 
+## Issue #029: Prediction cards showed wrong round label throughout the fortnight
+
+**Date:** 2026-07-01
+**Project:** match-analyst-bot
+**Severity:** Medium
+**Reporter:** User (cards showed "R1" on Day 2 of Wimbledon)
+
+### Symptoms
+
+All prediction card titles and visuals displayed "R1" regardless of the actual tournament round. On Day 2 of Wimbledon, cards for Djokovic/Tsitsipas and Andreeva/Krejcikova read "R1 Prediction" instead of "R2 Prediction".
+
+### Root Cause
+
+Two compounding errors:
+
+1. `_parse_espn_fixtures` hardcoded `"round": "R1"` for every match with a comment saying ESPN doesn't expose round data. This was incorrect — `comp['round']['displayName']` contains the actual round ("Round 1", "Round 2", "Quarterfinal" etc.).
+
+2. `run_predictions_only` attempted to correct this by stamping all matches with the tournament-derived round label (`_get_tournament_round_label`). This created a different bug: R1 matches legitimately scheduled on Day 2 (Wimbledon runs R1 across two days) were incorrectly labelled R2.
+
+### Fix
+
+Read `comp['round']['displayName']` directly from ESPN and map to display labels (R1/R2/R3/R4/QF/SF/F). Removed the blanket tournament-level round stamping from `run_predictions_only` — each match now carries its own accurate round from the data source.
+
+### Lessons Learned
+
+Always inspect the actual API response before concluding a field is unavailable. The round data was there from the beginning — the incorrect assumption ("ESPN doesn't expose round labels") was never verified against the raw payload.
+
+---
+
+## Issue #030: Completed match (Cobolli/Navone) promoted into predictions schedule
+
+**Date:** 2026-07-01
+**Project:** match-analyst-bot
+**Severity:** Medium
+**Reporter:** User (Cobolli/Navone don't play today)
+
+### Symptoms
+
+A prediction was generated and sent for Flavio Cobolli vs Mariano Navone despite the match having already been played. The card appeared in Telegram review.
+
+### Root Cause
+
+ESPN's scoreboard API sometimes lags on updating `status.completed` after a match ends — the field remained `False` for several hours after the match finished. The schedule filter in `_parse_espn_fixtures` only checked `status.completed`, so the match leaked through as an upcoming fixture. The result was already visible in `comp['notes']` ("Flavio Cobolli bt Mariano Navone 1-6 7-6 6-3") before the status was updated.
+
+### Fix
+
+Added a secondary completed guard in `_parse_espn_fixtures`: if any entry in `comp['notes']` contains "bt " or " def ", the match is treated as finished and excluded from the schedule regardless of `status.completed`.
+
+### Lessons Learned
+
+`status.completed` is a lagging indicator on ESPN's API. Treat the notes field as the authoritative signal for whether a match has a result — it is updated faster than the status flag.
+
+---
+
+## Issue #031: Stale rejected video candidate re-surfaced after queue cleanup
+
+**Date:** 2026-07-01
+**Project:** match-analyst-bot
+**Severity:** Low
+**Reporter:** User (why did the agent generate Berlin semifinal video?)
+
+### Symptoms
+
+An old video candidate (`aryna-sabalenka-vs-jessica-pegula-2026-berlin-semifinal.md`) that had previously been rejected was re-sent to the Telegram review channel during a `send_pending` call, weeks after it was generated and rejected.
+
+### Root Cause
+
+During manual queue cleanup, entries were filtered by player name ("sabalenka") rather than by content type and slug. This accidentally removed the `"rejected"` status from the Berlin video entry alongside the intended prediction entries. With its status cleared, `send_pending` treated it as a new unsent candidate on the next run.
+
+### Fix
+
+Deleted the stale candidate file and its queue entry. Going forward, queue cleanup filters must scope by both content type (`card_type`) and a slug pattern specific enough to avoid cross-type collisions — player names alone are too broad.
+
+### Lessons Learned
+
+Queue status is the only thing preventing old rejected candidates from re-surfacing. Any operation that bulk-modifies queue entries by a loose keyword risks clearing protective statuses from unrelated cards. Always filter by `card_type` in addition to any name-based criteria.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]
