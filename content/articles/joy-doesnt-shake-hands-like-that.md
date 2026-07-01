@@ -10,6 +10,7 @@ tags:
   - "Maya Joint"
   - "Opinion"
 readTime: "4 min"
+substack_url: "https://tmtennismind.substack.com/p/joy-doesnt-shake-hands-like-that"
 ---
 
 Serena said she came back for the joy. Her handshake said otherwise.
