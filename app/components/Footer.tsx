@@ -13,11 +13,11 @@ type NavDict = {
   home: string;
   news: string;
   articles: string;
-  match_analyses: string;
   racket_finder: string;
   string_finder: string;
   predictions: string;
   feed: string;
+  stringing: string;
 };
 
 type Props = {
@@ -32,10 +32,11 @@ export default function Footer({ lang, dict, navDict }: Props) {
     { href: `/${lang}/news`,          label: navDict.news },
     { href: `/${lang}/articles`,      label: navDict.articles },
     { href: `/${lang}/feed`,          label: navDict.feed },
-    { href: `/${lang}/analysis`,      label: navDict.match_analyses },
+
     { href: `/${lang}/predictions`,   label: navDict.predictions },
     { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
     { href: `/${lang}/string-finder`, label: navDict.string_finder },
+    { href: `/${lang}/stringing`,     label: navDict.stringing },
   ];
 
   return (

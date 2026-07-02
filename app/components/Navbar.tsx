@@ -10,12 +10,12 @@ type NavDict = {
   news: string;
   articles: string;
   tools: string;
-  match_analyses: string;
   racket_finder: string;
   string_finder: string;
   predictions: string;
   customize: string;
   feed: string;
+  stringing: string;
 };
 
 type Props = {
@@ -48,15 +48,16 @@ export default function Navbar({ lang, navDict }: Props) {
   const mainLinks = [
     { href: `/${lang}/news`,        label: navDict.news },
     { href: `/${lang}/feed`,        label: navDict.feed },
-    { href: `/${lang}/articles`,    label: navDict.articles },
-    { href: `/${lang}/analysis`,    label: navDict.match_analyses },
     { href: `/${lang}/predictions`, label: navDict.predictions },
+    { href: `/${lang}/articles`,    label: navDict.articles },
+
   ];
 
   const toolLinks = [
     { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
     { href: `/${lang}/string-finder`, label: navDict.string_finder },
     { href: `/${lang}/customize`,     label: navDict.customize },
+    { href: `/${lang}/stringing`,     label: navDict.stringing },
   ];
 
   const isToolActive = toolLinks.some((l) => pathname === l.href);

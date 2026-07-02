@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Home",
-    "match_analyses": "Match Analyses",
+
     "racket_finder": "Racket Finder",
     "string_finder": "String Finder",
     "predictions": "Predictions",
@@ -9,14 +9,15 @@
     "news": "News",
     "articles": "Articles",
     "tools": "Tools",
-    "feed": "Insights"
+    "feed": "Insights",
+    "stringing": "Racket Stringing"
   },
   "home": {
     "hero_headline_1": "Everything tennis.",
     "hero_headline_2": "One place.",
     "hero_subline": "Follow the tour without missing a beat. Understand what's happening and why. Find the right gear for your game. TennisMind gives you the tennis knowledge you actually want — in the time you actually have.",
     "hero_cta_racket": "Find Your Racket",
-    "hero_cta_analysis": "Read Insights",
+    "hero_cta_analysis": "String Your Racket",
     "stats_match_analyses": "Match Analyses",
     "stats_news_published": "News Published",
     "stats_insights_published": "Insights Published",
@@ -30,6 +31,9 @@
     "f2_title": "Tournament Predictions",
     "f2_desc": "Understand what to watch for before the match starts.",
     "f2_cta": "See Predictions",
+    "f9_title": "Racket Stringing",
+    "f9_desc": "From €15 labor. Within 24 hours. Cheaper and faster than any shop.",
+    "f9_cta": "Request stringing",
     "f3_title": "Racket Finder",
     "f3_desc": "Understand which racket fits your game.",
     "f3_cta": "Find Your Racket",
@@ -55,7 +59,7 @@
     "cta_button": "Start the Quiz →"
   },
   "footer": {
-    "tagline": "Daily insights, match analysis, and personalized gear recommendations.",
+    "tagline": "Daily news, insights, match predictions, and personalized gear recommendations.",
     "nav_label": "Navigation",
     "community_label": "Community",
     "community_text": "Join the TennisMind Telegram for daily tennis insights.",

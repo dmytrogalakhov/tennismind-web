@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Start",
-    "match_analyses": "Match-Analysen",
+
     "racket_finder": "Schläger-Finder",
     "string_finder": "Besaitungs-Finder",
     "predictions": "Prognosen",
@@ -9,14 +9,15 @@
     "news": "News",
     "articles": "Artikel",
     "tools": "Tools",
-    "feed": "Insights"
+    "feed": "Insights",
+    "stringing": "Besaitungs-Service"
   },
   "home": {
     "hero_headline_1": "Alles Tennis.",
     "hero_headline_2": "Ein Ort.",
     "hero_subline": "Bleib auf dem Laufenden, ohne etwas zu verpassen. Verstehe, was passiert und warum. Finde das richtige Equipment für dein Spiel. TennisMind gibt dir das Tennis-Wissen, das du wirklich willst — in der Zeit, die du wirklich hast.",
     "hero_cta_racket": "Schläger finden",
-    "hero_cta_analysis": "Insights lesen",
+    "hero_cta_analysis": "Schläger besaiten",
     "stats_match_analyses": "Match-Analysen",
     "stats_news_published": "News veröffentlicht",
     "stats_insights_published": "Veröffentlichte Insights",
@@ -30,6 +31,9 @@
     "f2_title": "Turnier-Prognosen",
     "f2_desc": "Verstehe, worauf es ankommt, bevor das Match beginnt.",
     "f2_cta": "Prognosen ansehen",
+    "f9_title": "Besaitungs-Service",
+    "f9_desc": "Ab €15 Arbeitskosten. Innerhalb von 24 Stunden. Günstiger und schneller als jedes Geschäft.",
+    "f9_cta": "Besaitung anfragen",
     "f3_title": "Schläger-Finder",
     "f3_desc": "Verstehe, welcher Schläger zu deinem Spiel passt.",
     "f3_cta": "Schläger finden",
@@ -55,7 +59,7 @@
     "cta_button": "Quiz starten →"
   },
   "footer": {
-    "tagline": "Tägliche Einblicke, Match-Analysen und personalisierte Ausrüstungsempfehlungen.",
+    "tagline": "Tägliche News, Einblicke, Match-Prognosen und personalisierte Ausrüstungsempfehlungen.",
     "nav_label": "Navigation",
     "community_label": "Community",
     "community_text": "Tritt dem TennisMind Telegram für tägliche Tennis-Insights bei.",

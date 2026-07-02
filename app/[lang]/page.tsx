@@ -39,9 +39,10 @@ export default async function HomePage({
     { icon: "✍️", title: t.f8_title, desc: t.f8_desc, href: `/${lang}/articles`,      cta: t.f8_cta, badge: null          },
     { icon: "📡", title: t.f7_title, desc: t.f7_desc, href: `/${lang}/feed`,          cta: t.f7_cta, badge: null          },
     { icon: "🎾", title: t.f3_title, desc: t.f3_desc, href: `/${lang}/racket-finder`, cta: t.f3_cta, badge: null          },
+    { icon: "🪢", title: t.f9_title, desc: t.f9_desc, href: `/${lang}/stringing`,     cta: t.f9_cta, badge: null          },
     { icon: "🎸", title: t.f4_title, desc: t.f4_desc, href: `/${lang}/string-finder`, cta: t.f4_cta, badge: t.coming_soon },
     { icon: "🔧", title: t.f5_title, desc: t.f5_desc, href: `/${lang}/customize`,     cta: t.f5_cta, badge: t.coming_soon },
-    { icon: "📊", title: t.f1_title, desc: t.f1_desc, href: `/${lang}/analysis`,      cta: t.f1_cta, badge: null          },
+
   ];
 
   return (
@@ -62,7 +63,7 @@ export default async function HomePage({
             <Button variant="primary" href={`/${lang}/racket-finder`}>
               {t.hero_cta_racket}
             </Button>
-            <Button variant="secondary" href={`/${lang}/feed`}>
+            <Button variant="secondary" href={`/${lang}/stringing`}>
               {t.hero_cta_analysis}
             </Button>
           </div>
