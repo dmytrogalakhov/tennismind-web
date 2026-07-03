@@ -777,24 +777,27 @@ unverifiable historical claims before they go live.
 | Pages indexed by Google | 50+ |
 | Average time on racket tool | > 2 minutes |
 
-### Phase 5 — Loop-Based Pipeline Automation (IDEAS — not yet scoped)
+### Phase 5 — Loop-Based Pipeline Automation
 
-**Context:** The current pipeline is cron-driven but monolithic — each run couples discovery, generation, and queuing in one step. Separating these into distinct loops would improve timeliness, reduce redundant token spend, and make the system more resilient. The following are candidate ideas, not committed work.
+**Context:** The current pipeline was cron-driven but monolithic — each run coupled discovery, generation, and queuing in one step. Phase 5 separates these into distinct loops with different cadences and costs. The news discovery loop was implemented in July 2026.
 
 **Concept: discovery loops vs. generation loops**
 
-The core insight is that discovery (finding stories) and generation (writing cards) have different optimal cadences and costs. Discovery can run frequently and cheaply (Tavily + Haiku scoring). Generation is expensive and should only fire when there's something genuinely new to write.
+The core insight is that discovery (finding stories) and generation (writing cards) have different optimal cadences and costs. Discovery can run frequently and cheaply (Tavily + RSS + Google News scoring). Generation is expensive and should only fire when there's something genuinely new to write.
 
-**Candidate loop ideas:**
+**Implemented: news discovery loop** *(time-based — shipped July 2026)*
+- `--discover` flag: runs 3× daily at 07:00, 13:00, 19:00 during active tournaments
+- Checks RSS (BBC, ESPN), Google News (ATP/WTA layer), and Tavily for fresh tennis stories
+- URL-based dedup via `data/discovery_queue.json` — each URL evaluated exactly once across runs
+- Items scored using existing `score_story()` significance system (threshold: 5)
+- Stale items pruned automatically after 48h
+- `--news` at 14:00 and 20:00 reads from queue; falls back to fresh discovery if queue is empty
+- **Cost:** ~$0.28/day during Grand Slams vs $0.16/day before (net: ~$1.68/tournament)
+- **See:** `docs/solution-design-news-discovery-loop.md`
 
-**1. Hourly news discovery loop** *(time-based)*
-- Runs every 60 min during active tournaments
-- Checks Tavily, Flashscore, Google News for new tennis stories
-- Filters by freshness (< 24h), source trust, and deduplication against a persistent `discovery_queue.json` (URL-based — each URL evaluated exactly once)
-- Does NOT generate cards — only populates the queue
-- Generation cron (2× per day) reads the queue and calls Sonnet only for qualified items
-- **Main benefit:** catches breaking stories within an hour; eliminates re-evaluation of seen URLs across runs; Sonnet tokens spent only when there's something new
-- **Open question:** current 1–2× daily cadence may already be sufficient; benefit depends on how time-sensitive news coverage needs to be
+**Candidate loop ideas (not yet built):**
+
+**2. Smarter recap retry loop** *(goal-based)*
 
 **2. Smarter recap retry loop** *(goal-based)*
 - Instead of "fail and stop," retry with degraded context:

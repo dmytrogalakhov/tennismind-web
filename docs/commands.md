@@ -49,6 +49,29 @@ python3 generate_feed.py --review
 
 ## 📰 News Agent
 
+### Inspect the discovery queue
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 -c "
+import json, orchestrator
+q = orchestrator._load_queue()
+pending = sorted([v for v in q.values() if v.get('status')=='pending'], key=lambda x: -x.get('score',0))
+print(f'{len(pending)} pending / {len(q)} total')
+for item in pending[:10]:
+    print(f'  [{item[\"score\"]}] {item[\"headline\"][:70]}')
+"
+```
+Queue file: `data/discovery_queue.json`
+
+### Trigger a manual discovery sweep
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 orchestrator.py --discover
+```
+Runs RSS + Google News + Tavily, scores each story, and appends new items to `data/discovery_queue.json`. No Sonnet called. Safe to run at any time.
+
 ### Audit the discovery pool (no card generation)
 ```bash
 cd ~/match-analyst-bot
@@ -58,13 +81,13 @@ python3 generate_feed.py --discover-news
 Shows every fresh story scored for significance — title, source (tavily / rss:bbc / rss:espn), score, pass/fail verdict, and scoring reasons. Also shows all date/relevance drops. Use to diagnose why a story is missing or to calibrate the significance threshold.
 Logs: `logs/news-discovery.log` (raw discovery) and `logs/significance.log` (scores).
 
-### Let the agent find news
+### Let the agent find news (manual run)
 ```bash
 cd ~/match-analyst-bot
 source venv/bin/activate
-python3 generate_feed.py --generate-news
-python3 generate_feed.py --review-news
+python3 orchestrator.py --news
 ```
+Reads pending items from the discovery queue and generates cards. Falls back to fresh discovery if queue is empty.
 Review options: `y`=publish, `n`=delete permanently, `t`=save for later, `edit`=edit card.
 Cards saved with `t` will appear again in the next `--review-news` run.
 
