@@ -42,6 +42,40 @@ const SECTION_HEADER_REGEX = /(MEN'S DRAW|WOMEN'S DRAW|STAT OF THE DAY|WHY [^\n]
 const SANS: React.CSSProperties["fontFamily"]  = "var(--font-sans), system-ui, sans-serif";
 const SERIF: React.CSSProperties["fontFamily"] = "var(--font-serif), Georgia, 'Times New Roman', serif";
 
+function renderSectionContent(part: string, key: string): React.ReactNode {
+  // Plain text (no bullets) — render as a single paragraph
+  if (!part.includes("•")) {
+    return <p key={key} style={{ margin: 0 }}>{part}</p>;
+  }
+
+  // Bullet content — split by newline, render each line individually
+  return (
+    <div key={key}>
+      {part.split("\n").filter(l => l.trim()).map((line, i) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("•")) {
+          return (
+            <div key={i} style={{
+              paddingLeft: "1rem",
+              textIndent: "-1rem",
+              marginBottom: "0.3rem",
+              lineHeight: 1.5,
+            }}>
+              {trimmed}
+            </div>
+          );
+        }
+        // Hook sentence above bullets
+        return (
+          <p key={i} style={{ margin: "0 0 0.5rem", fontStyle: "italic", opacity: 0.75, lineHeight: 1.4 }}>
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function renderStructuredBody(text: string) {
   const parts = text.split(SECTION_HEADER_REGEX);
   const nodes: React.ReactNode[] = [];
@@ -72,7 +106,7 @@ function renderStructuredBody(text: string) {
         </div>
       );
     } else {
-      nodes.push(<p key={`p${i}`} style={{ margin: 0 }}>{part}</p>);
+      nodes.push(renderSectionContent(part, `p${i}`));
     }
     hasContent = true;
   }

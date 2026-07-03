@@ -777,11 +777,63 @@ unverifiable historical claims before they go live.
 | Pages indexed by Google | 50+ |
 | Average time on racket tool | > 2 minutes |
 
-### Phase 5 — Full Platform
+### Phase 5 — Loop-Based Pipeline Automation (IDEAS — not yet scoped)
+
+**Context:** The current pipeline is cron-driven but monolithic — each run couples discovery, generation, and queuing in one step. Separating these into distinct loops would improve timeliness, reduce redundant token spend, and make the system more resilient. The following are candidate ideas, not committed work.
+
+**Concept: discovery loops vs. generation loops**
+
+The core insight is that discovery (finding stories) and generation (writing cards) have different optimal cadences and costs. Discovery can run frequently and cheaply (Tavily + Haiku scoring). Generation is expensive and should only fire when there's something genuinely new to write.
+
+**Candidate loop ideas:**
+
+**1. Hourly news discovery loop** *(time-based)*
+- Runs every 60 min during active tournaments
+- Checks Tavily, Flashscore, Google News for new tennis stories
+- Filters by freshness (< 24h), source trust, and deduplication against a persistent `discovery_queue.json` (URL-based — each URL evaluated exactly once)
+- Does NOT generate cards — only populates the queue
+- Generation cron (2× per day) reads the queue and calls Sonnet only for qualified items
+- **Main benefit:** catches breaking stories within an hour; eliminates re-evaluation of seen URLs across runs; Sonnet tokens spent only when there's something new
+- **Open question:** current 1–2× daily cadence may already be sufficient; benefit depends on how time-sensitive news coverage needs to be
+
+**2. Smarter recap retry loop** *(goal-based)*
+- Instead of "fail and stop," retry with degraded context:
+  - Run 1: full Tavily enrichment
+  - Run 2 (if verification fails): retry without enrichment (removes the hallucination vector)
+  - Run 3 (if still failing): log and exit
+- Verification failure currently ends the run; this loop keeps trying with less context rather than giving up
+- **Main benefit:** higher recap success rate on days with noisy Tavily results
+
+**3. Video candidate loop** *(time-based)*
+- Every 2 hours, search for official highlight videos from allowlisted YouTube channels
+- Filter by: current tournament, correct round stage, trusted channel
+- Most filtering is deterministic (channel allowlist + title matching) — minimal LLM needed
+- Saves qualified candidates to queue; human reviews via Telegram as now
+- **Main benefit:** video discovery currently requires manual triggering
+
+**4. Autonomous publish for high-confidence card types** *(proactive — future)*
+- Predictions have a fixed template, a structured source, and a clear accuracy signal (win/loss outcome)
+- Candidate for removing Telegram review step once pipeline quality is proven
+- Only viable after 2+ weeks with zero hallucination failures
+- Recaps and news stay human-reviewed longest — they carry more narrative risk
+
+**Design principles (from the Claude loops framework):**
+- Use the simplest loop that fits — don't build proactive loops until time-based ones are stable
+- Verification must be explicit — every loop needs a defined "done" condition, not just "ran successfully"
+- Cost control — hourly discovery should use Haiku, not Sonnet; Sonnet reserved for generation
+- Decouple discovery from generation — running them together couples cost to frequency
+
+**Prerequisites before building any of this:**
+- Zero hallucination failures for 2+ consecutive weeks (current recap fixes need to prove out)
+- Clear signal that current publication frequency is insufficient (if daily news cadence is working, loop adds complexity without visible benefit)
+
+---
+
+### Phase 6 — Full Platform
 
 **Timing:** 6-12 months from now, only after the website proves traffic and engagement.
 
-**Phase 5 is the original "everything tennis" vision.** It adds:
+**Phase 6 is the original "everything tennis" vision.** It adds:
 
 **User accounts and personalisation:**
 - Follow specific players (get notified when new analysis/prediction is published)

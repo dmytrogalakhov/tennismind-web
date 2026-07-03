@@ -1052,6 +1052,94 @@ Queue status is the only thing preventing old rejected candidates from re-surfac
 
 ---
 
+## Issue #032: News card images generated with dark navy PIL fallback instead of branded SVG
+
+**Date:** 2026-07-02
+**Project:** match-analyst-bot
+**Severity:** Medium — published cards have wrong visual design
+**Reporter:** User noticed Andreeva news card had "weird design in dark blue"
+
+### Symptoms
+
+News cards published on 2026-07-02 (Andreeva, Djokovic, Shelton) had a dark navy (#121826) background instead of the on-brand dark green (#123A2A) SVG card design.
+
+### Investigation
+
+1. Checked `image-generation.log` — found `FileNotFoundError: [Errno 2] No such file or directory: 'npx'` for all three cards.
+2. `generate_news_tile_branded()` calls `npx tsx scripts/renderNewsCard.ts` via `subprocess.run(["npx", ...])`.
+3. When Python spawns a subprocess from cron or non-login shells, PATH does not include `/opt/homebrew/bin`, so `npx` is not found.
+4. The function catches the exception and falls back to `generate_news_tile()` (PIL, dark navy `#121826` background).
+
+### Root Cause
+
+`subprocess.run(["npx", ...])` relies on `$PATH` to resolve the binary. Cron and Python subprocess environments do not inherit the user's shell PATH, so `npx` at `/opt/homebrew/bin/npx` is not found.
+
+### Fix
+
+Used `shutil.which("npx")` to resolve the binary at runtime, with `/opt/homebrew/bin/npx` as an explicit fallback:
+
+```python
+_npx = _shutil.which("npx") or "/opt/homebrew/bin/npx"
+subprocess.run([_npx, "tsx", "scripts/renderNewsCard.ts"], ...)
+```
+
+Regenerated the Andreeva card image directly via the Node renderer.
+
+### Lessons Learned
+
+Never pass bare binary names to `subprocess.run()` when the code may run outside an interactive shell. Always resolve with `shutil.which()` and provide an explicit absolute fallback for known locations (Homebrew: `/opt/homebrew/bin/`, nvm: `~/.nvm/versions/node/*/bin/`).
+
+---
+
+## Issue #033: Recap hallucinating Serena Williams — chain reasoning + narrow verified pool
+
+**Date:** 2026-07-03
+**Project:** match-analyst-bot
+**Severity:** High — recap generation fails verification, cannot publish
+**Reporter:** Recap VERIFICATION FAILED repeatedly at Wimbledon Day 4
+
+### Symptoms
+
+Wimbledon Day 4 recap failed verification: `VERIFICATION FAILED — recap mentions unverified player(s): ['Serena', 'Shelton', 'Williams']`. Neither Serena Williams nor Ben Shelton played on Day 4.
+
+### Investigation
+
+1. Added debug context print to the verifier to show WHERE in the body suspicious names appear.
+2. Context for 'Serena'/'Williams': `"the Filipino star, who beat the player who beat Serena Williams"` — Sonnet used transitive chain reasoning to connect Eala → Joint → Serena, drawing on training data about past matches.
+3. Context for 'Shelton': `"Fery beat Virtanen's conqueror of Shelton"` — Shelton DID play Wimbledon (lost to Virtanen in R1) but played 3 days ago, so wasn't in today's `all_matches` verified pool.
+4. Root cause 1: verified pool only included today's 34 matches, not all tournament players across all previous rounds.
+5. Root cause 2: NOTABLE ABSENCES exception in the prompt explicitly permitted naming players who didn't play today, which opened the door for chain reasoning.
+6. Root cause 3: prompt allowed "BACKGROUND KNOWLEDGE" without hard constraints on chain/transitive references.
+
+### Root Cause
+
+Two compounding issues: (a) the verifier's player pool only covered today's matches — a player eliminated in R1 would be flagged as hallucinated on Day 4 even if correctly referenced; (b) the prompt's NOTABLE ABSENCES exception gave Sonnet license to reason about players outside SOURCE 1, and Sonnet extended this into transitive chains ("the player who beat Serena Williams").
+
+### Fix
+
+**Verifier fix:** Extended `verified_name_words` to include all players from ALL tournament days by loading ESPN cache files from `current["start"]` to `recap_date`. Shelton (R1 loser) is now verified across the full tournament.
+
+**Prompt fix 1:** Replaced NOTABLE ABSENCES exception with NO CHAIN REASONING rule:
+```
+NO CHAIN REASONING: Do not write "A beat B who beat C" or "the player who beat X".
+Write only about today's result and why it matters.
+```
+
+**Prompt fix 2:** Replaced generic PLAYER NAME RULE with an explicit complete list of today's players:
+```
+Players who played today (complete list): [list built from all_matches]
+```
+
+**Debug fix:** Added context-print in verifier so the sentence containing the suspicious name is shown when verification fails.
+
+### Lessons Learned
+
+1. Verified player pools must span the full tournament, not just today. A R1 loser is a legitimate reference by Day 4.
+2. Chain/transitive reasoning ("A beat B who beat C") is a hallucination vector that prompts must explicitly prohibit. "Do not invent results" does not stop it.
+3. When a prompt rule fails (PLAYER NAME RULE didn't stop Serena), add a debug print first — see the actual output before guessing the fix. The chain reasoning pattern was only visible once we printed the flagged context.
+
+---
+
 ## Issue #XXX: [Short description]
 
 **Date:** [Date]

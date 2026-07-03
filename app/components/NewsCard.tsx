@@ -32,6 +32,36 @@ const TYPE_CONFIG: Partial<Record<FeedCardType, { icon: string; label: string }>
 const RECAP_HEADER_SET = new Set(["MEN'S DRAW", "WOMEN'S DRAW", "STAT OF THE DAY"]);
 const SECTION_HEADER_REGEX = /(MEN'S DRAW|WOMEN'S DRAW|STAT OF THE DAY)/;
 
+function renderSectionContent(part: string, key: string): React.ReactNode {
+  if (!part.includes("•")) {
+    return <p key={key} style={{ margin: 0 }}>{part}</p>;
+  }
+  return (
+    <div key={key}>
+      {part.split("\n").filter(l => l.trim()).map((line, i) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("•")) {
+          return (
+            <div key={i} style={{
+              paddingLeft: "1rem",
+              textIndent: "-1rem",
+              marginBottom: "0.3rem",
+              lineHeight: 1.5,
+            }}>
+              {trimmed}
+            </div>
+          );
+        }
+        return (
+          <p key={i} style={{ margin: "0 0 0.5rem", fontStyle: "italic", opacity: 0.75, lineHeight: 1.4 }}>
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function renderRecapBody(text: string) {
   const parts = text.split(SECTION_HEADER_REGEX);
   const nodes: React.ReactNode[] = [];
@@ -62,7 +92,7 @@ function renderRecapBody(text: string) {
         </div>
       );
     } else {
-      nodes.push(<p key={`p${i}`} style={{ margin: 0 }}>{part}</p>);
+      nodes.push(renderSectionContent(part, `p${i}`));
     }
     hasContent = true;
   }
