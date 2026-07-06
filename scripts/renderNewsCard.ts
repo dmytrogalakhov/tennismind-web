@@ -14,7 +14,7 @@ import { renderNewsCard } from "../lib/cards/newsCard";
 // Controlled vocabulary for the eyebrow label.
 // Never accept free-form agent output (surfaces, tags, topics).
 const VALID_CATEGORIES = new Set([
-  "NEWS", "ANALYSIS", "INSIGHT", "PREDICTION", "FEATURE",
+  "NEWS", "ANALYSIS", "INSIGHT", "PREDICTION", "FEATURE", "OPINION",
 ]);
 
 const raw = fs.readFileSync("/dev/stdin", "utf-8");
