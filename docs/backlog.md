@@ -45,6 +45,9 @@ The `outcome` frontmatter field (`correct | incorrect | void`) is already writte
 
 ## Infrastructure
 
+**Enable Vercel auto-deploy on git push** `[S]`  
+Currently every deployment requires a manual trigger in the Vercel dashboard. Auto-deploy on push to `main` is a single toggle in Vercel project settings (Settings → Git → Auto-Deploy). Once enabled, every `git push` deploys automatically — no manual step needed. This also fixes the content visibility gap where approved cards sit untracked until someone remembers to push and redeploy.
+
 **Faster publish via Vercel ISR** `[M]`  
 Current: approval → live website = ~90 seconds (git push → full Vercel rebuild).  
 Fix: call `revalidatePath('/en/feed')` (and relevant sub-routes) from `publish_card()` via a Vercel deploy hook or a lightweight Next.js API route. No database needed. Gets publish latency to ~5 seconds.  
