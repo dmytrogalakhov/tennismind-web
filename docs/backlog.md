@@ -1,6 +1,6 @@
 # TennisMind — Product Backlog
 
-**Last updated:** 2026-07-08 (expanded from strategic-roadmap.md + product-decision-log.md)  
+**Last updated:** 2026-07-09  
 Items are grouped by area. Each has a rough effort tag: `[S]` small (hours), `[M]` medium (days), `[L]` large (weeks).
 
 ---
@@ -60,6 +60,9 @@ _Not urgent while Wimbledon is on; revisit before the US Open swing._
 ---
 
 ## Content
+
+**Match stats card type** `[M]`  
+A new card type showing per-match statistics: aces, double faults, first serve %, win % on first/second serve, break points saved. Currently neither ESPN nor Apify (flashscore-scraper-live) provides this — the actor only scrapes the match list page, not the individual match detail/Stats tab. A different Apify actor that crawls the match detail URL exists and would be the cheapest path; alternatives are the paywalled ATP/WTA official API or commercial providers (SportRadar, Opta). The card would sit alongside or replace the recap for big matches, giving readers the tactical story behind the score. Only worth building if the "news-as-insight" pivot succeeds and there's appetite for deeper per-match content.
 
 **Expand recap coverage to Masters 1000s** `[S]`  
 `recap_eligible: False` on Indian Wells, Miami, Madrid, Monte Carlo, Italian Open. Flipping these to `True` requires verifying ESPN data quality for each tournament before the season starts. Suggested: test during Indian Wells 2027 in January.
