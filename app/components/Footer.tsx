@@ -18,6 +18,7 @@ type NavDict = {
   predictions: string;
   feed: string;
   stringing: string;
+  match_analysis: string;
 };
 
 type Props = {
@@ -28,15 +29,15 @@ type Props = {
 
 export default function Footer({ lang, dict, navDict }: Props) {
   const navLinks = [
-    { href: `/${lang}`,               label: navDict.home },
-    { href: `/${lang}/news`,          label: navDict.news },
-    { href: `/${lang}/articles`,      label: navDict.articles },
-    { href: `/${lang}/feed`,          label: navDict.feed },
-
-    { href: `/${lang}/predictions`,   label: navDict.predictions },
-    { href: `/${lang}/racket-finder`, label: navDict.racket_finder },
-    { href: `/${lang}/string-finder`, label: navDict.string_finder },
-    { href: `/${lang}/stringing`,     label: navDict.stringing },
+    { href: `/${lang}`,                label: navDict.home },
+    { href: `/${lang}/news`,           label: navDict.news },
+    { href: `/${lang}/articles`,       label: navDict.articles },
+    { href: `/${lang}/match-analysis`, label: navDict.match_analysis },
+    { href: `/${lang}/feed`,           label: navDict.feed },
+    { href: `/${lang}/predictions`,    label: navDict.predictions },
+    { href: `/${lang}/racket-finder`,  label: navDict.racket_finder },
+    { href: `/${lang}/string-finder`,  label: navDict.string_finder },
+    { href: `/${lang}/stringing`,      label: navDict.stringing },
   ];
 
   return (
