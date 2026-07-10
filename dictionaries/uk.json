@@ -1,7 +1,6 @@
 {
   "nav": {
     "home": "Головна",
-
     "racket_finder": "Підбір ракетки",
     "string_finder": "Підбір струн",
     "predictions": "Прогнози",
@@ -10,7 +9,8 @@
     "articles": "Статті",
     "tools": "Інструменти",
     "feed": "Інсайти",
-    "stringing": "Натяжка ракеток"
+    "stringing": "Натяжка ракеток",
+    "match_analysis": "Аналіз матчів"
   },
   "home": {
     "hero_headline_1": "Весь теніс.",

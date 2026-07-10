@@ -16,6 +16,7 @@ type NavDict = {
   customize: string;
   feed: string;
   stringing: string;
+  match_analysis: string;
 };
 
 type Props = {
@@ -46,11 +47,11 @@ export default function Navbar({ lang, navDict }: Props) {
   }, []);
 
   const mainLinks = [
-    { href: `/${lang}/news`,        label: navDict.news },
-    { href: `/${lang}/feed`,        label: navDict.feed },
-    { href: `/${lang}/predictions`, label: navDict.predictions },
-    { href: `/${lang}/articles`,    label: navDict.articles },
-
+    { href: `/${lang}/news`,           label: navDict.news },
+    { href: `/${lang}/feed`,           label: navDict.feed },
+    { href: `/${lang}/match-analysis`, label: navDict.match_analysis },
+    { href: `/${lang}/predictions`,    label: navDict.predictions },
+    { href: `/${lang}/articles`,       label: navDict.articles },
   ];
 
   const toolLinks = [

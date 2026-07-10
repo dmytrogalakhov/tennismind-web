@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-export type FeedCardType = "stat" | "gear" | "form" | "history" | "upset" | "news" | "recap" | "prediction" | "video";
+export type FeedCardType = "stat" | "gear" | "form" | "history" | "upset" | "news" | "recap" | "prediction" | "video" | "match-analysis";
 
 export type PredictionOutcome = "correct" | "incorrect" | "void";
 

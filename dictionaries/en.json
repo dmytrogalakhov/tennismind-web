@@ -1,7 +1,6 @@
 {
   "nav": {
     "home": "Home",
-
     "racket_finder": "Racket Finder",
     "string_finder": "String Finder",
     "predictions": "Predictions",
@@ -10,7 +9,8 @@
     "articles": "Articles",
     "tools": "Tools",
     "feed": "Insights",
-    "stringing": "Racket Stringing"
+    "stringing": "Racket Stringing",
+    "match_analysis": "Match Analysis"
   },
   "home": {
     "hero_headline_1": "Everything tennis.",
