@@ -13,7 +13,7 @@ export default async function FeedPage({
   await getDictionary(lang);
 
   const cards = getAllFeedCards().filter(
-    (c) => c.type !== "news" && c.type !== "recap" && c.type !== "prediction" && c.type !== "video"
+    (c) => c.type !== "news" && c.type !== "recap" && c.type !== "prediction" && c.type !== "video" && c.type !== "match-analysis"
   );
 
   return (
