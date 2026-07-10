@@ -89,10 +89,16 @@ export default async function MatchAnalysisPage({
 
                     {interpretation && (
                       <div className="bg-sand border border-line rounded-xl px-4 py-3">
-                        <p className="font-sans text-xs text-green font-semibold uppercase tracking-widest mb-1">
+                        <p className="font-sans text-xs text-green font-semibold uppercase tracking-widest mb-2">
                           What the numbers say
                         </p>
-                        <p className="font-serif text-sm text-ink/85 leading-relaxed">
+                        <p style={{
+                          fontFamily: "var(--font-serif), Georgia, 'Times New Roman', serif",
+                          fontSize: "var(--text-body-card)",
+                          lineHeight: "var(--leading-body-card)",
+                          color: "var(--color-ink)",
+                          opacity: 0.88,
+                        }}>
                           {interpretation}
                         </p>
                       </div>
