@@ -837,6 +837,62 @@ Distinguish between accuracy guardrails (must be deterministic — don't invent 
 
 ---
 
+## PDL-026: Match Analysis card — separate interpretation from take text
+
+**Date:** July 2026
+**Trigger:** The `interpretation` frontmatter field drives both the on-card take line (limited vertical space, ~2 lines at 22px) and the Telegram caption "What the numbers say" paragraph (500 chars, no length constraint). Shortening one shortened the other.
+
+### Context
+
+The first published match-analysis card (Noskova vs Kostyuk, Wimbledon SF) had a long interpretation that worked well as a Telegram caption. The same text overflowed the card's take area at the bottom of the PNG. Truncating it fixed the card but cut the Telegram caption. The user: "you also shortened the What the numbers say section which was perfect and you should not have changed it, only the bottom line of the card/image."
+
+### Decision
+
+Do not shorten `interpretation` to fit the card. Instead, write a separate short take sentence at render time (passed as `--take` to the render script, or hardcoded in the frontmatter as a future `take` field). The card PNG uses the short take; the Telegram caption uses `interpretation[:500]`.
+
+The card's `wrapTake()` function splits at ~88 chars to two SVG lines at y=585 and y=611 — this is the physical limit. Any take longer than ~176 chars will still overflow.
+
+### Impact
+
+Not yet fully wired. Current workaround: pass the short take at render time; do not touch `interpretation`. A `take` frontmatter field would clean this up permanently without needing a render-time flag.
+
+### Lesson
+
+When the same field drives multiple display surfaces with different constraints (card image vs. Telegram vs. website), it will eventually be too long for one and too short for another. Fields that drive multiple surfaces should be split at the data model level, not patched at render time.
+
+---
+
+## PDL-027: Match Analysis publish flow — destructive publish_card() requires PNG in git
+
+**Date:** July 2026
+**Trigger:** First match-analysis card approved via Telegram; image showed on Telegram but not on the website.
+
+### Context
+
+`publish_card()` moves the .md from `feed-candidates/` to `feed/` and updates `image_url` to `/feed/<slug>.png`. The PNG is also moved to `public/feed/`. But Vercel builds from git — untracked files in `public/feed/` are invisible to Vercel. The website showed the card title but no image.
+
+### Decision
+
+After approving any match-analysis card, immediately commit the PNG to git:
+```bash
+git add public/feed/<slug>.png content/feed/<slug>.md
+git commit -m "Publish match analysis: ..."
+git push
+```
+This is documented in commands.md. No automated solution — the PNG commit is a manual step after Telegram approval.
+
+Secondary issue: `publish_card()` deletes the candidate .md and moves the PNG on the first approval. Re-approving a card (after e.g. a listener restart) always fails with "file already gone." The only fix is to recreate the candidate manually or post directly to the channel.
+
+### Impact
+
+The PNG-in-git requirement is now documented in commands.md, current-operations-flow.md, and strategic-roadmap.md. The re-review-after-publish gap is an acknowledged limitation.
+
+### Lesson
+
+Static hosting (Vercel) requires assets to be in the git repository at build time. Any pipeline that moves files programmatically (e.g., candidate → published) must also commit and push those files, or they will never appear on the live site.
+
+---
+
 ```
 ## PDL-XXX: [Short decision title]
 

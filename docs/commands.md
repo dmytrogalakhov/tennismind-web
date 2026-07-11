@@ -379,6 +379,66 @@ python3 memory.py --search "Zverev wins Roland Garros"
 
 ---
 
+## 📊 Match Analysis Cards
+
+### Generate match analysis cards (auto — runs after QF+ matches at GS/1000 events)
+```bash
+cd ~/match-analyst-bot
+source venv/bin/activate
+python3 generate_feed.py --match-analysis
+```
+Checks for an active GS or Masters 1000 tournament. Fetches yesterday's QF+ completed matches from ESPN. For each match: scrapes WTA service stats + optional Flashscore Winners/UEs → validates consistency → LLM writes a qualitative interpretation → renders a PNG card via `matchStatsCard.ts` → saves to `feed-candidates/match-analysis/` → sends to Telegram for approval.
+
+Skips automatically if:
+- No eligible tournament is active (GS or 1000 only)
+- No QF+ matches found for yesterday
+- Stats page not reachable (logs and continues)
+
+### Re-render a match analysis PNG manually
+```bash
+cd ~/tennismind-web
+npx tsx scripts/render-match-stats-card.ts \
+  --player1 "Linda Noskova" \
+  --player2 "Marta Kostyuk" \
+  --score "6-4, 6-4" \
+  --tournament "Wimbledon" \
+  --round "Semifinal" \
+  --stats "Aces:6:2,Double Faults:3:5,1st Serve %:68%:61%,..." \
+  --take "Short take text for the card image" \
+  --out /tmp/test-card.png
+```
+Use this to tweak a card without re-running the full pipeline.
+
+### Re-render from a published candidate file
+```bash
+cd ~/tennismind-web
+# Read the image_url from the .md frontmatter, then:
+npx tsx scripts/render-match-stats-card.ts --from-file ~/tennismind-web/content/feed-candidates/match-analysis/my-card.md
+```
+
+### Telegram approval + publish flow
+1. `python3 telegram_review.py --listen` — must be running
+2. Card arrives on phone with PNG image + "What the numbers say" caption
+3. Tap ✅ → `_publish_match_analysis_telegram()` posts PNG to public Telegram channel; .md moves to `content/feed/`; PNG moves to `public/feed/`
+4. **Important:** PNG must be committed to git for Vercel to serve it:
+   ```bash
+   cd ~/tennismind-web
+   git add public/feed/my-card.png content/feed/my-card.md
+   git commit -m "Publish match analysis: Noskova vs Kostyuk"
+   git push
+   ```
+
+### After editing generate_feed.py — restart the listener
+The listener (`telegram_review.py --listen`) caches `generate_feed` at import time. After editing `generate_feed.py`, stop the listener with `Ctrl-C` and restart it:
+```bash
+python3 telegram_review.py --listen
+```
+
+### View published analyses on the website
+`/en/match-analysis` — shows all `type: "match-analysis"` cards with PNG + "What the numbers say" interpretation.
+
+---
+
 ## 🔮 Match Predictions
 
 ### Generate a match prediction

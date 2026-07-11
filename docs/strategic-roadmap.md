@@ -937,6 +937,45 @@ Each platform feeds into the others. WhatsApp captures casual fans. Substack con
 - Factual accuracy (target: < 2 errors per 50 posts)
 - Pipeline uptime during tournaments (target: 100%)
 
+## 11. Architecture Changes (July 2026)
+
+### Match Stats Card — broadcast-inspired visual (July 2026)
+
+**New card type:** `match-analysis` cards now render a PNG graphic (`matchStatsCard.ts`) alongside the Telegram caption.
+
+**Design:** Dark green (#123A2A) canvas, clay (#C0512F) accents, Newsreader/Inter typography. 1200×700px at 1.28× scale (1536px output). Dynamic row height: 8 rows (39px) or 10 rows (34px) when Flashscore data is available.
+
+**Data pipeline:**
+1. WTA official page (`wtatennis.com/scores/...`) → service stats (aces, DFs, 1st/2nd serve %, BP faced/converted, total pts %)
+2. Flashscore Playwright scraper → Winners and Unforced Errors (not available on WTA page)
+3. Both datasets merged into `raw` dict before LLM interpretation
+4. LLM prompt includes Winners/UEs so the narrative can reference them
+
+**Flashscore scraper (`_scrape_flashscore_stats`):**
+- Uses Playwright headless Chromium (passes Cloudflare without stealth plugins)
+- Searches `s.flashscore.com/search/` for player IDs, loads results page to find match ID, loads stats URL
+- Identifies winner column by checking `.duelParticipant__home .participant__participantName` vs winner name
+- Extracts `[data-testid="wcl-statistics"]` rows with `[class*="wcl-homeValue"]`/`[class*="wcl-awayValue"]`
+- Returns `{winners_w, winners_l, ue_w, ue_l}` or None on failure; pipeline continues without it
+
+**Telegram caption format (match-analysis):**
+- New: `📊 Noskova — By the Numbers / Wimbledon SF · 6-4, 6-4 / What the numbers say / [interpretation]`
+- Old format read like a news headline ("def." construction); new format signals analysis
+
+**Telegram caption format (match-analysis publish):**
+- Header: `📊 Winner vs Loser — By the Numbers`
+- Meta: `Tournament Round · Score`
+- Body: `What the numbers say` + interpretation (first 500 chars)
+- Footer: link to `/en/match-analysis`
+
+**Website page:** `/en/match-analysis` — lists all published `type: "match-analysis"` cards. Each entry shows the PNG card, tournament/round/date badges, title, and a "What the numbers say" box rendered in Newsreader serif. Page linked from homepage Features grid, Navbar, and Footer.
+
+**Known gap:** The `interpretation` frontmatter field drives both the Telegram caption text and the on-card take line. A future `take` field in frontmatter would let these diverge cleanly (card image can use a shorter version without touching the longer Telegram caption).
+
+**PNG deploy requirement:** PNG files in `public/feed/` must be committed to git for Vercel to serve them. After approving a card, commit `public/feed/<slug>.png` alongside the `.md`.
+
+**Files changed:** `lib/cards/matchStatsCard.ts`, `scripts/render-match-stats-card.ts`, `scripts/test-match-stats-card.ts`, `generate_feed.py`, `telegram_review.py`, `app/[lang]/match-analysis/page.tsx`, `app/components/Navbar.tsx`, `app/components/Footer.tsx`, `app/[lang]/page.tsx`, `lib/feed.ts`
+
 ## 10. Immediate Next Steps
 
 1. **Deploy feed generator agent** — test --generate and --review modes, set up cron

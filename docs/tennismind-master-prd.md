@@ -227,7 +227,16 @@ active tournaments from calendar (concurrent-aware) → tournament-specific quer
 max 1 stat) → versus duotone collage from photos/ (gpt-image-1 fallback) → approval
 ```
 
-**Match Analysis** (the origin feature, on-demand): validate input → parse to structured query → agent searches → tactical breakdown (story / decisive factor / numbers that matter / verdict).
+**Match Analysis** (on-demand, QF+ at GS/1000):
+```
+ESPN results (yesterday, QF+ filter) → WTA stats page scrape (service stats verbatim)
+→ optional Flashscore Playwright scrape (Winners/UEs) → code-level consistency validation
+→ LLM writes interpretation only (no numbers computed by LLM)
+→ matchStatsCard.ts SVG → @resvg/resvg-js PNG (1536×896, green #123A2A, clay #C0512F)
+→ candidate → Telegram approval → publish_card() → PNG committed to git → Vercel deploy
+→ posted to /en/match-analysis website page + Telegram channel
+```
+Card type: `match-analysis`. PNG stored at `public/feed/<slug>.png` (must be in git for Vercel).
 
 ## 4.4 The shared services
 
@@ -290,6 +299,8 @@ match-analyst-bot/
                             image-generation (full tracebacks)
 
 tennismind-web/
+├── lib/cards/matchStatsCard.ts  broadcast-style PNG generator (SVG → @resvg/resvg-js)
+├── app/[lang]/match-analysis/   website page listing all match-analysis cards
 ├── content/feed/            PUBLISHED cards (the flat-file CMS — the folder IS
 │                            the database; site builds pages from these .md files)
 ├── content/feed-candidates/ pending candidates (not on the site)

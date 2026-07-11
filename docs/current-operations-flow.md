@@ -136,6 +136,7 @@ If a card is approved via Telegram, it won't appear in terminal review (already 
 | News | `--generate-news` | 1-4 news cards | programmatic news tile generated at candidate creation | ✅ yes |
 | Recap | `--generate-recap` | 1 recap card | programmatic clay/grass image | ✅ yes (when built) |
 | Predictions | `--predict "P1 vs P2 Tournament Round"` | 1 prediction card | versus collage (photos) or gpt-image-1 | not yet |
+| Match Analysis | `--match-analysis` | 1 card per QF+ match (GS/1000 only) | programmatic broadcast-style PNG (`matchStatsCard.ts`) | ✅ yes |
 | All agents | `--generate` | runs insights + news (+ recap if Apify available) | per above | ✅ yes |
 
 **Recap note:** Apify (structured match data source) is blocked until June 29 (monthly credit reset). No recaps until Wimbledon starts.
@@ -192,6 +193,12 @@ Images are generated at **candidate creation time** (not at review time), so the
 | News | programmatic tile (Pillow) | free |
 | Recap | programmatic clay/grass tile (Pillow) | free |
 | Prediction | versus collage from photos/ folder, or gpt-image-1 | free / ~$0.04 |
+| Match Analysis | broadcast-style PNG via `matchStatsCard.ts` (SVG → @resvg/resvg-js, 1536×896px) | free |
+
+**Match Analysis PNG commit requirement:** PNG files in `public/feed/` must be committed to git before Vercel can serve them. After approving a match-analysis card, run:
+```bash
+cd ~/tennismind-web && git add public/feed/<slug>.png && git commit -m "Add match analysis card image" && git push
+```
 
 If image generation fails, it logs the full traceback to `logs/image-generation.log` and prints a visible ⚠ warning. Cards with failed images are not sent to Telegram until the image is fixed.
 
