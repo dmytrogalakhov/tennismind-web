@@ -87,12 +87,28 @@ python3 orchestrator.py --report
 ```
 Prints a compact funnel for the last 48h: how many stories were discovered, how many dropped at each gate, how many entered the queue, and generation/review outcomes. Backed by `data/events.jsonl`.
 
-Drill into any drop reason to see the actual items:
+Drill into any discovery drop to see the actual items:
 ```bash
 python3 orchestrator.py --report stale          # stories dropped by Gate 2: older than 48h
 python3 orchestrator.py --report relevance      # stories dropped by Gate 1: not tennis content
 python3 orchestrator.py --report significance   # stories dropped by Gate 3: significance score < 5
 python3 orchestrator.py --report round-stale    # stories dropped by Gate 4: about a finished round
+```
+
+Drill into any generation state to see the actual items:
+```bash
+python3 orchestrator.py --report gen-skipped          # Sonnet didn't select these stories
+python3 orchestrator.py --report gen-dup-semantic     # too close to a recently published card
+python3 orchestrator.py --report gen-dup-slug         # exact slug already exists
+python3 orchestrator.py --report gen-critique-drop    # failed quality rubric after 2 attempts — shows which check failed and why
+python3 orchestrator.py --report gen-critique-rewrite # failed 1st critique but saved after rewrite — shows original vs. new title
+python3 orchestrator.py --report gen-card-ready       # cards that passed and were sent to Telegram
+```
+
+Scope any report or drill-down to a specific time window:
+```bash
+python3 orchestrator.py --report --hours 6            # last 6h only (useful to isolate a single run)
+python3 orchestrator.py --report gen-critique-drop --hours 6
 ```
 
 ### Let the agent find news (manual run)
