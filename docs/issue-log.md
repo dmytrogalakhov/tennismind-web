@@ -1166,4 +1166,60 @@ Players who played today (complete list): [list built from all_matches]
 ### Lessons Learned
 
 [What to remember for next time — generalizable takeaways]
+
+---
+
+## Issue #034: `discovery_queue.json` — all items falsely marked `generated`
+
+**Date:** July 13, 2026
+**Project:** match-analyst-bot
+**Severity:** High — core queue data was untrustworthy; no visibility into what happened to discovered stories
+
+### Symptoms
+
+- `data/discovery_queue.json` showed 206 items, all with `status: "generated"`
+- `data/tg-review-queue.json` showed only 134 news cards ever published or rejected across ALL time
+- The two queues had no cross-reference — impossible to trace a story from discovery → published
+- No way to know why a story wasn't turned into a card (not selected? deduped? already covered?)
+
+### Root Cause
+
+`run_generate_news_from_queue()` returned `[q.get("id", "") for q in queue_items if q.get("id")]` — the complete list of ALL input items — regardless of what Sonnet selected, what was deduped, or what was saved. The caller in `run_news_only()` marked every item `generated` without knowing its real outcome.
+
+### Fix
+
+1. `run_generate_news_from_queue()` now returns `dict[str, str]` mapping `queue_id → outcome`. Real outcomes: `skipped`, `dup_slug`, `dup_semantic`, `card_ready`.
+2. Title-overlap matching (`_best_queue_match()`) links each Sonnet-generated card back to its source queue item.
+3. `run_news_only()` writes real outcomes to the queue for each item.
+4. Added `events.jsonl` — one JSON line per discovery/generation run with gate counts and outcome tallies.
+5. Added `--report` command to `orchestrator.py` — shows the full pipeline funnel from raw RSS fetch through Telegram review.
+
+### Lessons Learned
+
+State machines only work if the state is written at the transition, not retroactively by the caller. The caller (orchestrator) never had visibility into what happened inside the generator — so it assigned the only status it could: "I called it." The fix moves status assignment into the function that actually knows the outcome.
+
+---
+
+## Issue #035: `run_news_only()` silently skipped news generation during preview mode
+
+**Date:** July 13, 2026
+**Project:** match-analyst-bot
+**Severity:** High — DC Open preview coverage would have silently published zero stories
+
+### Symptoms
+
+During the preview window before DC Open (July 14–24), `--discover` correctly collected preview-mode stories and queued them as `pending`. But `--news` (generation) returned immediately with "no tournament active, skipping" — all queued stories were never processed.
+
+### Root Cause
+
+`run_news_only()` had `if not active: return` (line 994). Preview mode was added to `run_discovery_only()` but not to the generation path.
+
+### Fix
+
+Changed the guard to `if not active and not preview: return` and used `preview["name"]` as tournament_name when no active tournament exists.
+
+### Lessons Learned
+
+When adding a new mode (preview) to one half of a two-phase pipeline, immediately check the other half. The discovery path and the generation path share the same mode-detection logic but were changed independently.
 ```
+

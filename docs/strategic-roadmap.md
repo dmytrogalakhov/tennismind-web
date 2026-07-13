@@ -557,7 +557,7 @@ DAILY NEWS:
         → collect_news_pool(): RSS primary (BBC, ESPN — dated, no indexing lag)
           + Tavily supplement (catches publishers not in RSS list)
           — merged, URL/title-deduped, RSS version wins on conflict
-        → Hard 48h gate + relevance gate + significance gate + round-staleness gate in code (before LLM)
+        → Gate 1 relevance (tennis URL/title check) · Gate 2 stale (hard 48h) · Gate 3 significance (score ≥ 5) · Gate 4 round-stale (past rounds) — all deterministic Python, before any LLM call
         → event_date frontmatter on every card (pool's most recent published_date)
         → Sonnet curates 1-3 news candidates
         → Saved to ~/tennismind-web/content/feed-candidates/news/

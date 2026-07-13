@@ -81,6 +81,20 @@ python3 generate_feed.py --discover-news
 Shows every fresh story scored for significance — title, source (tavily / rss:bbc / rss:espn), score, pass/fail verdict, and scoring reasons. Also shows all date/relevance drops. Use to diagnose why a story is missing or to calibrate the significance threshold.
 Logs: `logs/news-discovery.log` (raw discovery) and `logs/significance.log` (scores).
 
+### News pipeline funnel report
+```bash
+python3 orchestrator.py --report
+```
+Prints a compact funnel for the last 48h: how many stories were discovered, how many dropped at each gate, how many entered the queue, and generation/review outcomes. Backed by `data/events.jsonl`.
+
+Drill into any drop reason to see the actual items:
+```bash
+python3 orchestrator.py --report stale          # stories dropped by Gate 2: older than 48h
+python3 orchestrator.py --report relevance      # stories dropped by Gate 1: not tennis content
+python3 orchestrator.py --report significance   # stories dropped by Gate 3: significance score < 5
+python3 orchestrator.py --report round-stale    # stories dropped by Gate 4: about a finished round
+```
+
 ### Let the agent find news (manual run)
 ```bash
 cd ~/match-analyst-bot

@@ -910,4 +910,31 @@ Static hosting (Vercel) requires assets to be in the git repository at build tim
 
 ### Lesson
 [The generalizable takeaway — what would you tell someone building a similar product?]
+
+---
+
+## PDL-028: News pipeline observability — truthful queue states + structured event log
+
+**Date:** July 13, 2026
+**Trigger:** Pre-hard-court-swing audit revealed all 206 discovery queue items were falsely marked `generated`; no funnel visibility; preview-mode news silently not generating
+
+### Context
+
+Before DC Open (July 25), an observability analysis revealed: the discovery queue was a black box. 206 items all showed `generated` — the same false status regardless of whether Sonnet selected the story, it was deduped, or it was rejected. The generation path also had a bug: during the preview window, `--news` would skip and never generate cards from queued preview stories.
+
+### Decision
+
+Implemented a 4-fix pre-swing bundle:
+1. **Truthful queue states**: `run_generate_news_from_queue()` now returns `dict[id → outcome]` with real states: `skipped`, `dup_slug`, `dup_semantic`, `card_ready`. Title-overlap matching links Sonnet's output cards back to their source queue items.
+2. **Structured event log** (`data/events.jsonl`): one JSON line per discovery/generation run. Each discovery event carries gate counts (RSS raw, post-48h, post-dedup, post-significance, post-staleness, queued_new). Each generation event carries outcome counts.
+3. **`--report` command**: reads `events.jsonl` + `tg-review-queue.json`, prints a full funnel from raw RSS fetch through Telegram review + queue all-time snapshot.
+4. **Preview-mode news fix**: `run_news_only()` guard changed from `if not active: return` to `if not active and not preview: return`.
+
+### Impact
+
+From DC Open onward: every discovery and generation run is traced. The morning `--report` answers in seconds: how many stories discovered, how many gated out and why, how many Sonnet picked, how many deduped, how many published. The preview-mode bug fix means lead-up coverage for DC Open, National Bank Open, and Cincinnati will actually publish.
+
+### Lesson
+
+Build the instrument before the campaign. We had 7 weeks of Wimbledon data with no funnel visibility — couldn't see why stories weren't publishing. One day of instrumentation work pays back immediately on the next tournament. The right order is: instrument → observe → tune, not: tune → wonder why it's not working.
 ```

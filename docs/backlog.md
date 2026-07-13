@@ -20,6 +20,18 @@ _Relevant for: Indian Wells, Miami, Madrid, Halle, Queen's Club recaps next seas
 
 ---
 
+## News Discovery
+
+**Tavily stale articles despite `days=2` parameter** `[S]`
+`--report stale` drill-down shows Tavily returning articles 70h–164h old despite the `days=2` search parameter. In the Wimbledon run: 15 of 33 Tavily results (45%) dropped by gate 2. The `days` parameter appears to be loosely enforced — Tavily ranks by relevance and surfaces older high-relevance articles. Investigation: check whether a hard `published_after` ISO timestamp gives stricter results; consider a pre-filter in `fetch_news_raw()` to reject Tavily items before they hit gate 2 so they don't pollute the stale count.
+_Surfaced: 2026-07-13 via `--report stale`_
+
+**Tavily relevance gate — 45% of results not tennis content** `[S]`
+`--report relevance` shows all 15 relevance drops are Tavily items. Gate 1 drops anything where the URL and title don't signal tennis. Tavily's search queries are tennis-specific but the results include non-tennis content (football, celebrity, general sport). Options: tighten the queries with stricter site filters; add a `topic="sports"` constraint; or expand the tennis relevance check in `_is_tennis_relevant()` to accept more signal patterns (e.g. player names in the title even if the URL path is generic). Both Tavily issues are related — fixing staleness may also improve relevance if fresher results are more on-topic.
+_Surfaced: 2026-07-13 via `--report relevance`_
+
+---
+
 ## Pipeline
 
 **Full card body visible in Telegram approval messages** `[S]`
