@@ -284,6 +284,215 @@ Moutet vs Mpetshi Perricard now scores 6 (PASS). Verified immediately: "Zverev d
 
 ---
 
+# CASE 5 — NEWS PIPELINE OBSERVABILITY: instrument first, then fix what you can see
+
+*The most compressed iteration arc in the project — a single day from "I can't see anything" to a critique loop that pre-filters bad cards before they reach Telegram. The lesson is not about the loop; it's about the order of operations.*
+
+## Problem statement
+
+The news pipeline — after the discovery/gating/generation rebuild in Cases 2 and 4 — was technically correct but experientially opaque. The founder could see the output (cards in Telegram), but had no visibility into the process: how many stories were discovered, where they were dropped, why they were filtered, what entered the queue, and what happened in generation. The specific complaint: *"I seriously lack visibility of what has been discovered, what is in the pool, what moves where, and what gets filtered and why."*
+
+Two compounding failures were invisible:
+1. **Tavily yield was 3%** — the only paid channel was contributing almost nothing after gates, but this was unknowable without a funnel view.
+2. **Telegram rejection rate was 60%** — 6 in 10 generated cards were rejected by the founder, meaning over half the generation cost produced zero value. This was also unknowable; the review queue stored `status: rejected` but no rate was ever computed or surfaced.
+
+Both problems existed before the session. Neither was actionable without visibility.
+
+## The iteration sequence
+
+**Attempt 1 — Diagnose before fixing: build the funnel report first.**
+
+*What was built:* A `--report` command reading from `data/events.jsonl` (an append-only structured log written after each discovery/generation run) and printing a compact funnel:
+
+```
+  DISCOVERY
+    Discovered      251   (RSS 163 · GNews 33 · Tavily 55)
+    Dropped          84
+    Queued           64   yield 25%   (29 new · 35 seen)
+    Channel yield:  RSS 15% · GNews 42% · Tavily 7%
+
+  GENERATION
+    Input            25
+    Skipped          22
+    Dup slug          0
+    Dup semantic      1
+    Card ready        2
+
+  REVIEW  (news · all time)
+     75 reviewed  ·  27 approved (36%)  ·  45 rejected (60%)
+```
+
+*What it revealed immediately:* Tavily at 7% channel yield — all 30 relevance drops were Tavily, all 15 stale drops were Tavily. And the 60% rejection rate, now visible for the first time.
+
+*Lesson:* The funnel report is not the fix. It is the diagnostic instrument that makes all other fixes possible. Built before any hypotheses were tested.
+
+---
+
+**Attempt 2 — Drill into Tavily stale: `--report stale`.**
+
+*What was found:* Tavily was returning articles 70h–164h old despite `days=2`. The `days` parameter is a ranking hint, not a hard cutoff — Tavily surfaces high-relevance older articles regardless of the window.
+
+*Fix:* Pre-filter stale articles in `fetch_news_raw()` before they enter the pool; change `days=2` → `days=1`; tighten queries by injecting "tennis" into all generic queries so Tavily's relevance ranker is anchored to the right domain.
+
+*Result:* Tavily yield 3% → 14%. The paid channel became a genuine contributor.
+
+*Lesson:* **Without the drill-down showing article ages (70h–164h), the stale rate looked like noise — it was actually systematic.** The instrument turned a pattern into a diagnosed cause.
+
+---
+
+**Attempt 3 — Drill into Tavily relevance: `--report relevance`.**
+
+*What was found:* All 30 relevance drops were Tavily. The culprits were ESPN and BBC — broad-domain publishers that Tavily was returning non-tennis articles from (football clips, celebrity coverage) because the queries used domain inclusion (`include_domains`) without requiring tennis signals in the URL or title.
+
+*Fix:* Expand `_is_tennis_relevant()` with tournament names and top player surnames as valid signals; inject "tennis" into generic queries; exclude Grand Slams from the `concluded_queries` bucket (their final results are covered by the recap agent — news discovery chasing GS results generates noise, not signal).
+
+*Result:* Relevance drops from Tavily fell; ESPN non-tennis video clips no longer pass gate 1 when they have no tennis entity in the title.
+
+*Lesson:* Two drop reasons (stale and relevance) accounted for 100% of Tavily waste. Finding both took two drill-down commands and 5 minutes of inspection. The hypothesis tree had to come first, but the instrument proved the hypotheses.
+
+---
+
+**Attempt 4 — Surface the rejection rate; ask "why is it 60%?"**
+
+*The key observation:* once `REVIEW (news · all time)` was in the report, 60% rejection was permanently visible. The question became: why are 6 in 10 cards being rejected?
+
+*No rejection reason was tracked* — the review queue stored only `status: rejected`, no field for why. But the failure modes were inferable from the quality rules already documented in CLAUDE.md:
+1. **No specific fact** — card makes a claim with no number, record, or ranking anchor
+2. **Vague consequence** — "sends a message", "creates opportunities" — claims something matters without naming who benefits and how
+3. **Pure scoreline** — "Player X beat Player Y 6-3" with no angle (record, comeback, ranking consequence)
+4. **Named implication missing** — consequence exists but refers to "rivals" or "the field" rather than a specific player
+
+*The critical structural insight:* the cards were passing 4 discovery gates (relevance, freshness, significance, round-staleness) and a semantic dedup check. None of those gates measure editorial quality. The gates answer "is this story fresh and significant?" — they say nothing about "is this card worth reading?"
+
+*Lesson:* **Gates that measure input quality (freshness, significance) don't predict output quality (editorial value).** A new mechanism was needed for a different job.
+
+---
+
+**Attempt 5 — Self-critique loop: catch bad cards before Telegram, not after.**
+
+*What was built:*
+```
+generate card (Sonnet)
+    ↓
+_critique_news_card() [haiku — fast, mechanical 4-point rubric]
+    → PASS         → save → Telegram
+    → FAIL + reason → _rewrite_news_card() [sonnet — targeted fix]
+                        → _critique_news_card() again
+                            → PASS  → save rewritten card → Telegram
+                            → FAIL  → drop silently, log to critique_drop
+```
+
+*The 4-point rubric:*
+1. `SPECIFICITY` — concrete fact present (number, record, ranking, scoreline, milestone)
+2. `NAMED_CONSEQUENCE` — consequence claim names WHO specifically and HOW (not "rivals")
+3. `NO_VAGUE_FILLER` — no "sends a message", "creates opportunities", "sets the tone"
+4. `BEYOND_SCORELINE` — angle beyond "Player X beat Player Y"
+
+*Model choice:* haiku for critique (fast, mechanical, fail-safe passes card through on error); sonnet for rewrite (quality matters on the output). News images are fetched photos — not `gpt-image-1` — so image cost is irrelevant; the loop cost is purely the haiku critique call + occasional sonnet rewrite.
+
+*Fail-safe:* any critique error returns `(True, "", [])` — the card passes through rather than being silently dropped. The loop degrades gracefully.
+
+---
+
+**Attempt 6 — Apply the same observability pattern to generation states.**
+
+*The realization:* the discovery funnel had drill-down for every drop reason (`--report stale`, `--report relevance`). The generation funnel had summary counts but no item-level visibility. After building the critique loop, the same gap existed for generation: you could see the counts but not the items.
+
+*What was built:* `_last_generation_stats["items"]` — per-state item-level data (headline, url, score, source, plus state-specific fields like `failed_checks`, `rewrite_instruction`, `duplicate_of`). Serialized to `events.jsonl` and queryable via `--report gen-*`:
+
+```bash
+python3 orchestrator.py --report gen-skipped          # what Sonnet didn't select
+python3 orchestrator.py --report gen-dup-semantic     # what was too close to a recent card
+python3 orchestrator.py --report gen-critique-drop    # what failed the rubric and why
+python3 orchestrator.py --report gen-critique-rewrite # what was rewritten and what changed
+```
+
+*Lesson:* **Once you build observability for one layer, the lack of it in adjacent layers becomes immediately visible.** The discovery drill-downs made the generation opacity feel wrong. The right pattern: every stage in the funnel is inspectable.
+
+---
+
+## The architecture the session converged on
+
+```
+── DISCOVERY ───────────────────────────────────────────────────────────
+Gate 1  tennis relevance    (deterministic — URL/title check)
+Gate 2  48h freshness       (deterministic — hard cutoff)
+Gate 3  significance ≥ 5   (deterministic — scoring from rankings data)
+Gate 4  round-staleness     (deterministic — computed from tournament day)
+                              ↓ observable via --report + drill-downs
+
+── GENERATION ──────────────────────────────────────────────────────────
+Dedup: slug + semantic      (deterministic — exact + cosine similarity)
+Critique loop               (LLM — haiku rubric → sonnet rewrite)
+                              ↓ observable via --report gen-* drill-downs
+
+── REVIEW ──────────────────────────────────────────────────────────────
+Telegram approval           (human — final taste gate)
+                              ↓ observable via REVIEW section (rejection rate)
+```
+
+Every stage is instrumented. Every stage is drillable. The rejection rate is the lagging indicator — if the critique loop works, it should drop from 60% to under 30% over DC Open.
+
+---
+
+## What the report looks like now
+
+```
+==============================================================
+  NEWS FUNNEL — last 24h   (3 discovery, 1 generation)
+==============================================================
+
+  DISCOVERY
+    Discovered      251   (RSS 163 · GNews 33 · Tavily 55)
+    RSS backlog     156   (feed history older than 48h — not processed)
+    Dropped          84
+    Queued           64   yield 25%   (29 new · 35 seen)
+    Channel yield:  RSS 15% · GNews 42% · Tavily 7%
+
+  GENERATION
+    Input            25
+    Skipped          22
+    Dup slug          0
+    Dup semantic      1
+    ── critique ──────────────────────────
+    Pass 1st try      1
+    Rewritten         1   → saved 1 · dropped 0
+    ──────────────────────────────────────
+    Card ready        2
+
+  REVIEW  (news · all time)
+     75 reviewed  ·  27 approved (36%)  ·  45 rejected (60%)
+
+  ── Top discovery drops ──────────────────────────────────────
+     significance     34   14%   (RSS 22 · GNews 12)
+     relevance        30   12%   (Tavily 30)
+     stale            15   6%   (Tavily 15)
+
+  Dive into discovery drops:
+     python3 orchestrator.py --report significance
+  Dive into generation states:
+     python3 orchestrator.py --report gen-critique-drop
+==============================================================
+```
+
+## The transferable lessons
+
+**1. Instrument before you fix.** The temptation on a broken-feeling system is to start fixing. The correct first step is to build the measurement instrument. In this case, 20 minutes building `--report` revealed both the Tavily yield problem and the rejection rate — two separate issues with two separate fixes, neither of which was on the hypothesis list before the report ran.
+
+**2. Gates that measure input quality don't predict output quality.** The discovery gates (freshness, significance, relevance, round-staleness) were all correctly designed and working. A 60% rejection rate was still possible *through* those gates because editorial quality is a different dimension — is the card worth reading? — not answered by freshness or significance scores. The critique loop is a new gate for a different job, applied at a different stage.
+
+**3. The rejection rate is the most honest metric in the system.** Discovery yield, generation counts, channel yield — all can be gamed or misread. The rejection rate is the founder making a binary editorial judgment with no knowledge of how the card was produced. It's the cleanest signal of output quality in the pipeline.
+
+**4. Make every layer inspectable on the same model.** The `--report gen-skipped` drill-down looks identical to `--report stale`. When the pattern is consistent, operators learn it once and apply it everywhere. Designing for navigability (same command structure, same output format) is as important as designing for correctness.
+
+**5. The order of operations matters more than the sophistication of the fix.** Tavily yield was fixed with three small changes (pre-filter + days=1 + query tightening). The critique loop is two LLM calls. Neither is architecturally sophisticated. What made them possible was running the report first — which told you where to look.
+
+---
+
+*Session date: 2026-07-13 (Wimbledon final day). All changes shipped to production before DC Open (2026-07-25). First real critique loop data expected on the 08:00 generation run July 14.*
+
+---
+
 # CROSS-CUTTING LESSONS (what a hiring manager should take from this)
 
 1. **Diagnose to root cause, not symptom.** Every feature went through a symptom-patching phase before the real iteration began. The breakthrough each time was an **issue-tree** analysis that found the structural cause beneath the visible failures.
