@@ -1,6 +1,6 @@
 # TennisMind — Product Backlog
 
-**Last updated:** 2026-07-09  
+**Last updated:** 2026-07-11  
 Items are grouped by area. Each has a rough effort tag: `[S]` small (hours), `[M]` medium (days), `[L]` large (weeks).
 
 ---
@@ -21,6 +21,12 @@ _Relevant for: Indian Wells, Miami, Madrid, Halle, Queen's Club recaps next seas
 ---
 
 ## Pipeline
+
+**Full card body visible in Telegram approval messages** `[S]`
+Telegram truncates long captions, so the body of cards sent for review is often cut off on the phone. The approval message currently sends title + full body in a single caption, but Telegram photo captions are limited to 1024 chars. Fix: send the image in one message, then send the full body as a separate follow-up text message in the same chat — the same pattern already used for long recap cards. Apply consistently to all card types in `telegram_review.py → send_pending()`.
+
+**Separate `take` from `interpretation` in match-analysis frontmatter** `[S]`
+The `interpretation` field drives both the card's take line (2-line physical limit at 22px) and the Telegram/website "What the numbers say" text. Shortening one shortens the other. Add a `take` field to the match-analysis frontmatter schema — short text for the card image; `interpretation` stays as the full caption text. Wire `matchStatsCard.ts` to prefer `take` over `interpretation` when both are present. *(PDL-026)*
 
 **Recap retry loop with degraded context** `[M]`  
 Currently a recap that fails verification (e.g. Tavily enrichment introduces hallucinations) is dropped entirely. Phase 5 of the roadmap specifies a goal-based retry: Run 1 = full Tavily enrichment; Run 2 (if verification fails) = retry with no enrichment, removing the hallucination vector; Run 3 = log and exit. Increases recap success rate on days with noisy Tavily results without human intervention.  
