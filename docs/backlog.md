@@ -34,6 +34,9 @@ _Surfaced: 2026-07-13 via `--report relevance`_
 
 ## Pipeline
 
+**Auto-prune processed items from discovery queue after tournament ends** `[S]`
+The queue accumulates all processed items indefinitely — after Wimbledon it grew to 210 items (206 processed, all stale). Add a pruning step that runs when a tournament transitions from active to ended: any item with status other than `pending` gets removed. Keeps the queue clean between tournaments without manual intervention.
+
 **Full card body visible in Telegram approval messages** `[S]`
 Telegram truncates long captions, so the body of cards sent for review is often cut off on the phone. The approval message currently sends title + full body in a single caption, but Telegram photo captions are limited to 1024 chars. Fix: send the image in one message, then send the full body as a separate follow-up text message in the same chat — the same pattern already used for long recap cards. Apply consistently to all card types in `telegram_review.py → send_pending()`.
 
