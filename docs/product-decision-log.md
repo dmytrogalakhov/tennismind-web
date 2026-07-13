@@ -21,12 +21,10 @@ The problem: the recap agent already covers tournament results comprehensively. 
 
 2. **Exclude Grand Slams from `concluded_queries`.** `build_news_queries()` generates a `"[Name] final result champion"` query for recently-concluded tournaments. Grand Slams are now excluded: the recap agent owns GS final coverage; news discovery should not duplicate it.
 
-3. **Recap fallback for recently-concluded Grand Slams (days=2).** `run_generate_recap()` checks `get_recently_concluded_tournaments(days=2)` when no active tournament is found. This ensures the men's final recap fires the morning after (July 14 at 08:00) even though Wimbledon is no longer "active."
-
 ### Impact
 
 - Post-GS final day: zero Wimbledon queries in discovery, 3 generic tennis queries instead
-- Men's final still gets a recap at 08:00 the next morning
+- Recap agent skips cleanly when no active tournament is found — no stale coverage of concluded events
 - Pattern applies to all future Grand Slams (Roland Garros, US Open, Australian Open)
 
 ---
