@@ -1223,3 +1223,42 @@ Changed the guard to `if not active and not preview: return` and used `preview["
 When adding a new mode (preview) to one half of a two-phase pipeline, immediately check the other half. The discovery path and the generation path share the same mode-detection logic but were changed independently.
 ```
 
+---
+
+## Issue #033: `card_ready` count always 0 in report (queue-match punctuation bug)
+
+**Date:** July 15, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — report metric wrong, cards still generated correctly
+
+### Symptoms
+Report showed `Card ready 0` even when a card was successfully generated and sent to Telegram.
+
+### Root Cause
+`_best_queue_match()` uses word-overlap to match a generated card title back to its source queue item. The comparison did not strip punctuation, so "Sinner's" (in the queue headline) didn't match "sinner" (in the card title). With fewer than 2 shared words, `matched_id` returned `None`, and `outcomes[qid]` was never updated from "skipped" to "card_ready". The orchestrator counts card_ready from `outcome_map`, so the event logged 0.
+
+### Fix
+Strip all non-alphanumeric characters before word comparison in `_best_queue_match()` (generate_feed.py:6034).
+
+---
+
+## Issue #034: Tavily returns 60+ stale articles in dead-zone period
+
+**Date:** July 13-15, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — 0 new Tavily items during post-Wimbledon dead zone
+
+### Symptoms
+Discovery runs during the post-Wimbledon / pre-DC Open window consistently pre-filtered 60+ Tavily results as stale. Net yield: 0 new items from Tavily.
+
+### Root Cause
+Two problems compounding:
+1. `news_search_tool` domain whitelist (ESPN, BBC, ATP, WTA, tennis.com) excluded Eurosport, Guardian, Sky Sports — the main post-tournament interview/reaction sources.
+2. 48h freshness gate cut off Sunday July 13 post-Wimbledon articles by Tuesday morning (~50h).
+
+### Fix
+- Created `preview_search_tool` (days=3, expanded domain list including eurosport, theguardian.com, skysports.com, tennismajors.com, si.com, tennisworldusa.org)
+- `fetch_news_raw()` auto-selects `preview_search_tool` when in preview mode (no active tournament)
+- Freshness gate extended to 72h during preview mode
+- Queries rewritten: per-player targeted angles (surname + "tennis interview schedule plans") instead of tournament-specific queries
+

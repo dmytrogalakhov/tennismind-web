@@ -786,14 +786,19 @@ unverifiable historical claims before they go live.
 The core insight is that discovery (finding stories) and generation (writing cards) have different optimal cadences and costs. Discovery can run frequently and cheaply (Tavily + RSS + Google News scoring). Generation is expensive and should only fire when there's something genuinely new to write.
 
 **Implemented: news discovery loop** *(time-based — shipped July 2026)*
-- `--discover` flag: runs 3× daily at 07:00, 13:00, 19:00 during active tournaments
+- `--discover` at 08:00 and 18:00; `--news` at 15:00 (20:00 only for breaking news)
+- In preview/dead-zone mode (no active tournament, preview window active), 08:00 chains `--news` immediately after discovery
 - Checks RSS (BBC, ESPN), Google News (ATP/WTA layer), and Tavily for fresh tennis stories
 - URL-based dedup via `data/discovery_queue.json` — each URL evaluated exactly once across runs
 - Items scored using existing `score_story()` significance system (threshold: 5)
 - Stale items pruned automatically after 48h
-- `--news` at 14:00 and 20:00 reads from queue; falls back to fresh discovery if queue is empty
-- **Cost:** ~$0.28/day during Grand Slams vs $0.16/day before (net: ~$1.68/tournament)
 - **See:** `docs/solution-design-news-discovery-loop.md`
+
+**Preview-mode Tavily search (July 2026):**
+- During dead zones (no active tournament), Tavily switches to `preview_search_tool`: broader domain list (adds Eurosport, Guardian, Sky Sports, tennismajors.com, SI, tennisworldusa), `days=3` freshness window
+- Queries target top-5 ATP/WTA players by name with specific news angles (injury update, interview, ranking, coach) rather than tournament-specific queries
+- Freshness gate extended to 72h during preview mode to capture post-tournament coverage that is ~50h old
+- Active tournament runs continue to use the stricter `news_search_tool` (domains: ATP/WTA/ESPN/BBC/tennis.com)
 
 **Candidate loop ideas (not yet built):**
 
