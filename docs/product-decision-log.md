@@ -963,3 +963,69 @@ From DC Open onward: every discovery and generation run is traced. The morning `
 
 Build the instrument before the campaign. We had 7 weeks of Wimbledon data with no funnel visibility — couldn't see why stories weren't publishing. One day of instrumentation work pays back immediately on the next tournament. The right order is: instrument → observe → tune, not: tune → wonder why it's not working.
 ```
+
+---
+
+## PDL-031 — Rejection-reason capture before editorial gate (Phase A of 60→20% rejection rate fix)
+
+**Date:** 2026-07-17
+**Decision:** Ship rejection-reason buttons in Telegram as the first step toward cutting the news card rejection rate from 60% to <20%. Defer the editorial gate (Phase B) until reason data exists.
+
+---
+
+### The diagnosis (evidence-based)
+
+Full review history: 75 news cards reviewed, 47 rejected (63%). Clustering rejected slugs by subject surfaced the actual failure modes:
+
+| Bucket | Example slugs | Share (inferred) |
+|---|---|---|
+| **Storyline over-coverage** | 8 Eala cards, 7 Serena cards — every round of a run becomes a card | largest |
+| **Routine result / no angle** | `fritz-books-halle-qf`, `svitolina-into-berlin-r16` — top name, no story | large |
+| **True duplicate** | `vondrousova-four-year-ban` rejected; `vondrousova-four-year-doping-ban` published | meaningful |
+| **Taste / audience mismatch** | stories about players or sub-plots that don't fit TennisMind | moderate |
+| **Writing quality** | vague WHY, inaccuracy — what Phase 3 (critique loop) targeted | **smallest** |
+
+**The smoking gun — two root causes, not one:**
+
+1. `SIGNIFICANCE_THRESHOLD = 5`. The top-10 bonus is `+5`. Any headline containing a top-10 player's name clears the gate by itself — win or loss, first round or final, story or non-story.
+
+2. The generation prompt explicitly disables curation: *"Your job is to WRITE excellent cards for them, not to re-decide whether they are worth publishing."* Sonnet — the only component that understands language — is instructed to switch editorial judgment off. Selection is delegated entirely to a keyword scorer that detects "notable player present" but cannot detect "is this a story."
+
+**The structural consequence:** you are the only editor in the pipeline, operating at maximum friction (end of the chain, after generation has run). The 63% rejection rate is not a bug — it is the design working as intended.
+
+**Why Phase 3 (critique loop) wasn't enough:** it targets the smallest bucket (writing quality) while the three largest buckets are all upstream selection failures. Polishing cards that shouldn't have been generated doesn't change the denominator.
+
+---
+
+### What to build (3-phase plan)
+
+**Phase A — Capture the rejection signal** *(this decision)*
+Replace the single Reject button in Telegram with a two-step flow: tap Reject → see four reason buttons → tap the reason. Store the reason on every rejection.
+
+Reason vocabulary (4 options, chosen to be MECE and fast to tap on mobile):
+- **↩ Already covered** — we have a card for this event or storyline
+- **— Not a story** — notable player, but nothing newsworthy happened (routine result, no angle)
+- **👥 Wrong audience** — doesn't fit TennisMind's focus or reader expectations
+- **⚠ Inaccurate** — the content contains errors or unsourced claims
+
+**Phase B — Editorial gate between significance and generation** *(after 2+ weeks of Phase A data)*
+Insert a dedicated LLM selection pass that sees the full day's queue and makes card-level decisions: does this have an angle? have we already covered this storyline? one card per storyline. This is where Sonnet's judgment belongs — as a dedicated editor, not buried inside the writing prompt.
+
+**Phase C — Taste learning** *(after Phase B)*
+Feed Phase-A labels back as few-shot examples into the Phase B gate. The gate stops guessing what you find newsworthy and starts modeling your actual publish history.
+
+---
+
+### Why Phase A first
+
+Phase A costs ~1 hour to ship. More importantly: without real rejection reasons, Phase B is built on inferred buckets. With 2 weeks of Phase A data (roughly 15–20 labeled rejections), Phase B can be tuned to the actual distribution rather than a guess. Phase A also makes the 60→20% target *measurable* — we currently have no way to know which bucket we've improved.
+
+**The one thing we don't do:** raise `SIGNIFICANCE_THRESHOLD`. It would drop volume but cut real stories (upsets by lower-ranked players score low) while still passing routine top-10 results. The threshold selects on player ranking, not on "is this a story" — raising it solves the wrong problem.
+
+---
+
+### Expected trajectory
+- Phase A alone: no rejection drop, but the target becomes measurable
+- Phase B: absorbs over-coverage + duplicate + no-angle — the bulk. Should take 60% → ~25–30%
+- Phase C: closes the taste gap, locks in <20% and keeps it there
+
