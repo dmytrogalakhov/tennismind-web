@@ -1002,11 +1002,18 @@ Full review history: 75 news cards reviewed, 47 rejected (63%). Clustering rejec
 **Phase A — Capture the rejection signal** *(this decision)*
 Replace the single Reject button in Telegram with a two-step flow: tap Reject → see four reason buttons → tap the reason. Store the reason on every rejection.
 
-Reason vocabulary (4 options, chosen to be MECE and fast to tap on mobile):
-- **↩ Already covered** — we have a card for this event or storyline
-- **— Not a story** — notable player, but nothing newsworthy happened (routine result, no angle)
-- **👥 Wrong audience** — doesn't fit TennisMind's focus or reader expectations
-- **⚠ Inaccurate** — the content contains errors or unsourced claims
+Reason vocabulary (6 options — founder's taxonomy, fast to tap on mobile):
+
+| Button | Code | Meaning |
+|---|---|---|
+| ↩ Covered | `cov` | Same story, same narrative — we already published this angle |
+| 🔁 Duplicate | `dup` | Already seen and rejected a similar card this cycle |
+| 📅 Stale | `sta` | Tournament is over but we're still posting about it |
+| ⚠ Inaccurate | `bad` | False facts, wrong numbers, wrong players |
+| — Weak story | `wk` | No WHY — just what happened, no angle or significance |
+| 😴 Boring | `bor` | Simply bad news — not interesting enough to publish |
+
+**Covered vs Duplicate distinction:** "Covered" = we published this angle. "Duplicate" = we already rejected something similar this cycle and are seeing it again. This separation matters for Phase B — "Covered" points to the pre-filter (semantic dedup), "Duplicate" points to Sonnet generating multiple cards from the same source pool.
 
 **Phase B — Editorial gate between significance and generation** *(after 2+ weeks of Phase A data)*
 Insert a dedicated LLM selection pass that sees the full day's queue and makes card-level decisions: does this have an angle? have we already covered this storyline? one card per storyline. This is where Sonnet's judgment belongs — as a dedicated editor, not buried inside the writing prompt.
