@@ -371,12 +371,13 @@ The orchestrator v2 replaced the individual agent crons with a coordinator-first
 20:00  --insights   insights agent directly (bypasses orchestrator)
 ```
 
-**New crontab (2 entries):**
+**New crontab (3 entries):**
 ```
-21:00  --discover   nightly sweep after the day's play is done (results, press conferences, withdrawals all captured)
+07:30  --discover   morning sweep — overnight news + late match press conferences; 30 min before orchestrator reads queue
 08:00  --run        orchestrator plans and delegates everything: recap + predictions + news + insights
+21:00  --discover   nightly sweep after the day's play is done (results, press conferences, withdrawals all captured)
 ```
 
-**Why 21:00 for discovery**: Tennis news is event-driven — match results and post-match content emerge 11:00–20:00. A 21:00 sweep captures the full day. The 08:00 orchestrator then runs on a complete and fresh queue.
+**Why two discovery runs**: Tennis news is event-driven across the full day. The 21:00 sweep captures match results and post-match content from the current day. The 07:30 sweep catches anything that broke overnight or in late matches, ensuring the 08:00 orchestrator always has a fresh queue.
 
 **What the orchestrator decides each morning**: Using AGENT_REGISTRY + live ESPN context, it enumerates all agents and commissions only what's warranted. On a rest day it skips recap and predictions. Between tournaments it still runs news and insights. Flash alerts remain on their own real-time polling cron and are never commissioned by the morning plan.
