@@ -355,3 +355,28 @@ Following the Section 10 gap audit, all 5 identified gaps were implemented:
 | 5. Human handoff provenance | `_format_message()` in telegram_review.py shows `why` field and `critique_status`; both persisted in frontmatter via `_build_frontmatter()` | generate_feed.py, telegram_review.py |
 
 **Implementation note for Gap 1**: The early-fail only triggers on `confirmed_no_matches`. If the orchestrator's ESPN fetch was inconclusive (`unconfirmed`), the recap proceeds — erring on the side of running rather than silently skipping.
+
+---
+
+## 13. Cron Architecture — Option A (August 2026)
+
+The orchestrator v2 replaced the individual agent crons with a coordinator-first architecture.
+
+**Previous crontab (5 entries, agents called directly):**
+```
+08:00  --discover   fill queue
+08:00  --recap      recap agent directly (bypasses orchestrator)
+15:00  --news       news agent directly (bypasses orchestrator)
+18:00  --discover   fill queue again
+20:00  --insights   insights agent directly (bypasses orchestrator)
+```
+
+**New crontab (2 entries):**
+```
+21:00  --discover   nightly sweep after the day's play is done (results, press conferences, withdrawals all captured)
+08:00  --run        orchestrator plans and delegates everything: recap + predictions + news + insights
+```
+
+**Why 21:00 for discovery**: Tennis news is event-driven — match results and post-match content emerge 11:00–20:00. A 21:00 sweep captures the full day. The 08:00 orchestrator then runs on a complete and fresh queue.
+
+**What the orchestrator decides each morning**: Using AGENT_REGISTRY + live ESPN context, it enumerates all agents and commissions only what's warranted. On a rest day it skips recap and predictions. Between tournaments it still runs news and insights. Flash alerts remain on their own real-time polling cron and are never commissioned by the morning plan.
