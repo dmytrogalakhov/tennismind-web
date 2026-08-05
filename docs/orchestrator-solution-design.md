@@ -339,3 +339,19 @@ The coordinator cannot skip directly to a plan. It must enumerate first. This pr
 ## 11. Why It Was Shelved
 
 For a single-person operation, the orchestrator's product value is low — the human can decide and run two commands faster than reading a generated plan. Its value is as a demonstrated *agent-orchestration pattern* (a portfolio/learning artifact), not as a daily tool. It is complete enough to demonstrate the pattern; further investment in making it a good daily editor would be polishing a lab feature rather than serving the product. Shelved in working state; the known limitations above are understood and documented rather than fixed.
+
+---
+
+## 12. Gap Closure — v2.1 (August 2026)
+
+Following the Section 10 gap audit, all 5 identified gaps were implemented:
+
+| Gap | Fix | Files changed |
+|---|---|---|
+| 1. Redundant Apify fetch | `run_generate_recap()` accepts `context_bundle`; fast-fails before Apify if orchestrator confirms no matches | generate_feed.py |
+| 2. Context sharing between agents | `run_generate_recap()` returns card title; `delegate()` sets `gf._ACTIVE_RECAP_TITLE`; news agent injects recap context into research prompt | generate_feed.py, orchestrator.py |
+| 3. Few-shot for agentic news | Two concrete examples added to `_AGENTIC_NEWS_SYSTEM`: thin→tool-call→card and memory-check→skip | generate_feed.py |
+| 4. Programmatic quality guards | `_validate_card_structure()` runs before LLM critique: body word count 50–120, at least one number required | generate_feed.py |
+| 5. Human handoff provenance | `_format_message()` in telegram_review.py shows `why` field and `critique_status`; both persisted in frontmatter via `_build_frontmatter()` | generate_feed.py, telegram_review.py |
+
+**Implementation note for Gap 1**: The early-fail only triggers on `confirmed_no_matches`. If the orchestrator's ESPN fetch was inconclusive (`unconfirmed`), the recap proceeds — erring on the side of running rather than silently skipping.

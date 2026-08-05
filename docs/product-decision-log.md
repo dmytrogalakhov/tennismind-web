@@ -1156,3 +1156,24 @@ Phase A costs ~1 hour to ship. More importantly: without real rejection reasons,
 - Phase B: absorbs over-coverage + duplicate + no-angle — the bulk. Should take 60% → ~25–30%
 - Phase C: closes the taste gap, locks in <20% and keeps it there
 
+---
+
+## PDL-035 — Orchestrator v2.1: Close 5 Identified Pipeline Gaps
+
+**Date:** August 2026
+**Decision:** Implement all 5 gaps identified in the Section 10 audit of the orchestrator solution design.
+
+**What was built:**
+
+1. **Gap 1 — Redundant Apify fetch**: `run_generate_recap()` accepts a `context_bundle` parameter. If the orchestrator's ESPN fetch already confirmed no matches yesterday (`status == "confirmed_no_matches"`), the recap fast-fails before making the Apify call. Saves ~1 Apify credit on rest days.
+
+2. **Gap 2 — Context sharing between agents**: `run_generate_recap()` now returns the card title (str) on success, None on any failure. `delegate()` captures the return value and sets `gf._ACTIVE_RECAP_TITLE` before calling news. The news agent's `_agentic_research()` injects a "recap already covers X" note into the research prompt when this is set.
+
+3. **Gap 3 — Few-shot for agentic news**: Added two concrete examples to `_AGENTIC_NEWS_SYSTEM`: (a) thin snippet → fetch_url → search → card output; (b) candidate → check_memory → already covered → skip. Demonstrates the full tool-call sequence and card format.
+
+4. **Gap 4 — Programmatic quality guards**: Added `_validate_card_structure()` that runs before the LLM critique. Checks body word count (50–120 words) and presence of at least one digit. Zero tokens spent. Cards failing structure checks are dropped immediately with a logged reason.
+
+5. **Gap 5 — Human handoff provenance**: `_format_message()` in telegram_review.py now surfaces the `why` field (editorial rationale) and `critique_status` (pass/rewrite). Both fields are persisted in candidate frontmatter via `_build_frontmatter()`.
+
+**Lesson:** All 5 fixes were mechanical — no new architecture required. They demonstrate the value of naming gaps explicitly before building: "critique_status not surfaced" is a solvable engineering task; "cards feel arbitrary" is not.
+
