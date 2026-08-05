@@ -4,6 +4,126 @@ Strategic decisions, design pivots, and lessons learned that shaped the product 
 
 ---
 
+## PDL-034: Orchestrator v2 — AGENT_REGISTRY, enumeration, brief per agent
+
+**Date:** 2026-08-05
+**Trigger:** Course analysis (PrepGenAICerts coordinator-subagent, narrow decomposition risk, subagent invocation, AgentDefinition config pages) surfaced three structural gaps in the v1 orchestrator
+
+### Context
+
+The v1 orchestrator was shelved as a portfolio artifact. It had the right topology (hub-and-spoke, isolated subagents) but the coordinator was Python `if/else`, not an LLM reasoning over agent descriptions. Three documented limitations remained unfixed:
+
+1. Coordinator unaware of sub-agents' own rules — proposed "insights leveraging recent tournament matches" because it didn't know insights run from an evergreen pool between tournaments
+2. Right answers reached via wrong reasoning — "no active tournament" instead of "we don't cover 250s"
+3. Coordinator reasoning discarded at delegation — the plan said "recap" but the reasoning behind it never reached the recap agent
+
+The course's AgentDefinition pattern (description + invoke_when + never_invoke_when per agent) and the subagent invocation principle (all required context must be explicitly passed) gave a concrete solution to all three.
+
+### Decisions
+
+**1. AGENT_REGISTRY dict** — formal descriptions for all 5 agents, formatted dynamically into the coordinator prompt. The LLM reasons over `invoke_when` / `never_invoke_when` rather than a hardcoded script. Fixes Limitation #1.
+
+**2. Domain corrections encoded in registry** — two facts that were wrong in the design doc and would have caused bad coordinator reasoning:
+- Recap covers *yesterday's* matches (cron runs at 08:00 before today's play begins)
+- Predictions cover *today's* upcoming matches (not tomorrow's — generated in the morning for play later that day)
+
+**3. Enumeration step** — coordinator must list every agent with a yes/no decision before committing to a plan. Cannot skip directly from context to plan. Directly addresses the narrow decomposition risk: the coordinator that decides "recap" without asking whether news is also warranted is a decomposition failure, not a subagent failure.
+
+**4. Brief per agent** — plan output extended with a `brief` field (1-2 sentences of editorial framing). Brief is passed to `run_generate_recap(editorial_brief=...)` and injected into the recap writing prompt. Coordinator reasoning now travels with the task rather than stopping at the plan. Fixes Limitation #3.
+
+### Impact
+
+Live test output (Canadian Open, Day 6, unconfirmed match data):
+- Correctly enumerated all 4 agent types
+- Correctly skipped recap (unconfirmed data), insights (registry: "handled by 20:00 cron"), flash_alerts (registry: "fully automated")
+- Correctly commissioned news with a specific brief: *"Lead with the most compelling off-court narrative... avoid retreading Draper (already published)... draw from 7 pending candidates"*
+- Predictions correctly described as "--predict cron, not part of morning plan"
+
+### What was deferred
+
+Parallel execution (ThreadPoolExecutor for independent agent pairs) and post-agent quality gate — both require evals (roadmap 1.1). The quality gate without evals would only check "did the agent return output?" — trivial, doesn't need a coordinator.
+
+### Lesson
+
+Routing logic encoded in a Python script is invisible to the coordinator. The moment routing becomes a prompt — with explicit `invoke_when` and `never_invoke_when` per agent — the coordinator can reason about it, cite it, and apply it correctly. The same information in code vs. in a registry produces fundamentally different coordinator behaviour.
+
+---
+
+## PDL-033: News card format constraint — 3-4 sentences, not an article
+
+**Date:** 2026-08-05
+**Trigger:** First live test of agentic research loop produced a 4-paragraph, ~400-word card — more article than card
+
+### Context
+
+The `_AGENTIC_NEWS_SYSTEM` prompt instructed the agent to write "2-3 paragraphs of editorial analysis." With access to tool-sourced research data (H2H records, surface stats, tournament history), the agent used the space and produced thorough but oversized output. A standard TennisMind news card is 3-4 sentences, ~75 words.
+
+### Decision
+
+The body instruction was changed to: *"3-4 sentences only. What happened, why it matters, what comes next. Name specific players and consequences. No vague language. This is a card, not an article."* A matching rule was added: *"Keep the body tight — 3-4 sentences maximum."*
+
+The quality bar is not length — it is specificity and angle. A 4-sentence card with a concrete H2H stat and a forward-looking consequence is worth more than a 400-word summary of what happened.
+
+### Impact
+
+The Draper re-test produced 4 sentences citing: exact scores, former world ranking (No. 4), Eastbourne H2H loss to the same opponent, six tournaments played in 2026, ranking outside the top 100. Same research depth, format-compliant output.
+
+### Lesson
+
+Agentic research increases the agent's knowledge. The output format still needs to be explicitly constrained — more information available does not mean more information should be printed.
+
+---
+
+## PDL-032: Agentic dedup threshold — keyword queries need a lower similarity floor
+
+**Date:** 2026-08-05
+**Trigger:** `check_memory` tool failed to catch a Draper story already published under a different headline
+
+### Context
+
+The pipeline dedup gate uses a 0.82 similarity threshold — calibrated for title-vs-title comparisons where the phrasing is close. The agent's `check_memory` tool passes its own keyword phrases (e.g. *"Jack Draper Canadian Open comeback defeat tears"*), not the original headline. The published card was titled *"Tearful Draper Exits Canadian Open on Emotional Return"* — semantically the same story, but the embedding similarity was 0.5979, below the 0.82 threshold. The duplicate passed through.
+
+### Decision
+
+`_tool_check_memory` uses a separate threshold of 0.60. The pipeline gate remains at 0.82. Two thresholds for two different callers: tight matching for deterministic pipeline comparisons, looser matching for agent keyword queries.
+
+### Impact
+
+Draper story now correctly detected as already covered at 0.5979 similarity. No false positives on unrelated queries (Alcaraz, Sinner, Swiatek) at the 0.60 threshold.
+
+### Lesson
+
+Dedup thresholds are not universal. They depend on what is being compared. When an agent paraphrases a query rather than passing the original headline, the expected similarity score drops — the threshold must account for that.
+
+---
+
+## PDL-031: Agentic news research loop — replace one-shot LLM generation with per-item research
+
+**Date:** 2026-08-05
+**Trigger:** Recognition that one-shot LLM evaluation produces competent wire copy but cannot do journalism — it processes what exists, not what the evidence suggests
+
+### Context
+
+The news pipeline used a one-shot LLM call: all surviving candidates were batched together, the LLM scored and wrote cards from article snippets alone. This produced correct but shallow output. The LLM had no way to verify a stat, follow a thread across two articles, or ask "what does this result mean given where the player was a month ago?" Those questions require a second and third search — which the pipeline never made.
+
+The architecture question is not pipeline vs agent. It is *where in the pipeline to introduce agentic behaviour.* The deterministic gates (relevance, staleness, dedup, significance scoring) remain as pipeline — cheap, fast, debuggable, not the right place for LLM reasoning. After the gates, each surviving candidate goes through an agentic research loop where the LLM decides what to look up and in what order.
+
+### Decision
+
+Replace `generate_cards()` batch call with `_agentic_research()` per-item loop. Each candidate gets up to 6 tool-call iterations across 5 tools: `search_news`, `get_tournament_history`, `get_surface_form`, `get_h2h`, `check_memory`. The agent decides the sequence. It produces a card JSON or returns `None` (story dropped after research). The rest of the pipeline — Telegram queue, human review — is unchanged.
+
+Six tools are narrow and specific by design. Generic tools (`get_player_stats`) force the agent to reason about what to do with a blob of data. Specific tools (`get_surface_form`, `get_tournament_history`, `fetch_url`) give the agent pre-structured answers to the exact questions a journalist would ask. `fetch_url` was added after the initial 5-tool build: discovery produces only snippets, and the agent was researching context around stories it hadn't fully read.
+
+### Impact
+
+Live test on Draper/Canadian Open: agent made 7 tool calls across H2H, surface form, tournament history, two search queries, and memory check. Card cited facts not present in the original snippet — Eastbourne H2H loss to the same opponent, ranking collapse out of top 100, six tournaments played in 2026. That context required research; it could not have been produced from the snippet alone.
+
+### Lesson
+
+The pipeline/agentic split is a design decision, not a technology choice. Deterministic gates are better as pipeline — they are cheap, parallelisable, and their failures are easy to diagnose. Exploratory tasks (what does this mean? what context is missing?) are better as agentic — the agent needs to follow the evidence, not execute a script. The discipline is knowing where the handoff belongs.
+
+---
+
 ## PDL-030: Grand Slam news cutoff — recap covers final results, not news discovery
 
 **Date:** 2026-07-13  

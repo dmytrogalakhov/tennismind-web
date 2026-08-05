@@ -191,6 +191,151 @@ The morning plan depends on a macOS cron job that only fires when the Mac is awa
 
 ---
 
-## 9. Why It Was Shelved
+## 10. v2 Design — What the Course Taught Us to Fix
+
+*Added August 2026. This section extends the v1 design with findings from course analysis (PrepGenAICerts: Coordinator-Subagent, Narrow Decomposition Risk, Subagent Invocation, AgentDefinition Config). Each addition maps directly to a v1 known limitation or a structural gap.*
+
+---
+
+### Fix 1: Agent Registry (AgentDefinition pattern → fixes Limitation #2)
+
+V1 limitation: *"The orchestrator is unaware of sub-agents' own operating rules."*
+
+The coordinator currently reasons about agents in a vacuum. The AgentDefinition pattern says every subagent should have a formal description that tells the coordinator *when to invoke it and what it does*. In TennisMind terms, this becomes an `AGENT_REGISTRY` passed into the coordinator's prompt:
+
+```python
+AGENT_REGISTRY = {
+    "recap": {
+        "description": "Generates a tournament day recap card from match results.",
+        "invoke_when": "Matches were played today at a TennisMind-covered tournament.",
+        "never_invoke_when": "Rest day, or tournament not in coverage list.",
+        "tool_access": ["espn_api", "apify_cache", "tavily_enrichment"],
+    },
+    "predictions": {
+        "description": "Generates prediction cards for tomorrow's scheduled matches.",
+        "invoke_when": "Tomorrow's schedule is known and contains covered matches.",
+        "never_invoke_when": "Final day (no tomorrow), or rest day.",
+        "tool_access": ["espn_schedule", "elo_rankings"],
+    },
+    "news": {
+        "description": "Researches pending queue items and generates news cards.",
+        "invoke_when": "Discovery queue has pending items. Runs independently of match schedule.",
+        "never_invoke_when": "Queue is empty.",
+        "tool_access": ["tavily", "tennis_abstract", "memory"],
+    },
+    "insights": {
+        "description": "Generates evergreen tennis insight cards (stats, history, gear).",
+        "invoke_when": "Any day. Between tournaments, generates from evergreen topic pool. During tournaments, generates tournament-contextual insights.",
+        "never_invoke_when": "Never fully skipped — always has content to generate.",
+        "tool_access": ["tavily", "image_generation"],
+    },
+    "flash_alerts": {
+        "description": "Sends immediate Telegram alerts for significant live results.",
+        "invoke_when": "Major upset, final result, or milestone detected in today's results.",
+        "never_invoke_when": "No matches, or no significant results.",
+        "tool_access": ["espn_api", "telegram"],
+    },
+}
+```
+
+The coordinator receives this registry as part of its prompt. It reasons over `invoke_when` / `never_invoke_when` to decide the plan — not a hardcoded `if tournament_day: run_recap()` script. This directly fixes the "insights between tournaments" mistake: the registry says insights run every day with evergreen content; the coordinator can no longer propose "insights leveraging recent tournament matches" on a non-tournament day.
+
+---
+
+### Fix 2: Brief Per Agent in Plan Output (context isolation → fixes Limitation #3)
+
+V1 limitation: *"Right answers for wrong reasons — fragile when context shifts."*
+
+V1 plan output: `{"agent": "recap", "reason": "matches happened"}`. The reasoning lives in the plan but is discarded before the agent runs. The subagent invocation page is explicit: *subagents do not inherit coordinator context — everything must be explicitly passed.*
+
+V2 plan output adds a `brief` field that is passed directly into the subagent's prompt:
+
+```python
+{
+  "plan": [
+    {
+      "agent": "recap",
+      "reason": "QF results, two compelling matches",
+      "brief": "Lead with Alcaraz — came back from a set down to beat Zverev in the QF. Secondary story: Draper emotional return, broke down in tears during R1 loss to Atmane. Both angles are in the ESPN data."
+    },
+    {
+      "agent": "predictions",
+      "reason": "SF matchups now confirmed",
+      "brief": "SF: Sinner vs Alcaraz. Focus on their H2H (Alcaraz leads 7-4), surface (both strong on hard), and fatigue — Alcaraz played three sets today."
+    }
+  ]
+}
+```
+
+The recap agent receives its brief and uses it to frame its output — it knows before it starts what the coordinator identified as the lead story. The coordinator's reasoning is preserved through execution, not discarded at the delegation step.
+
+---
+
+### Fix 3: Richer Context (fixes Limitation #1)
+
+V1 limitation: *"Incomplete tournament calendar — only major tournaments. Right answers via wrong reasoning."*
+
+Two additions to `gather_context()`:
+
+**Full coverage policy in prompt.** Rather than only passing which tournaments are active, pass TennisMind's coverage policy explicitly: *"TennisMind covers Grand Slams, Masters 1000s, and select 500s. 250-level tournaments are tracked in the calendar but excluded from recap/predictions coverage."* The coordinator reasons correctly ("we don't cover this") not wrongly ("no tournament exists").
+
+**ESPN live data over calendar inference.** Pull today's confirmed match count directly from ESPN at context-gather time — not from the Apify cache (which may be stale). Three-state logic retained: confirmed (count > 0), confirmed-none (rest day), UNCONFIRMED (API unavailable).
+
+---
+
+### Fix 4: Parallel Execution Map
+
+The subagent invocation page notes that multiple tool calls in one coordinator response enable parallel subagent spawning. In TennisMind, not all agents depend on each other:
+
+| Agent pair | Can run in parallel? | Reason |
+|---|---|---|
+| recap + news | No | News checks memory to avoid duplicating recap angles. Recap runs first. |
+| recap + flash_alerts | Yes | Flash alerts fire on the result, recap is a longer synthesis. |
+| predictions + insights | Yes | No dependency between them. |
+| news + insights | Yes | Separate content types, separate sources. |
+
+V2 delegate() groups independent agents and runs them concurrently via `ThreadPoolExecutor`:
+
+```python
+# Sequential: recap must complete before news (memory check)
+run_agent("recap", brief=plan["recap"]["brief"])
+
+# Parallel: predictions and insights are independent
+with ThreadPoolExecutor() as ex:
+    ex.submit(run_agent, "predictions", plan["predictions"]["brief"])
+    ex.submit(run_agent, "insights",    plan["insights"]["brief"])
+```
+
+---
+
+### Fix 5: Decomposition Enumeration Guard (narrow decomposition risk)
+
+The narrow decomposition risk page states: *require the coordinator to enumerate all relevant domains before creating tasks.* V2 adds an explicit enumeration step to the coordinator prompt:
+
+```
+Step 1 — Enumerate: list every content type that today's events could support.
+         Consider each agent in AGENT_REGISTRY against today's context.
+Step 2 — Decide: for each, yes or no with one-line reasoning.
+Step 3 — Plan: ordered list of yes items, each with a brief for the agent.
+Step 4 — Skip list: what you're not doing and why.
+```
+
+The coordinator cannot skip directly to a plan. It must enumerate first. This prevents the failure mode where the orchestrator decides "recap" and stops — without ever asking whether predictions, flash alerts, or insights are also warranted.
+
+---
+
+### v1 → v2 Summary
+
+| Gap | Root cause | v2 fix |
+|---|---|---|
+| Unaware of sub-agent rules | No formal agent descriptions | AGENT_REGISTRY with invoke_when/never_invoke_when |
+| Coordinator reasoning discarded | No context passing to subagents | brief field passed into each agent's prompt |
+| Incomplete calendar reasoning | Thin context, 250s absent | Coverage policy in prompt + live ESPN at context-gather |
+| Narrow decomposition | Coordinator jumps to plan | Enumeration step forced before planning |
+| Sequential execution of independent agents | V1 runs all agents in sequence | ThreadPoolExecutor for independent agent pairs |
+
+---
+
+## 11. Why It Was Shelved
 
 For a single-person operation, the orchestrator's product value is low — the human can decide and run two commands faster than reading a generated plan. Its value is as a demonstrated *agent-orchestration pattern* (a portfolio/learning artifact), not as a daily tool. It is complete enough to demonstrate the pattern; further investment in making it a good daily editor would be polishing a lab feature rather than serving the product. Shelved in working state; the known limitations above are understood and documented rather than fixed.

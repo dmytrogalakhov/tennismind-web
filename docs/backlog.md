@@ -59,6 +59,9 @@ Predictions have a structured source (ESPN schedule), a fixed output template, a
 **Tiebreak scores in ESPN data** `[S]`  
 `_parse_espn_results()` currently formats a tiebreak set as `7-6` with no bracket score. ESPN's `linescores` may carry the tiebreak score separately — worth checking and surfacing it as `7-6(5)` in recap output.
 
+**~~`max_tokens` truncation guard~~** `[S]` ✅ _Done 2026-08-05_
+~~If the LLM hits its token limit mid-generation, `stop_reason` returns `max_tokens` — but we currently ignore it and would queue a half-written card.~~ Fixed: `_safe_invoke()` wrapper checks `stop_reason` on every call and discards on `max_tokens`; default `max_tokens` raised from 1024 → 4096 on both model instances. Commit `93fe926`.
+
 **Prediction accuracy dashboard** `[M]`  
 The `outcome` frontmatter field (`correct | incorrect | void`) is already written on prediction cards. A simple script could aggregate accuracy by tournament, surface, and round and write a summary card. The solution design already exists at `docs/solution-design-prediction-accuracy.md`.
 
