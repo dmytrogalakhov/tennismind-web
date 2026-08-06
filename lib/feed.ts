@@ -65,7 +65,9 @@ export function getAllFeedCards(): FeedCard[] {
       const bKey = b.publishedAt ?? b.date;
       const cmp = bKey.localeCompare(aKey);
       if (cmp !== 0) return cmp;
-      // Same sort key: high priority first
+      // Same sort key: recap type first, then high priority
+      if (a.type === "recap" && b.type !== "recap") return -1;
+      if (b.type === "recap" && a.type !== "recap") return 1;
       if (a.priority === "high" && b.priority !== "high") return -1;
       if (b.priority === "high" && a.priority !== "high") return 1;
       return 0;
