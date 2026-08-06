@@ -19,7 +19,11 @@ Several critical quality rules existed only in system prompts. Prompts fail at ~
 
 ### Decisions
 
-**Hook 1 — `_validate_structured_matches()`**: PostToolUse on Apify data in `run_generate_recap()`. Drops records with empty winner/loser or missing sets_score before any LLM sees the data. If all records drop, fast-fails with no LLM spend.
+**Hook 1 — `_validate_structured_matches()` with healing cascade**: PostToolUse on Apify data in `run_generate_recap()`. For each incomplete record (missing name or score), attempts to heal from secondary sources before discarding:
+- Strategy 1: ESPN cache for recap_date — surname match against completed competitions, score reconstructed from linescores (free, structured, no LLM)
+- Strategy 2: Tavily search + Haiku extraction — searches for the match by player names + tournament, asks Haiku to parse the score from article snippets
+- Drop only if both strategies fail and the record cannot be made complete
+If all records drop, fast-fails with no LLM spend.
 
 **Hook 2 — `_validate_news_card_body()`**: Deterministic gate in `run_generate_news_from_queue()` after the critique loop, before `save_candidate()`. Enforces: body ≥ 40 words (truncation guard); stat keyword must be within 30 chars of a digit. Returns `(is_valid, reason)`; failed cards are logged and dropped.
 
