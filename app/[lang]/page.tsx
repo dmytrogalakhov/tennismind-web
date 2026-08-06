@@ -35,8 +35,9 @@ export default async function HomePage({
   ];
 
   const features = [
-    { icon: "📰", title: t.f6_title, desc: t.f6_desc, href: `/${lang}/news`,           cta: t.f6_cta, badge: null          },
-    { icon: "✍️", title: t.f8_title, desc: t.f8_desc, href: `/${lang}/articles`,       cta: t.f8_cta, badge: null          },
+    { icon: "📰", title: t.f6_title,  desc: t.f6_desc,  href: `/${lang}/news`,           cta: t.f6_cta,  badge: null          },
+    { icon: "📋", title: t.f10_title, desc: t.f10_desc, href: `/${lang}/recaps`,         cta: t.f10_cta, badge: null          },
+    { icon: "✍️", title: t.f8_title,  desc: t.f8_desc,  href: `/${lang}/articles`,       cta: t.f8_cta,  badge: null          },
     { icon: "📊", title: t.f1_title, desc: t.f1_desc, href: `/${lang}/match-analysis`, cta: t.f1_cta, badge: null          },
     { icon: "📡", title: t.f7_title, desc: t.f7_desc, href: `/${lang}/feed`,           cta: t.f7_cta, badge: null          },
     { icon: "🎾", title: t.f3_title, desc: t.f3_desc, href: `/${lang}/racket-finder`,  cta: t.f3_cta, badge: null          },
