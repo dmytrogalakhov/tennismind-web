@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from "react";
 type NavDict = {
   home: string;
   news: string;
+  recaps: string;
   articles: string;
   tools: string;
   racket_finder: string;
@@ -48,6 +49,7 @@ export default function Navbar({ lang, navDict }: Props) {
 
   const mainLinks = [
     { href: `/${lang}/news`,           label: navDict.news },
+    { href: `/${lang}/recaps`,         label: navDict.recaps },
     { href: `/${lang}/feed`,           label: navDict.feed },
     { href: `/${lang}/match-analysis`, label: navDict.match_analysis },
     { href: `/${lang}/predictions`,    label: navDict.predictions },
