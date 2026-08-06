@@ -2,6 +2,7 @@
 type: "recap"
 title: "National Bank Open Day 6 — Men & Women"
 date: "2026-08-06"
+published_at: "2026-08-06T11:31:00"
 event_date: "2026-08-06"
 day_number: "6"
 tags:
