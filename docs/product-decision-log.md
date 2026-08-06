@@ -1177,3 +1177,46 @@ Phase A costs ~1 hour to ship. More importantly: without real rejection reasons,
 
 **Lesson:** All 5 fixes were mechanical — no new architecture required. They demonstrate the value of naming gaps explicitly before building: "critique_status not surfaced" is a solvable engineering task; "cards feel arbitrary" is not.
 
+---
+
+## PDL-036 — Recap: Evening Timing, Hard Court Colors, WTA Supplement
+
+**Date:** August 2026
+**Trigger:** Day 5 National Bank Open recap used orange (clay) image, missing WTA data, and covered yesterday's matches instead of today's.
+
+**Decisions:**
+
+1. **Recap timing shifted to 23:00**: Recap now runs at 23:00 CET after today's play ends, covering `recap_date = datetime.now().date()` (today). Previously ran at 08:00 covering the previous day. Added dedicated `--recap` cron at 23:00. Morning `--run` orchestrator no longer commissions recap. Apify dayOffset changed from `"-1"` to `"0"`. Tavily fallback search uses `today` not `yesterday`.
+
+2. **Hard court color styles**: Added "National Bank Open", "Western & Southern Open", "Canadian Open", "Rogers Cup", "Miami Open", "Indian Wells Masters" to `_RECAP_TOURNAMENT_STYLES` with US Open Series blue `(0, 90, 170)`. Previously all non-Slam tournaments fell through to the charcoal default.
+
+3. **WTA supplement via Tavily**: After primary fetch (`fetch_structured_results`), if WTA count < 2, `_fetch_wta_supplement()` runs a WTA-specific Tavily search and appends new matches (deduplicated). Addresses persistent issue of primary sources (ESPN/Apify) returning thin WTA data for 1000-level events.
+
+4. **Bold header normalization**: Added post-processing regex normalization after `json.loads()` to force `**MEN'S DRAW**` / `**WOMEN'S DRAW**` markers regardless of LLM compliance. Fixes persistent regression where LLM returned plain text headers.
+
+**Lesson:** Timing and surface color were config gaps, not reasoning failures. The LLM can't pick the right image style if the style dict doesn't contain the tournament.
+
+---
+
+## PDL-037 — Recap Data Sources: Apify Pricing Discovery + Google News RSS Fallback
+
+**Date:** August 2026
+**Trigger:** Apify live fetch repeatedly failing after first successful call; discovered actor is $4.99 per-call (not per-month) on the free plan.
+
+**Findings:**
+
+- Apify `statanow/flashscore-scraper-live` charges **$4.99 per actor run** (PAID_ACTORS_PER_EVENT pricing model). On the free plan, the first successful call exhausts the budget; subsequent calls fail with "Maximum charged results must be greater than zero."
+- ESPN returns 403 intermittently (primary structured source).
+- Google Search results are bot-protected (CAPTCHA redirect).
+- Direct Flashscore/Sofascore APIs require authentication headers that change frequently.
+- WTA/ATP official websites are JavaScript-rendered, not parseable with requests + BeautifulSoup.
+
+**Decisions:**
+
+1. **Keep Apify cache** as tier 3 (free — reads the cached JSON from the previous successful run). Cache is dated by day so it's automatically stale-aware.
+2. **Replace Tavily (paid) with Google News RSS** as tier 5 fallback. Uses `feedparser` to fetch article headlines + links from Google News RSS, then fetches article HTML with `urllib.request` + BeautifulSoup, then extracts structured results with Haiku. Free, no API key required.
+3. **WTA supplement** similarly uses Google News RSS instead of Tavily.
+4. **Apify live remains tier 4** for when cache is cold (first run of a tournament day). Limit to one live call per cache TTL; do not retry on failure.
+
+**Lesson:** "We have Apify credits" was factually true but the pricing model is per-run, not per-month. $4.99/day for a daily recap is unsustainable. Google News RSS + article scraping is the correct free fallback.
+
