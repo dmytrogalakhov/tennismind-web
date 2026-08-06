@@ -4,6 +4,28 @@ Tracking bugs, root causes, and fixes across both projects (match-analyst-bot an
 
 ---
 
+## Issue #035: ESPN recap fetch returns empty groupings for NBO / Masters 1000 events
+
+**Date:** August 6, 2026
+**Project:** match-analyst-bot
+**Severity:** High — recap pipeline had no working data source for National Bank Open
+
+### Symptoms
+- `fetch_espn_events(date, tour="atp")` returned 0 competitions for NBO August 6
+- The `site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard?dates=20260806` endpoint returned 403 or returned events with `competitions: 0` (no groupings)
+- Apify Flashscore scraper exhausted free-plan budget ($4.99/run × 1 run = $4.99 spent)
+- Google News RSS returned redirect pages (ucbcb=1) not article content
+
+### Root Cause
+The `site.api.espn.com` endpoint with `?dates=YYYYMMDD` query parameter blocks programmatic access for recent dates and often returns empty `groupings[]`. The `site.web.api.espn.com` endpoint **without** a date filter reliably returns the full live tournament draw with all competitions and scores, then date filtering is done on the response.
+
+### Fix (generate_feed.py, `fetch_espn_events`)
+Changed primary ESPN endpoint from `site.api.espn.com?dates=...` to `site.web.api.espn.com` (no date filter). Added the old endpoint as a fallback. The `_parse_espn_results` function already filters by `match_dates` on the client side, so no change needed there.
+
+Result: 222 competitions returned for NBO, correctly filtered to the day's matches.
+
+---
+
 ## Issue #001: Racket images returning 404 on the website
 
 **Date:** May 4, 2026
