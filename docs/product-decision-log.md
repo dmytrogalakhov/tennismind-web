@@ -4,6 +4,71 @@ Strategic decisions, design pivots, and lessons learned that shaped the product 
 
 ---
 
+## PDL-037: Deterministic quality hooks — move three quality rules from Tier 1 (prompt) to Tier 3 (code)
+
+**Date:** 2026-08-06
+**Trigger:** Course analysis (PrepGenAICerts — Agent SDK Hooks page) + recurring quality failures: hallucinated "Lucas Tien", vague-stat cards passing critique, Apify empty-name records reaching LLM
+
+### Context
+
+Several critical quality rules existed only in system prompts. Prompts fail at ~10–15% under production load. The Haiku critique gate is itself LLM-based and fails open on error — no deterministic backstop. Three specific failure patterns were traced to this gap:
+
+1. Apify occasionally returns match records with empty winner/loser strings; LLM filled the gap from memory (hallucinated player names)
+2. News card bodies contained stat language ("high win rate", "dominant serve performance") without a number — violating CLAUDE.md rule, not caught by Haiku
+3. Same Tavily query fired multiple times in one cron run when recap enrichment and news research overlapped on the same story
+
+### Decisions
+
+**Hook 1 — `_validate_structured_matches()`**: PostToolUse on Apify data in `run_generate_recap()`. Drops records with empty winner/loser or missing sets_score before any LLM sees the data. If all records drop, fast-fails with no LLM spend.
+
+**Hook 2 — `_validate_news_card_body()`**: Deterministic gate in `run_generate_news_from_queue()` after the critique loop, before `save_candidate()`. Enforces: body ≥ 40 words (truncation guard); stat keyword must be within 30 chars of a digit. Returns `(is_valid, reason)`; failed cards are logged and dropped.
+
+**Hook 3 — `_TAVILY_CACHE` in `_tavily_results()`**: Tool call interception. Module-level dict keyed by raw query string. Same query in the same process run hits the cache, not the API. Transparent to all callers.
+
+### Lesson
+
+Hooks are the answer to "how do I prevent this specifically?" Prompts are the answer to "how do I describe the intent?" Both are needed — the prompt defines what good looks like, the hook enforces the parts where being wrong has a known shape that code can detect. A rule like "stat without a number" has a detectable pattern; it belongs in code, not in a prompt that the model will occasionally skip.
+
+---
+
+## PDL-036: Prediction cards — hard court palette + hard cap of 5 + deterministic priority gate
+
+**Date:** 2026-07-13
+**Trigger:** NBO QF day produced 14 prediction cards (expected 5); card design used generic AI-generated image instead of structured card format
+
+### Context
+
+The prediction pipeline had two separate problems discovered on the same day:
+
+1. **14 cards instead of 5**: The `is_late_round` branch used `list(today_schedule)` with no cap, so a QF day with 14 scheduled ATP+WTA matches produced 14 cards. The cap (`top_n=8` → intended `5`) only applied in some code paths.
+2. **Wrong card design**: The renderer only invoked the Wimbledon card for grass+Wimbledon specifically; hard court tournaments fell through to the generic AI image pipeline, producing mismatched visual identity.
+3. **Match selection was LLM-only**: No deterministic gate meant the LLM could ignore high-interest matches in favour of narrative novelty.
+
+### Decisions
+
+**Hard cap of 5**: `_select_predictions(top_n=5)` replaces both `is_late_round` branches. Cap is universal — applies at QF, SF, Final, and early rounds.
+
+**Deterministic priority gate**: `_is_priority(m)` runs before LLM selection. Priority = top-10 seed playing, OR Ukrainian player, OR SF/Final round. Priority matches fill the pool first; LLM picks from that pool by narrative value. Deterministic gate narrows; LLM picks the best stories from the narrowed pool.
+
+**Hard court card** (`hardCourtPredictionCard.ts`): same layout as Wimbledon card, NBO/Cincinnati blue palette (`#005AAA` top bar, `#060E1A` background, `#4AA8FF` accent). Routed from `generate_feed.py` surface check: `surface == "hard"` → `_render_hard_court_prediction_card()`.
+
+### Lesson
+
+LLM match selection works for narrative framing but should never control which matches are covered — that's an editorial policy decision. Deterministic gates encode editorial policy; LLM chooses the best angle within the policy-approved pool.
+
+---
+
+## PDL-035: Tournament Recaps section added to home page and navigation
+
+**Date:** 2026-07-13
+**Trigger:** Recaps page launched; home page and nav did not link to it
+
+### Decision
+
+Added Tournament Recaps as a feature card in the "Built for tennis lovers" grid on the home page (after Tennis News). Added "Recaps" / "Recaps" / "Підсумки" nav link in all three dictionaries (EN/DE/UK) and `Navbar.tsx`.
+
+---
+
 ## PDL-034: Orchestrator v2 — AGENT_REGISTRY, enumeration, brief per agent
 
 **Date:** 2026-08-05

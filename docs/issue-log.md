@@ -4,6 +4,37 @@ Tracking bugs, root causes, and fixes across both projects (match-analyst-bot an
 
 ---
 
+## Issue #036: Prompt-only quality rules producing hallucinated names and vague stats in news/recap cards
+
+**Date:** August 6, 2026
+**Project:** match-analyst-bot
+**Severity:** Medium — quality failures reaching Telegram review queue; required manual rejection
+
+### Symptoms
+- Recap card named "Lucas Tien" (hallucinated); correct name "Learner Tien" was in the Tavily source
+- Apify occasionally returns match records with empty winner/loser strings; these were passed directly to the LLM which then filled gaps from memory
+- News cards occasionally contained stat language ("dominant serve performance", "high win rate") without a supporting number, violating CLAUDE.md quality rule
+- Critique gate (`_critique_news_card`) uses Haiku with a fail-open fallback — errors produce `True` regardless
+
+### Root Cause
+Three quality rules lived only in system prompts (Tier 1 enforcement):
+1. "Never publish a stat without a specific number"
+2. "Never name players not in source data" (for news)
+3. Apify match records must have non-empty winner, loser, and sets_score before LLM sees them
+
+Prompts fail at ~10–15% under production load. The Haiku critique gate is itself LLM-based and fails open on error — no deterministic backstop existed.
+
+### Fix
+Added three deterministic hooks (Tier 3 enforcement):
+
+**Hook 1** (`_validate_structured_matches`): filters Apify match records with empty names or missing score before `run_generate_recap()` passes them to the LLM. Fast-fails the entire recap if all records are invalid.
+
+**Hook 2** (`_validate_news_card_body`): enforces minimum body length (40 words) and stat-without-number detection using regex, called after the critique loop just before `save_candidate()`. Cards that fail are logged and dropped with reason `"hook2: ..."`.
+
+**Hook 3** (`_TAVILY_CACHE` + cache check in `_tavily_results`): in-process query cache prevents the same Tavily query from hitting the API twice in one cron run. Reduces cost and prevents duplicate enrichment when recap and news pipelines overlap on the same story.
+
+---
+
 ## Issue #035: ESPN recap fetch returns empty groupings for NBO / Masters 1000 events
 
 **Date:** August 6, 2026
