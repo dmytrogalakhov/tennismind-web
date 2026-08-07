@@ -1295,6 +1295,35 @@ Strip all non-alphanumeric characters before word comparison in `_best_queue_mat
 
 ---
 
+## Issue #037: Five pipeline failures on Aug 7 — recap skip, news false positive, missing marquee coverage
+
+**Date:** 2026-08-07
+**Project:** match-analyst-bot
+**Severity:** High — recap missing, Svitolina/Sabalenka not covered, Ukrainian players absent from predictions
+
+### Symptoms
+1. No recap generated for Aug 6 matches despite cron running normally.
+2. Svitolina win not covered in news (article was in discovery queue).
+3. Sabalenka (world #1, #1 seed) win not covered while other players were prioritized.
+4. Svitolina/Kostyuk matches absent from predictions despite both being top-10 and Ukrainian.
+5. Osaka absent from predictions despite being marquee player.
+
+### Root Causes
+1. **Recap**: NBO config start date changed from Jul 31 → Aug 1 at some point. With start=Aug 1, today computed `day_number=6`, colliding with yesterday's Day 6 file → silent skip.
+2. **Svitolina dedup false positive**: Check 2 keyword overlap in `collect_search_content_news()` applied no stopwords. "Swiatek" + "third" in new headline matched old memory "Svitolina beats Swiatek to reach third Rome final" → article marked "already covered."
+3. **Sabalenka not covered**: No mandatory floor in news generation. Agentic researcher can skip world #1 wins if it chooses a different angle.
+4. **Predictions**: `_is_guaranteed()` didn't exist — Ukrainian/marquee guarantee was prompt-only ("MANDATORY"). LLM excluded them when priority pool had 10+ options.
+5. **Osaka**: Not always top-10 seeded; only top-10 seed + Ukrainian were in `_is_priority()`.
+
+### Fix (PDL-038)
+1. Reverted NBO start date to `2026-07-31`.
+2. Applied `_TENNIS_STOPWORDS` to Check 2 keyword overlap — only substantive entity names can trigger it.
+3. Added marquee floor after agentic loop: force-generate cards for marquee players that were skipped.
+4. Added `_is_guaranteed()` in `_select_predictions()`: Ukrainian + marquee players extracted before LLM, always included as dedicated slots.
+5. Added `_get_marquee_surnames()` loading `data/marquee-players.json` into orchestrator.
+
+---
+
 ## Issue #034: Tavily returns 60+ stale articles in dead-zone period
 
 **Date:** July 13-15, 2026

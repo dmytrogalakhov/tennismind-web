@@ -1289,3 +1289,35 @@ Phase A costs ~1 hour to ship. More importantly: without real rejection reasons,
 
 **Lesson:** "We have Apify credits" was factually true but the pricing model is per-run, not per-month. $4.99/day for a daily recap is unsustainable. Google News RSS + article scraping is the correct free fallback.
 
+---
+
+## PDL-038 — Prediction + News Mandatory Floors for Marquee Players
+
+**Date:** 2026-08-07
+**Trigger:** Aug 7 pipeline post-mortem — five failures in one day: no recap, Svitolina missing from news, Sabalenka (#1 seed) uncovered, Svitolina/Kostyuk/Osaka absent from predictions despite being marquee players.
+
+**Root causes identified:**
+
+1. **Recap day-number collision**: NBO start date changed from Jul 31 → Aug 1 in config. Today (Aug 7) computed day_number=6, but Day 6 file already existed (generated yesterday). Silent skip.
+2. **News false positive dedup (Svitolina)**: Check 2 keyword overlap used raw word split without applying `_TENNIS_STOPWORDS`. "Swiatek" + "third" in new title matched old memory "Svitolina beats Swiatek to reach third Rome final" → Svitolina article filtered as "already covered."
+3. **News mandatory floor absent**: Sabalenka (world #1, #1 seed in tournament) article was in pool (score 14) but agentic researcher skipped it. No floor prevents LLM from skipping world #1 wins.
+4. **Predictions guaranteed slots absent**: Ukrainian players + marquee players (Osaka, Sabalenka) were only in the LLM prompt as "MANDATORY" — when priority pool had 10+ matches, LLM still excluded them. Prompt-level enforcement is not deterministic.
+5. **Osaka not in priority gate**: Osaka is a marquee player but not always top-10 seeded, so `_is_priority()` could miss her.
+
+**Decisions:**
+
+1. **Fix recap start date**: Restored NBO start to `2026-07-31` (the correct date that produced valid Day 5/6 files). Day 7 will now generate cleanly.
+
+2. **Fix dedup stopwords**: Applied `_TENNIS_STOPWORDS` to Check 2 keyword overlap in `collect_search_content_news()`. Generic tennis words ("third", "second", "final", "open") can no longer create false positives. Check 2 now only fires on substantive shared entities (player names, tournament names).
+
+3. **Add marquee floor to news**: After the agentic research loop in `run_generate_news_from_queue()`, check which marquee players appear in skipped queue items but have no card generated for them. Force-generate those cards using `_agentic_research(item, force=True)` — a new flag that adds a mandatory instruction to the agent prompt preventing skip.
+
+4. **Add guaranteed slots to predictions**: Rewrote `_select_predictions()` in orchestrator.py with three gates:
+   - **Gate 1 (guaranteed)**: Ukrainian players + marquee players — extracted deterministically before LLM sees anything
+   - **Gate 2 (priority pool for LLM)**: top-10 seeds + SF/Final — LLM fills (top_n - guaranteed_count) remaining slots from this pool
+   - LLM can no longer exclude Ukrainian players or marquee players regardless of pool size
+
+5. **Add marquee surnames to orchestrator**: New `_get_marquee_surnames()` function loads `data/marquee-players.json` into a module-level cache. `_is_guaranteed()` checks both Ukrainian surnames and marquee surnames.
+
+**Lesson:** "MANDATORY" in a prompt guarantees nothing when the LLM has 10+ valid options. Marquee-player guarantees need to be extracted as code before the LLM loop, not injected as natural language instructions inside it.
+
