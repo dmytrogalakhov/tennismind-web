@@ -1291,6 +1291,33 @@ Phase A costs ~1 hour to ship. More importantly: without real rejection reasons,
 
 ---
 
+## PDL-039 — Home-Country Media: Italian + Spanish Sources for Sinner and Alcaraz
+
+**Date:** 2026-08-07
+**Trigger:** Sinner spotted at orthopedic clinic in Milan — TennisMind didn't cover it. Alcaraz withdrawal from Cincinnati — discovered by pipeline but wrong dedup blocked it (PDL-038). Both stories broke in home-country press before reaching Anglophone feeds.
+
+**Problem:**
+BBC and ESPN RSS are US/UK-centric. Italian sports press (Gazzetta dello Sport, Corriere dello Sport) covers Sinner news first — often hours before BBC picks it up. Spanish press (Marca, AS) does the same for Alcaraz. Our discovery pipeline was entirely English-locale and missed this class of story entirely.
+
+**Decisions:**
+
+1. **`_PLAYER_HOME_LOCALES` dict** — maps marquee player surnames to their home-country Google News locale `(hl, gl, lang)`. Initial set: Sinner/Musetti/Berrettini → Italian (`it-IT/IT/it`), Alcaraz/Badosa/Davidovich Fokina → Spanish (`es-ES/ES/es`). Driven by `marquee-players.json` membership — only runs for confirmed marquee players.
+
+2. **Google News Tier 4** — new always-on discovery tier in `fetch_google_news_atp_wta()`. For each player in `_PLAYER_HOME_LOCALES` who is also in the marquee list, fires a player-specific Google News RSS query in their home locale. No source filter — player-name query specificity is the quality gate. Sonnet handles multilingual content at research time.
+
+3. **Extend Tier 3 to active tournaments** — the world #1 player sweep was previously preview-mode only. Injury news, clinic sightings, and withdrawals don't wait for off-season. Tier 3 now runs every day.
+
+4. **Tavily domain list expansion** — added `ubitennis.com` (English-language Italian tennis coverage), `gazzetta.it`, `marca.com`, `as.com` to `_NEWS_TRUSTED_DOMAINS` and `_PREVIEW_TRUSTED_DOMAINS`. Tavily can now surface and resolve content from these sources.
+
+5. **`_GNEWS_ACCEPTED_SOURCES` expansion** — added Gazzetta dello Sport, Corriere dello Sport, La Repubblica, TennisMania, Marca, AS, El País, Mundo Deportivo, Sport as accepted Google News sources for the Tier 1 generic query.
+
+**What this changes:**
+Stories like "Sinner visto alla clinica ortopedica di Milano" will now appear in the discovery queue via Tier 4 Google News Italian RSS. The significance scorer will pass them (Sinner is a marquee name). The agentic researcher (Sonnet) reads Italian and can write the card in English.
+
+**Lesson:** World #1 players travel and make news in their home country first. A discovery pipeline that only reads English RSS is structurally blind to a whole class of breaking stories. Home-country locale coverage is not optional for marquee players — it's the fastest signal available.
+
+---
+
 ## PDL-038 — Prediction + News Mandatory Floors for Marquee Players
 
 **Date:** 2026-08-07
