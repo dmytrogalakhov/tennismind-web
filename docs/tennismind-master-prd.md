@@ -207,10 +207,20 @@ Apify (structured results, date-bounded) → filter ATP/WTA singles
 
 **News:**
 ```
-Tavily (freshness-aware queries: active-tournament results need only;
-significance filter: GS/1000/500 + tier-independent major-player stories)
-→ Sonnet curation (date-anchored: reject stale/preview-of-started/ended-tournament)
-→ RAG dedup gate (semantic, 0.82) → news tile image → candidate → approval
+Discovery sources (collect_news_pool, RSS-primary):
+  1. BBC/ESPN RSS (48h freshness gate)
+  2. Google News RSS — 4 tiers:
+       Tier 1: generic "tennis 2026", source-filtered
+       Tier 2: active tournament queries, no filter
+       Tier 3: world #1 player sweep (always-on; previously preview-only)
+       Tier 4: home-country locale (Sinner → Italian, Alcaraz → Spanish)
+  3. Reddit r/tennis hot posts JSON API (link ≥ 30, self-post ≥ 50 upvotes)
+  4. Tavily news_search_tool (days=1, trusted domains incl. gazzetta.it, marca.com)
+→ Significance scoring (marquee/Ukrainian/tier/stage gates)
+→ discovery_queue.json (pending items, scored)
+→ Agentic research per item (Sonnet + tools)
+→ Marquee floor: force-generate if marquee player skipped and uncovered
+→ RAG dedup gate (semantic, 0.78) → news tile image → candidate → approval
 ```
 
 **Insights:**
@@ -276,6 +286,8 @@ Card type: `match-analysis`. PNG stored at `public/feed/<slug>.png` (must be in 
 | OpenAI | embeddings (RAG), gpt-image-1 (insight images) | embeddings negligible; images $0.02–0.04 each |
 | Tavily | web search (news, enrichment, insights) | free tier |
 | Apify (flashscore-scraper-live) | structured match results for recaps | $5 free credit/month; ~$0.02/run filtered |
+| Reddit public JSON API | r/tennis hot posts discovery | free, no auth |
+| Google News RSS (multi-locale) | Italian/Spanish player news (Tier 4 home-country sweep) | free |
 | Telegram Bot API | channel publishing + private approval flow (free) | free |
 | Vercel | website hosting + builds | free tier |
 
